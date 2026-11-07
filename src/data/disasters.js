@@ -15,6 +15,9 @@ export const INNER_DISASTERS = [
   'Engine Failure',
 ];
 
+/** Fixed values for now. Users can see them but not change them. */
+export const DISASTER_PARAMETERS = { severity: 65, speed: 12, angle: 30 };
+
 /** Demo response text shown in the log until the AI backend is connected. */
 export function demoAiResponse(disaster) {
   if (disaster.includes('Solar')) return 'Reconfiguring power distribution';

@@ -1,5 +1,6 @@
 import { OrbitControls, Stars } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import CameraControls from './CameraControls.jsx';
 import PlanetarySystem from './PlanetarySystem.jsx';
 import Ship from './Ship.jsx';
 
@@ -15,10 +16,22 @@ function HazardMarker({ event }) {
   );
 }
 
-export default function Scene({ event, playing, planet = false, onPlace }) {
+const SHIP_VIEW = [8, 5, 10];
+const PLANET_VIEW = [0, 12, 18];
+
+export default function Scene({
+  event,
+  playing,
+  planet = false,
+  fullPage = false,
+  viewResetCount = 0,
+  onPlace,
+}) {
+  const home = planet ? PLANET_VIEW : SHIP_VIEW;
+
   return (
     <Canvas
-      camera={{ position: planet ? [0, 12, 18] : [8, 5, 10], fov: 45 }}
+      camera={{ position: home, fov: 45 }}
       onPointerMissed={onPlace}
     >
       <color attach="background" args={['#030a19']} />
@@ -36,7 +49,8 @@ export default function Scene({ event, playing, planet = false, onPlace }) {
         </>
       )}
 
-      <OrbitControls enablePan enableZoom minDistance={3} maxDistance={35} />
+      <OrbitControls makeDefault enablePan enableZoom={false} minDistance={3} maxDistance={35} />
+      <CameraControls active={fullPage} home={home} resetCount={viewResetCount} />
     </Canvas>
   );
 }

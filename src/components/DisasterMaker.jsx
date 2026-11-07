@@ -1,5 +1,5 @@
 import { AlertTriangle, RotateCcw, Send, Target } from 'lucide-react';
-import { INNER_DISASTERS, OUTER_DISASTERS } from '../data/disasters.js';
+import { DISASTER_PARAMETERS, INNER_DISASTERS, OUTER_DISASTERS } from '../data/disasters.js';
 
 function DisasterChoices({ disasters, choice, onChoiceChange }) {
   return (
@@ -20,23 +20,19 @@ function DisasterChoices({ disasters, choice, onChoiceChange }) {
 export default function DisasterMaker({
   choice,
   onChoiceChange,
-  severity,
-  onSeverityChange,
-  speed,
-  onSpeedChange,
-  angle,
-  onAngleChange,
   placed,
   onInject,
   onReset,
 }) {
+  const { severity, speed, angle } = DISASTER_PARAMETERS;
+
   return (
     <aside className="panel left">
       <div className="panelhead">
         <AlertTriangle size={18} /> DISASTER MAKER
       </div>
       <p className="muted">
-        Configure and inject simulated hazards into your autonomous spacecraft.
+        Select and inject simulated hazards into your autonomous spacecraft.
       </p>
 
       <h4>OUTER DISASTERS</h4>
@@ -54,38 +50,20 @@ export default function DisasterMaker({
       />
 
       <h4>DISASTER PARAMETERS</h4>
-      <label>
-        Severity <strong>{severity}%</strong>
-      </label>
-      <input
-        type="range"
-        min="1"
-        max="100"
-        value={severity}
-        onChange={(e) => onSeverityChange(+e.target.value)}
-      />
-
-      <label>
-        Relative Speed <strong>{speed} km/s</strong>
-      </label>
-      <input
-        type="range"
-        min="1"
-        max="40"
-        value={speed}
-        onChange={(e) => onSpeedChange(+e.target.value)}
-      />
-
-      <label>
-        Approach Angle <strong>{angle}°</strong>
-      </label>
-      <input
-        type="range"
-        min="0"
-        max="360"
-        value={angle}
-        onChange={(e) => onAngleChange(+e.target.value)}
-      />
+      <dl className="params">
+        <div>
+          <dt>Severity</dt>
+          <dd>{severity}%</dd>
+        </div>
+        <div>
+          <dt>Relative Speed</dt>
+          <dd>{speed} km/s</dd>
+        </div>
+        <div>
+          <dt>Approach Angle</dt>
+          <dd>{angle}°</dd>
+        </div>
+      </dl>
 
       <div className="tip">
         <Target size={16} />{' '}

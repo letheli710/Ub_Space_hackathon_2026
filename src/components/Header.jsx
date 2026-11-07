@@ -1,6 +1,6 @@
 import { Orbit, Settings } from 'lucide-react';
 
-const TABS = ['Generator', 'Planetary Trajectories', 'AI Logs'];
+const TABS = ['Introduction', 'Generator', 'Planetary Trajectories', 'AI Logs'];
 
 export default function Header({ tab, onTabChange, event }) {
   return (

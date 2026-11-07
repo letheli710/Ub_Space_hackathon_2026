@@ -1,24 +1,24 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import AiResponse from './components/AiResponse.jsx';
 import DisasterMaker from './components/DisasterMaker.jsx';
 import Header from './components/Header.jsx';
-import MissionStatus from './components/MissionStatus.jsx';
+import Introduction from './components/Introduction.jsx';
 import Telemetry from './components/Telemetry.jsx';
 import Timeline from './components/Timeline.jsx';
 import Viewer from './components/Viewer.jsx';
-import { demoAiResponse } from './data/disasters.js';
+import { DISASTER_PARAMETERS, demoAiResponse } from './data/disasters.js';
 
 export default function App() {
   const [tab, setTab] = useState('Generator');
   const [choice, setChoice] = useState('Asteroid Collision');
-  const [severity, setSeverity] = useState(65);
-  const [speed, setSpeed] = useState(12);
-  const [angle, setAngle] = useState(30);
   const [event, setEvent] = useState(null);
   const [playing, setPlaying] = useState(true);
   const [logs, setLogs] = useState(['SYSTEM READY · Awaiting disaster injection']);
   const [seconds, setSeconds] = useState(0);
   const [placed, setPlaced] = useState(false);
+  const [fullPage, setFullPage] = useState(false);
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
 
   useEffect(() => {
     if (!playing) return undefined;
@@ -26,7 +26,27 @@ export default function App() {
     return () => clearInterval(id);
   }, [playing]);
 
+  function exitFullPage() {
+    setFullPage(false);
+    setLeftOpen(false);
+    setRightOpen(false);
+  }
+
+  useEffect(() => {
+    if (!fullPage) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') exitFullPage();
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [fullPage]);
+
   function inject() {
+    const { severity } = DISASTER_PARAMETERS;
     setEvent({ name: choice, severity });
     setLogs(
       [
@@ -45,45 +65,73 @@ export default function App() {
     setSeconds(0);
   }
 
+  const workspaceClass = [
+    'workspace',
+    fullPage && 'fullpage',
+    leftOpen && 'left-open',
+    rightOpen && 'right-open',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div className="app">
       <Header tab={tab} onTabChange={setTab} event={event} />
 
-      <div className="workspace">
-        <DisasterMaker
-          choice={choice}
-          onChoiceChange={setChoice}
-          severity={severity}
-          onSeverityChange={setSeverity}
-          speed={speed}
-          onSpeedChange={setSpeed}
-          angle={angle}
-          onAngleChange={setAngle}
-          placed={placed}
-          onInject={inject}
-          onReset={reset}
-        />
-
-        <main>
-          <Viewer
-            tab={tab}
-            event={event}
-            playing={playing}
-            logs={logs}
-            seconds={seconds}
-            onTogglePlaying={() => setPlaying(!playing)}
+      {tab === 'Introduction' ? (
+        <Introduction />
+      ) : (
+        <div className={workspaceClass}>
+          <DisasterMaker
+            choice={choice}
+            onChoiceChange={setChoice}
+            placed={placed}
+            onInject={inject}
             onReset={reset}
-            onPlace={() => setPlaced(true)}
           />
-          <Timeline logs={logs} seconds={seconds} />
-        </main>
 
-        <aside className="right">
-          <Telemetry event={event} />
-          <AiResponse event={event} />
-          <MissionStatus event={event} />
-        </aside>
-      </div>
+          <main>
+            <Viewer
+              tab={tab}
+              event={event}
+              playing={playing}
+              logs={logs}
+              seconds={seconds}
+              fullPage={fullPage}
+              onTogglePlaying={() => setPlaying(!playing)}
+              onReset={reset}
+              onPlace={() => setPlaced(true)}
+              onToggleFullPage={() => (fullPage ? exitFullPage() : setFullPage(true))}
+            />
+          </main>
+
+          <aside className="right">
+            <Telemetry event={event} />
+            <Timeline logs={logs} seconds={seconds} />
+          </aside>
+
+          {fullPage && (
+            <>
+              <button
+                className="drawer-toggle drawer-toggle-left"
+                aria-expanded={leftOpen}
+                onClick={() => setLeftOpen(!leftOpen)}
+              >
+                {leftOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                <span>DISASTER MAKER</span>
+              </button>
+              <button
+                className="drawer-toggle drawer-toggle-right"
+                aria-expanded={rightOpen}
+                onClick={() => setRightOpen(!rightOpen)}
+              >
+                {rightOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                <span>TELEMETRY / AI LOG</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <footer>
         ASTRACTRL / HACKATHON PROTOTYPE{' '}
