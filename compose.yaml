@@ -1,0 +1,21 @@
+name: starship-environment
+services:
+  environment:
+    build:
+      context: .
+      args:
+        SPACE_ROS_IMAGE: ${SPACE_ROS_IMAGE:-osrf/space-ros:jazzy-2026.07.0}
+    image: starship-environment:local
+    init: true
+    ports:
+      - "127.0.0.1:${SIM_PORT:-8000}:8000"
+    environment:
+      WEB_ORIGINS: ${WEB_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+    shm_size: 512mb
+    healthcheck:
+      test: ["CMD", "/workspace/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      start_period: 45s
+      retries: 6
+    stop_grace_period: 15s

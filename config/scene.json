@@ -1,0 +1,1639 @@
+{
+  "schema_version": 1,
+  "world": "deep_space",
+  "units": "meters",
+  "up_axis": "Z",
+  "travel_model": "compressed_scale_straight_line",
+  "entities": [
+    {
+      "id": "starship",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "starship::hull",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "deck",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  18.0,
+                  8.0,
+                  0.4
+                ]
+              },
+              "color": [
+                0.16,
+                0.22,
+                0.31,
+                1.0
+              ]
+            },
+            {
+              "id": "wall_-1",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": -3.875,
+                  "z": 1.45
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  18.0,
+                  0.25,
+                  2.5
+                ]
+              },
+              "color": [
+                0.32,
+                0.42,
+                0.55,
+                1.0
+              ]
+            },
+            {
+              "id": "engine_-1",
+              "pose": {
+                "position": {
+                  "x": -8.0,
+                  "y": -2.5,
+                  "z": -1.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.65
+                ],
+                "length": [
+                  1.4
+                ]
+              },
+              "color": [
+                0.12,
+                0.55,
+                0.85,
+                1.0
+              ]
+            },
+            {
+              "id": "wall_1",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 3.875,
+                  "z": 1.45
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  18.0,
+                  0.25,
+                  2.5
+                ]
+              },
+              "color": [
+                0.32,
+                0.42,
+                0.55,
+                1.0
+              ]
+            },
+            {
+              "id": "engine_1",
+              "pose": {
+                "position": {
+                  "x": -8.0,
+                  "y": 2.5,
+                  "z": -1.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.65
+                ],
+                "length": [
+                  1.4
+                ]
+              },
+              "color": [
+                0.12,
+                0.55,
+                0.85,
+                1.0
+              ]
+            },
+            {
+              "id": "bow",
+              "pose": {
+                "position": {
+                  "x": 8.8,
+                  "y": 0.0,
+                  "z": 0.7
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  0.4,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.35,
+                0.55,
+                0.72,
+                1.0
+              ]
+            },
+            {
+              "id": "power_equipment",
+              "pose": {
+                "position": {
+                  "x": -5.0,
+                  "y": -0.8,
+                  "z": 0.5
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.4,
+                  0.8,
+                  0.6
+                ]
+              },
+              "color": [
+                0.95,
+                0.65,
+                0.12,
+                1.0
+              ]
+            },
+            {
+              "id": "life_support_equipment",
+              "pose": {
+                "position": {
+                  "x": 4.0,
+                  "y": -0.8,
+                  "z": 0.5
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.4,
+                  0.8,
+                  0.6
+                ]
+              },
+              "color": [
+                0.2,
+                0.8,
+                0.5,
+                1.0
+              ]
+            },
+            {
+              "id": "thermal_equipment",
+              "pose": {
+                "position": {
+                  "x": -5.0,
+                  "y": 0.8,
+                  "z": 0.5
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.4,
+                  0.8,
+                  0.6
+                ]
+              },
+              "color": [
+                0.2,
+                0.65,
+                0.95,
+                1.0
+              ]
+            },
+            {
+              "id": "navigation_equipment",
+              "pose": {
+                "position": {
+                  "x": 4.0,
+                  "y": 0.8,
+                  "z": 0.5
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.4,
+                  0.8,
+                  0.6
+                ]
+              },
+              "color": [
+                0.7,
+                0.4,
+                0.95,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_power_base",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": -2.5,
+              "z": 0.4
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "mount",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.25
+                ],
+                "length": [
+                  0.4
+                ]
+              },
+              "color": [
+                0.3,
+                0.35,
+                0.4,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_power_yaw_link",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": -2.5,
+              "z": 0.75
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "hub",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.18
+                ]
+              },
+              "color": [
+                0.95,
+                0.65,
+                0.15,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_power_upper",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": -2.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "upper",
+              "pose": {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.0,
+                  0.14,
+                  0.14
+                ]
+              },
+              "color": [
+                0.85,
+                0.88,
+                0.93,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_power_forearm",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": -1.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "forearm",
+              "pose": {
+                "position": {
+                  "x": 0.4,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  0.8,
+                  0.12,
+                  0.12
+                ]
+              },
+              "color": [
+                0.55,
+                0.68,
+                0.8,
+                1.0
+              ]
+            },
+            {
+              "id": "tool_tip",
+              "pose": {
+                "position": {
+                  "x": 0.85,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.12
+                ]
+              },
+              "color": [
+                0.15,
+                0.85,
+                0.9,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_life_support_base",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": -2.5,
+              "z": 0.4
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "mount",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.25
+                ],
+                "length": [
+                  0.4
+                ]
+              },
+              "color": [
+                0.3,
+                0.35,
+                0.4,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_life_support_yaw_link",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": -2.5,
+              "z": 0.75
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "hub",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.18
+                ]
+              },
+              "color": [
+                0.95,
+                0.65,
+                0.15,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_life_support_upper",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": -2.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "upper",
+              "pose": {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.0,
+                  0.14,
+                  0.14
+                ]
+              },
+              "color": [
+                0.85,
+                0.88,
+                0.93,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_life_support_forearm",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": -1.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "forearm",
+              "pose": {
+                "position": {
+                  "x": 0.4,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  0.8,
+                  0.12,
+                  0.12
+                ]
+              },
+              "color": [
+                0.55,
+                0.68,
+                0.8,
+                1.0
+              ]
+            },
+            {
+              "id": "tool_tip",
+              "pose": {
+                "position": {
+                  "x": 0.85,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.12
+                ]
+              },
+              "color": [
+                0.15,
+                0.85,
+                0.9,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_thermal_base",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": 2.5,
+              "z": 0.4
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "mount",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.25
+                ],
+                "length": [
+                  0.4
+                ]
+              },
+              "color": [
+                0.3,
+                0.35,
+                0.4,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_thermal_yaw_link",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": 2.5,
+              "z": 0.75
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "hub",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.18
+                ]
+              },
+              "color": [
+                0.95,
+                0.65,
+                0.15,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_thermal_upper",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": 2.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "upper",
+              "pose": {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.0,
+                  0.14,
+                  0.14
+                ]
+              },
+              "color": [
+                0.85,
+                0.88,
+                0.93,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_thermal_forearm",
+          "pose_in_model": {
+            "position": {
+              "x": -5.0,
+              "y": 1.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "forearm",
+              "pose": {
+                "position": {
+                  "x": 0.4,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  0.8,
+                  0.12,
+                  0.12
+                ]
+              },
+              "color": [
+                0.55,
+                0.68,
+                0.8,
+                1.0
+              ]
+            },
+            {
+              "id": "tool_tip",
+              "pose": {
+                "position": {
+                  "x": 0.85,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.12
+                ]
+              },
+              "color": [
+                0.15,
+                0.85,
+                0.9,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_navigation_base",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": 2.5,
+              "z": 0.4
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "mount",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "cylinder",
+                "radius": [
+                  0.25
+                ],
+                "length": [
+                  0.4
+                ]
+              },
+              "color": [
+                0.3,
+                0.35,
+                0.4,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_navigation_yaw_link",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": 2.5,
+              "z": 0.75
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "hub",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.18
+                ]
+              },
+              "color": [
+                0.95,
+                0.65,
+                0.15,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_navigation_upper",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": 2.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "upper",
+              "pose": {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  1.0,
+                  0.14,
+                  0.14
+                ]
+              },
+              "color": [
+                0.85,
+                0.88,
+                0.93,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "id": "starship::arm_navigation_forearm",
+          "pose_in_model": {
+            "position": {
+              "x": 4.0,
+              "y": 1.5,
+              "z": 1.05
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": -0.7071067823197227,
+              "w": 0.7071067800533724
+            }
+          },
+          "visuals": [
+            {
+              "id": "forearm",
+              "pose": {
+                "position": {
+                  "x": 0.4,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  0.8,
+                  0.12,
+                  0.12
+                ]
+              },
+              "color": [
+                0.55,
+                0.68,
+                0.8,
+                1.0
+              ]
+            },
+            {
+              "id": "tool_tip",
+              "pose": {
+                "position": {
+                  "x": 0.85,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  0.12
+                ]
+              },
+              "color": [
+                0.15,
+                0.85,
+                0.9,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "destination_planet",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": 600.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "destination_planet::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  45.0
+                ]
+              },
+              "color": [
+                0.14,
+                0.45,
+                0.8,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "departure_planet",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": -180.0,
+          "y": -100.0,
+          "z": -70.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "departure_planet::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  35.0
+                ]
+              },
+              "color": [
+                0.65,
+                0.3,
+                0.16,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moon",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": 560.0,
+          "y": 120.0,
+          "z": 45.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "moon::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  12.0
+                ]
+              },
+              "color": [
+                0.5,
+                0.52,
+                0.57,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asteroid_1",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": 150.0,
+          "y": 35.0,
+          "z": 15.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "asteroid_1::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.38,
+                0.3,
+                0.22,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asteroid_2",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": 280.0,
+          "y": -45.0,
+          "z": -10.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "asteroid_2::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  5.0
+                ]
+              },
+              "color": [
+                0.42,
+                0.35,
+                0.26,
+                1.0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "destination": {
+    "entity_id": "destination_planet",
+    "stop_distance_m": 70
+  },
+  "arms": [
+    {
+      "id": "power",
+      "system": "power",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_power_yaw",
+          "lower_rad": -1.57,
+          "upper_rad": 1.57
+        },
+        "shoulder": {
+          "joint_name": "arm_power_shoulder",
+          "lower_rad": -1.2,
+          "upper_rad": 1.2
+        },
+        "elbow": {
+          "joint_name": "arm_power_elbow",
+          "lower_rad": -1.5,
+          "upper_rad": 1.5
+        }
+      }
+    },
+    {
+      "id": "life_support",
+      "system": "life_support",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_life_support_yaw",
+          "lower_rad": -1.57,
+          "upper_rad": 1.57
+        },
+        "shoulder": {
+          "joint_name": "arm_life_support_shoulder",
+          "lower_rad": -1.2,
+          "upper_rad": 1.2
+        },
+        "elbow": {
+          "joint_name": "arm_life_support_elbow",
+          "lower_rad": -1.5,
+          "upper_rad": 1.5
+        }
+      }
+    },
+    {
+      "id": "thermal",
+      "system": "thermal",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_thermal_yaw",
+          "lower_rad": -1.57,
+          "upper_rad": 1.57
+        },
+        "shoulder": {
+          "joint_name": "arm_thermal_shoulder",
+          "lower_rad": -1.2,
+          "upper_rad": 1.2
+        },
+        "elbow": {
+          "joint_name": "arm_thermal_elbow",
+          "lower_rad": -1.5,
+          "upper_rad": 1.5
+        }
+      }
+    },
+    {
+      "id": "navigation",
+      "system": "navigation",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_navigation_yaw",
+          "lower_rad": -1.57,
+          "upper_rad": 1.57
+        },
+        "shoulder": {
+          "joint_name": "arm_navigation_shoulder",
+          "lower_rad": -1.2,
+          "upper_rad": 1.2
+        },
+        "elbow": {
+          "joint_name": "arm_navigation_elbow",
+          "lower_rad": -1.5,
+          "upper_rad": 1.5
+        }
+      }
+    }
+  ]
+}
