@@ -24,6 +24,7 @@ from starship_sim.geometry import world_to_local
 class RosBackend:
     def __init__(self, scene):
         self.scene = scene
+        self.ship_id = scene["ship_entity_id"]
         self.destination_position = next(e["pose_in_world"]["position"] for e in scene["entities"]
                                          if e["id"] == scene["destination"]["entity_id"])
         self.lock = threading.RLock()
@@ -48,7 +49,7 @@ class RosBackend:
                 self.publishers[(arm["id"], name)] = self.node.create_publisher(
                     Float64, f'/arms/{arm["id"]}/{name}/target', 10)
         self.velocity = self.node.create_publisher(Twist, "/starship/cmd_vel", 10)
-        self.control = self.node.create_client(ControlWorld, "/world/deep_space/control")
+        self.control = self.node.create_client(ControlWorld, f'/world/{scene["world"]}/control')
         self.subscriptions = [
             self.node.create_subscription(Clock, "/clock", self.on_clock, qos_profile_sensor_data),
             self.node.create_subscription(WorldStatistics, "/simulation/stats", self.on_stats, qos_profile_sensor_data),
@@ -86,12 +87,16 @@ class RosBackend:
         with self.lock:
             for transform in msg.transforms:
                 translation, rotation = transform.transform.translation, transform.transform.rotation
-                self.transforms[transform.child_frame_id] = {
-                    "parent_frame_id": transform.header.frame_id,
-                    "child_frame_id": transform.child_frame_id,
+                frame_id = transform.child_frame_id.strip("/").replace("/", "::")
+                parent_id = transform.header.frame_id.strip("/").replace("/", "::")
+                self.transforms[frame_id] = {
+                    "parent_frame_id": parent_id,
+                    "child_frame_id": frame_id,
                     "position": {"x": translation.x, "y": translation.y, "z": translation.z},
                     "orientation": {"x": rotation.x, "y": rotation.y, "z": rotation.z, "w": rotation.w},
                 }
+                if frame_id == self.scene["destination"]["entity_id"]:
+                    self.destination_position = dict(x=translation.x, y=translation.y, z=translation.z)
             self.received_topic("poses")
 
     def on_joints(self, msg):
@@ -104,21 +109,22 @@ class RosBackend:
             now = time.monotonic()
             ages = {name: round(now - stamp, 3) for name, stamp in self.received.items()}
             online = ages.get("stats", math.inf) < 3 and self.error is None
-            complete = (self.sim_time is not None and "starship" in self.transforms and
+            complete = (self.sim_time is not None and self.ship_id in self.transforms and
                         all(joint["joint_name"] in self.joints for arm in self.scene["arms"]
                             for joint in arm["joints"].values()))
-            fresh = self.paused is True or all(ages.get(name, math.inf) < 3
-                                               for name in ("clock", "poses", "joints"))
+            required = ("clock", "poses", "joints") if self.scene["arms"] else ("clock", "poses")
+            fresh = self.paused is True or all(ages.get(name, math.inf) < 3 for name in required)
             return {"backend": "space_ros_gazebo", "online": online,
                     "ready": bool(online and complete and fresh),
                     "topic_age_s": ages, "error": self.error}
 
     def snapshot(self):
         with self.lock:
-            position = self.transforms.get("starship", {}).get("position")
+            position = self.transforms.get(self.ship_id, {}).get("position")
             distance = math.dist([position[a] for a in "xyz"],
                                  [self.destination_position[a] for a in "xyz"]) if position else None
-            return {"schema_version": 1, "sequence": self.sequence, "sim_time_s": self.sim_time,
+            return {"schema_version": 1, "scene_revision": self.scene["revision"],
+                    "sequence": self.sequence, "sim_time_s": self.sim_time,
                     "paused": self.paused, "connection": self.health(),
                     "transforms": deepcopy(list(self.transforms.values())),
                     "arms": [{"id": arm["id"], "measured_rad": {
@@ -126,21 +132,21 @@ class RosBackend:
                         for name, joint in arm["joints"].items()},
                         "requested_rad": deepcopy(self.targets.get(arm["id"], {}))}
                         for arm in self.scene["arms"]],
-                    "navigation": {"destination": "destination_planet", "distance_m": distance,
-                                   "arrived": self.arrived, "cruise_speed_m_s": 2}}
+                    "navigation": {"destination": self.scene["destination"]["entity_id"], "distance_m": distance,
+                                   "arrived": self.arrived, "cruise_speed_m_s": self.scene["cruise_speed_m_s"]}}
 
     def navigate(self):
         with self.lock:
             if not self.health()["ready"] or self.paused:
                 return
-            ship = self.transforms["starship"]
+            ship = self.transforms[self.ship_id]
             delta = tuple(self.destination_position[a] - ship["position"][a] for a in "xyz")
             distance = math.sqrt(sum(value * value for value in delta))
             stop_distance = self.scene["destination"]["stop_distance_m"]
             self.arrived = distance <= stop_distance + 0.1
             message = Twist()
             if not self.arrived:
-                speed = min(2.0, max(0.0, (distance - stop_distance) * 0.5))
+                speed = min(self.scene["cruise_speed_m_s"], max(0.0, (distance - stop_distance) * 0.5))
                 velocity = world_to_local(tuple(value / distance * speed for value in delta), ship["orientation"])
                 message.linear.x, message.linear.y, message.linear.z = velocity
             self.velocity.publish(message)

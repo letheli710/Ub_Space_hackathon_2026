@@ -15,7 +15,7 @@ def test_generated_environment_has_no_drift():
 
 
 def test_world_scene_and_command_bridge_agree():
-    world = ET.parse(ROOT / "worlds/deep_space.sdf").getroot().find("world")
+    world = ET.parse(ROOT / "worlds/environment.sdf").getroot().find("world")
     scene = json.loads((ROOT / "config/scene.json").read_text())
     bridge = yaml.safe_load((ROOT / "config/bridge.yaml").read_text())
     assert world.findtext("gravity") == "0 0 0"
@@ -38,7 +38,7 @@ def test_world_scene_and_command_bridge_agree():
 
 
 def test_scene_exports_all_visual_geometry_and_initial_frames():
-    world = ET.parse(ROOT / "worlds/deep_space.sdf").getroot().find("world")
+    world = ET.parse(ROOT / "worlds/environment.sdf").getroot().find("world")
     scene = json.loads((ROOT / "config/scene.json").read_text())
     for entity in scene["entities"]:
         model = world.find(f"model[@name='{entity['id']}']")
@@ -52,7 +52,7 @@ def test_scene_exports_all_visual_geometry_and_initial_frames():
 
 
 def test_each_arm_is_mounted_within_reach_of_its_equipment():
-    ship = ET.parse(ROOT / "worlds/deep_space.sdf").getroot().find("world/model[@name='starship']")
+    ship = ET.parse(ROOT / "worlds/environment.sdf").getroot().find("world/model[@name='starship']")
     scene = json.loads((ROOT / "config/scene.json").read_text())
     for arm in scene["arms"]:
         pivot = [float(v) for v in ship.findtext(f"link[@name='arm_{arm['id']}_upper']/pose").split()[:3]]

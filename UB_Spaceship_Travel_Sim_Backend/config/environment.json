@@ -1,0 +1,48 @@
+{
+  "ship_sdf": "assets/models/starship/model.sdf",
+  "map_sdf": "assets/maps/deep_space.sdf",
+  "ship_entity_id": "starship",
+  "destination": {
+    "entity_id": "destination_planet",
+    "stop_distance_m": 70
+  },
+  "cruise_speed_m_s": 2,
+  "arms": [
+    {
+      "id": "power",
+      "system": "power",
+      "joints": {
+        "yaw": "arm_power_yaw",
+        "shoulder": "arm_power_shoulder",
+        "elbow": "arm_power_elbow"
+      }
+    },
+    {
+      "id": "life_support",
+      "system": "life_support",
+      "joints": {
+        "yaw": "arm_life_support_yaw",
+        "shoulder": "arm_life_support_shoulder",
+        "elbow": "arm_life_support_elbow"
+      }
+    },
+    {
+      "id": "thermal",
+      "system": "thermal",
+      "joints": {
+        "yaw": "arm_thermal_yaw",
+        "shoulder": "arm_thermal_shoulder",
+        "elbow": "arm_thermal_elbow"
+      }
+    },
+    {
+      "id": "navigation",
+      "system": "navigation",
+      "joints": {
+        "yaw": "arm_navigation_yaw",
+        "shoulder": "arm_navigation_shoulder",
+        "elbow": "arm_navigation_elbow"
+      }
+    }
+  ]
+}

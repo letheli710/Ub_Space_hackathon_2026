@@ -20,9 +20,10 @@ COPY starship_sim ./starship_sim
 COPY tools ./tools
 COPY worlds ./worlds
 COPY config ./config
+COPY assets ./assets
 COPY docker ./docker
 RUN chmod +x docker/*.sh \
-    && /workspace/.venv/bin/python tools/generate_environment.py --check
+    && /workspace/.venv/bin/python tools/generate_environment.py
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
     ROS_DOMAIN_ID=77 \

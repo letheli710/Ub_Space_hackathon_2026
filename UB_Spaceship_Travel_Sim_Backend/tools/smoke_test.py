@@ -33,17 +33,16 @@ def main():
             time.sleep(0.2)
         raise AssertionError("Timed out waiting for live simulator state")
 
-    eventually(lambda: request("/readyz")["ready"], timeout=120)
+    eventually(lambda: request("/api/v1/state")["connection"]["ready"], timeout=120)
     scene = request("/api/v1/scene")
-    assert len(scene["arms"]) == 4
+    assert scene["ship_entity_id"] in {entity["id"] for entity in scene["entities"]}
     state = request("/api/v1/state")
     assert state["connection"]["backend"] == "space_ros_gazebo"
     t0 = state["sim_time_s"]
     eventually(lambda: request("/api/v1/state")["sim_time_s"] > t0 + 0.5)
-    start_x = next(t["position"]["x"] for t in state["transforms"] if t["child_frame_id"] == "starship")
+    start_distance = state["navigation"]["distance_m"]
     if not state["navigation"]["arrived"]:
-        eventually(lambda: next(t["position"]["x"] for t in request("/api/v1/state")["transforms"]
-                                if t["child_frame_id"] == "starship") > start_x + 0.2)
+        eventually(lambda: request("/api/v1/state")["navigation"]["distance_m"] < start_distance - 0.2)
     print("PASS: live clock, ship movement and scene geometry")
 
     try:
@@ -52,17 +51,21 @@ def main():
         paused_time = request("/api/v1/state")["sim_time_s"]
         time.sleep(0.5)
         assert abs(request("/api/v1/state")["sim_time_s"] - paused_time) < 0.02
-        assert request("/readyz")["ready"]
+        assert request("/api/v1/state")["connection"]["ready"]
     finally:
         request("/api/v1/simulation/control", {"paused": False})
     eventually(lambda: request("/api/v1/state")["sim_time_s"] > paused_time + 0.2)
     print("PASS: pause and resume affect the Gazebo clock")
 
+    targets = {}
     for arm in scene["arms"]:
-        request(f'/api/v1/arms/{arm["id"]}/target', {"targets": {"yaw": 0.4}})
-    eventually(lambda: all(abs(arm["measured_rad"]["yaw"] - 0.4) < 0.08
+        name, bounds = next(iter(arm["joints"].items()))
+        target = max(bounds["lower_rad"], min(0.4, bounds["upper_rad"]))
+        targets[arm["id"]] = (name, target)
+        request(f'/api/v1/arms/{arm["id"]}/target', {"targets": {name: target}})
+    eventually(lambda: all(abs(arm["measured_rad"][targets[arm["id"]][0]] - targets[arm["id"]][1]) < 0.08
                            for arm in request("/api/v1/state")["arms"]))
-    print("PASS: all four arm joints physically approach their requested targets")
+    print(f'PASS: {len(scene["arms"])} arms physically approach their requested joint targets')
 
     websocket_url = base.replace("https://", "wss://").replace("http://", "ws://") + "/api/v1/telemetry"
     with connect(websocket_url, open_timeout=5) as socket:

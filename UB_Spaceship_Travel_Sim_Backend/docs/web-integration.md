@@ -4,6 +4,13 @@ Base URL: `http://localhost:8000`. Live stream:
 `ws://localhost:8000/api/v1/telemetry`. Both use the same configurable host port.
 There is one shared simulation per backend process and a single API worker.
 
+The React frontend at `../../frontend/` now implements this contract. Start it
+with `npm ci` and `npm run dev`. Its development server on port 5173 proxies
+`/api` HTTP requests, asset files and WebSocket traffic to port 8000. Change
+`SIMULATOR_PROXY_TARGET` in `frontend/.env.local` for a different backend host.
+`VITE_SIMULATOR_URL` optionally selects an explicit backend origin or deployment
+prefix; otherwise a same-origin `/api` reverse proxy is used.
+
 ## Rendering the environment
 
 1. Fetch `GET /api/v1/scene` once. Each entity has a stable `id`, initial
@@ -25,8 +32,12 @@ quaternions with explicitly named `x`, `y`, `z`, `w` fields. For a renderer usin
 Y up, convert the whole scene consistently (for example, place the environment
 under a root rotated −90 degrees around X). All angles are radians.
 
-The endpoint transmits scene data and state, not video or a ready-made embedded
-Gazebo viewport. Rendering and the human interface belong to the web frontend.
+The endpoint transmits scene data and state, not video or an embedded Gazebo
+viewport. The frontend renders this geometry and follows `ship_entity_id`.
+`revision` identifies the active asset set; `scene_revision` in telemetry lets
+the client refetch the scene after a model/map change. Mesh geometry additionally
+contains `uri`, `format` and `scale`, served under `/api/v1/assets/`. See
+[model imports](models-and-maps.md) for formats and supported SDF features.
 
 ## Read state and connection health
 
@@ -52,6 +63,7 @@ Each envelope contains `type: "state"`, `schema_version: 1`, and `data`:
 | Field | Meaning |
 |---|---|
 | `sim_time_s` | Gazebo simulation clock; initially null. It stops while paused. |
+| `scene_revision` | Active scene/asset revision, matching `GET /api/v1/scene`. |
 | `sequence` | Monotonic callback counter within one backend process. |
 | `paused` | Measured world status; initially null. |
 | `connection` | `backend`, `online`, `ready`, topic ages in wall seconds, and any executor error. |
@@ -82,8 +94,9 @@ if (!response.ok) throw new Error(await response.text());
 const accepted = await response.json();
 ```
 
-Arm IDs: `power`, `life_support`, `thermal`, `navigation`. The scene includes
-the authoritative joint limits. You may send one, two or three targets; omitted
+The default arm IDs are `power`, `life_support`, `thermal`, `navigation`; the
+active scene's `arms` list is authoritative for replacement models. It includes
+joint names and limits. You may send any nonempty subset of its targets; omitted
 joints retain their controller targets. The entire request is validated before
 any target is published. Unknown arms return 404; invalid joints, nonfinite
 angles, out-of-range targets or extra fields return 422. A disconnected or

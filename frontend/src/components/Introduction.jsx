@@ -10,18 +10,19 @@ export default function Introduction() {
           handles them.
         </p>
         <p>
-          Choose an outer hazard, such as an asteroid or a solar storm, or an inner failure, such as
-          an oxygen leak or an engine fault. Then watch how the AI responds through live telemetry
-          and its action log.
+          The current environment connects to a simulated spaceship traveling toward a destination
+          planet. Explore the ship, move its robotic arms, and follow measured telemetry.
+          Disaster injection and autonomous AI responses are planned for a later stage.
         </p>
 
         <h3>How to use it</h3>
         <ol>
           <li>Open the Generator tab.</li>
-          <li>Pick a disaster and press Inject Disaster.</li>
-          <li>Follow the ship in the 3D view and read the AI action log.</li>
+          <li>Check that the simulator status reads LIVE.</li>
+          <li>Select an arm, send a joint target, and watch its measured position.</li>
+          <li>Use the pause button or explore the mission map.</li>
         </ol>
-        <p>There is no destination and no time limit, so you can keep testing the AI.</p>
+        <p>The ship approaches its destination automatically. The ship model and mission map can be replaced independently of this interface.</p>
       </div>
 
       <div className="intro-logo">

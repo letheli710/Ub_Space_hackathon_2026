@@ -163,7 +163,6 @@
               "type": "number"
             },
             "type": "object",
-            "maxProperties": 3,
             "minProperties": 1,
             "title": "Targets"
           }

@@ -38,7 +38,7 @@ docker compose logs -f
 ```
 
 For Docker Engine installed inside WSL, run the same commands in Ubuntu from
-`/mnt/c/Users/usjac/Desktop/Coding Studio/Codex/UB_Hacking-Starship_Travel_Simulator/Ub_Space_hackathon_2026`.
+`/mnt/c/Users/usjac/Desktop/Coding Studio/Codex/UB_Hacking-Starship_Travel_Simulator/Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_Backend`.
 Use `sudo docker` if your Linux user has no Docker permissions.
 
 On this Windows checkout, use the provided PowerShell launcher to avoid WSL
@@ -76,7 +76,9 @@ application's authentication and HTTPS. The backend does not implement accounts.
 See [docs/web-integration.md](docs/web-integration.md) for the rendering contract,
 examples and endpoint behavior. [docs/openapi.json](docs/openapi.json) is an
 exported OpenAPI specification; `/openapi.json` provides the running version.
-This repository supplies the environment and interface, not a website frontend.
+The connected React frontend lives at `../frontend/`. From that directory run
+`npm ci` followed by `npm run dev`, then open <http://127.0.0.1:5173>.
+Vite proxies `/api` HTTP, model assets and WebSocket traffic to this backend.
 
 ## Development and verification
 
@@ -95,15 +97,19 @@ ship movement, pause/resume, measured movement of all four arm yaw joints and
 WebSocket delivery. Contract tests use an explicit test double; there is no
 synthetic or mock backend in the running service.
 
-Edit `tools/generate_environment.py` to change the environment, then regenerate:
+Choose `ship_sdf`, `map_sdf`, arm joint mappings and the destination in
+`config/environment.json`. Models and maps live under `assets/`. The Docker
+build generates the environment automatically. To refresh checked-in exports:
 
 ```bash
 uv run python tools/generate_environment.py
 uv run python -m tools.export_openapi
 ```
 
-Commit generated `worlds/deep_space.sdf`, `config/scene.json`, `config/bridge.yaml`
-alongside the generator when making local commits. Dependencies are locked in
+Keep generated `worlds/environment.sdf`, `config/scene.json`, `config/bridge.yaml`
+alongside the source asset/profile changes when making local commits. See
+[model and map imports](docs/models-and-maps.md) for supported formats.
+Dependencies are locked in
 `uv.lock`; `requirements.lock` is the production-only export used by Docker.
 All source changes stay local under the standing no-push instruction.
 

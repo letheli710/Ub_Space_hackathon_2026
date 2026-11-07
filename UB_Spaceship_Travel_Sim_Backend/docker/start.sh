@@ -4,7 +4,8 @@ cd /workspace
 
 # Fail visibly if a binary ROS installation accidentally replaced Space ROS.
 python -c 'import os, rclpy; assert rclpy.__file__.startswith(os.environ["SPACEROS_DIR"]), rclpy.__file__; print("Using Space ROS:", rclpy.__file__, flush=True)'
-gz sdf -k worlds/deep_space.sdf
+gz sdf -k worlds/environment.sdf
+world_name=$(python -c 'import json; print(json.load(open("config/scene.json"))["world"])')
 
 pids=()
 cleanup() {
@@ -14,10 +15,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-gz sim -s -r -v 3 worlds/deep_space.sdf &
+gz sim -s -r -v 3 worlds/environment.sdf &
 pids+=("$!")
 ros2 run ros_gz_bridge parameter_bridge \
-  /world/deep_space/control@ros_gz_interfaces/srv/ControlWorld \
+  "/world/${world_name}/control@ros_gz_interfaces/srv/ControlWorld" \
   --ros-args -p config_file:=/workspace/config/bridge.yaml &
 pids+=("$!")
 python -m starship_sim &

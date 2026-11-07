@@ -21,4 +21,6 @@ __pycache__/
 .runtime/
 .pytest_cache/
 .env
+.env.local
+.env.*.local
 *.log

@@ -4,7 +4,7 @@ from pathlib import Path
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ("Dockerfile", "requirements.lock", "starship_sim", "tools", "worlds", "config", "docker")
+SOURCES = ("Dockerfile", "requirements.lock", "starship_sim", "tools", "worlds", "config", "docker", "assets")
 
 
 def main():

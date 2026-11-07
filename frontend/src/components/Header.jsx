@@ -2,7 +2,7 @@ import { Orbit, Settings } from 'lucide-react';
 
 const TABS = ['Introduction', 'Generator', 'Planetary Trajectories', 'AI Logs'];
 
-export default function Header({ tab, onTabChange, event }) {
+export default function Header({ tab, onTabChange, status }) {
   return (
     <header>
       <div className="brand">
@@ -29,8 +29,8 @@ export default function Header({ tab, onTabChange, event }) {
         ))}
       </nav>
 
-      <div className="status">
-        <i /> {event ? 'EVENT ACTIVE' : 'SYSTEM ONLINE'} <Settings size={16} />
+      <div className={`status ${status === 'OFFLINE' || status === 'CONNECTING' ? 'disconnected' : ''}`} role="status" aria-label="Simulator connection">
+        <i /> {status} <Settings size={16} />
       </div>
     </header>
   );

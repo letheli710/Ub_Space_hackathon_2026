@@ -1,142 +1,76 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DisasterMaker from './components/DisasterMaker.jsx';
 import Header from './components/Header.jsx';
 import Introduction from './components/Introduction.jsx';
 import Telemetry from './components/Telemetry.jsx';
 import Timeline from './components/Timeline.jsx';
 import Viewer from './components/Viewer.jsx';
-import { DISASTER_PARAMETERS, demoAiResponse } from './data/disasters.js';
+import useSimulation from './simulation/useSimulation.js';
 
 export default function App() {
+  const simulation = useSimulation();
   const [tab, setTab] = useState('Generator');
-  const [choice, setChoice] = useState('Asteroid Collision');
-  const [event, setEvent] = useState(null);
-  const [playing, setPlaying] = useState(true);
-  const [logs, setLogs] = useState(['SYSTEM READY · Awaiting disaster injection']);
-  const [seconds, setSeconds] = useState(0);
-  const [placed, setPlaced] = useState(false);
+  const [logs, setLogs] = useState([]);
   const [fullPage, setFullPage] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
-
+  const stateRef = useRef();
+  stateRef.current = simulation.state;
+  const sequence = useRef(0);
+  const previousTime = useRef(null);
+  const addLog = useCallback(text => setLogs(items => [{ id: ++sequence.current,
+    seconds: stateRef.current?.sim_time_s ?? null, text }, ...items].slice(0, 40)), []);
+  const simulationTime = simulation.state?.sim_time_s;
   useEffect(() => {
-    if (!playing) return undefined;
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [playing]);
-
-  function exitFullPage() {
-    setFullPage(false);
-    setLeftOpen(false);
-    setRightOpen(false);
-  }
-
+    if (Number.isFinite(simulationTime)) {
+      if (previousTime.current !== null && simulationTime < previousTime.current - 0.5) {
+        setLogs([]);
+        addLog('Simulator restarted · new voyage');
+      }
+      previousTime.current = simulationTime;
+    }
+  }, [simulationTime, addLog]);
   useEffect(() => {
-    if (!fullPage) return undefined;
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') exitFullPage();
-    };
+    addLog(simulation.ready ? 'Simulator connected · live measurements received' : 'Waiting for live simulator connection');
+  }, [simulation.ready, addLog]);
+  const paused = simulation.state?.paused;
+  useEffect(() => {
+    if (paused !== null && paused !== undefined) addLog(paused ? 'Simulation paused' : 'Simulation running');
+  }, [paused, addLog]);
+  const arrived = simulation.state?.navigation?.arrived;
+  useEffect(() => { if (arrived) addLog('Destination approach complete · ship holding position'); }, [arrived, addLog]);
+
+  function exitFullPage() { setFullPage(false); setLeftOpen(false); setRightOpen(false); }
+  useEffect(() => {
+    if (!fullPage) return;
+    const onKeyDown = event => { if (event.key === 'Escape') exitFullPage(); };
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onKeyDown);
-    };
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKeyDown); };
   }, [fullPage]);
-
-  function inject() {
-    const { severity } = DISASTER_PARAMETERS;
-    setEvent({ name: choice, severity });
-    setLogs(
-      [
-        `DISASTER INJECTED · ${choice} · Severity ${severity}%`,
-        'AI DETECTED · Evaluating spacecraft state',
-        `AI RESPONSE · ${demoAiResponse(choice)}`,
-        ...logs,
-      ].slice(0, 12),
-    );
-    setPlaced(false);
-  }
-
-  function reset() {
-    setEvent(null);
-    setLogs(['SYSTEM RESET · All systems nominal']);
-    setSeconds(0);
-  }
-
-  const workspaceClass = [
-    'workspace',
-    fullPage && 'fullpage',
-    leftOpen && 'left-open',
-    rightOpen && 'right-open',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
+  const workspaceClass = ['workspace', fullPage && 'fullpage', leftOpen && 'left-open', rightOpen && 'right-open'].filter(Boolean).join(' ');
+  const status = !simulation.connected ? 'OFFLINE' : !simulation.ready ? 'CONNECTING' : paused ? 'PAUSED' : 'LIVE';
   return (
     <div className="app">
-      <Header tab={tab} onTabChange={setTab} event={event} />
-
-      {tab === 'Introduction' ? (
-        <Introduction />
-      ) : (
+      <Header tab={tab} onTabChange={setTab} status={status} />
+      {tab === 'Introduction' ? <Introduction /> : (
         <div className={workspaceClass}>
-          <DisasterMaker
-            choice={choice}
-            onChoiceChange={setChoice}
-            placed={placed}
-            onInject={inject}
-            onReset={reset}
-          />
-
-          <main>
-            <Viewer
-              tab={tab}
-              event={event}
-              playing={playing}
-              logs={logs}
-              seconds={seconds}
-              fullPage={fullPage}
-              onTogglePlaying={() => setPlaying(!playing)}
-              onReset={reset}
-              onPlace={() => setPlaced(true)}
-              onToggleFullPage={() => (fullPage ? exitFullPage() : setFullPage(true))}
-            />
-          </main>
-
-          <aside className="right">
-            <Telemetry event={event} />
-            <Timeline logs={logs} seconds={seconds} />
-          </aside>
-
-          {fullPage && (
-            <>
-              <button
-                className="drawer-toggle drawer-toggle-left"
-                aria-expanded={leftOpen}
-                onClick={() => setLeftOpen(!leftOpen)}
-              >
-                {leftOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                <span>DISASTER MAKER</span>
-              </button>
-              <button
-                className="drawer-toggle drawer-toggle-right"
-                aria-expanded={rightOpen}
-                onClick={() => setRightOpen(!rightOpen)}
-              >
-                {rightOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-                <span>TELEMETRY / AI LOG</span>
-              </button>
-            </>
-          )}
+          <DisasterMaker simulation={simulation} onLog={addLog} />
+          <main><Viewer tab={tab} simulation={simulation} logs={logs} fullPage={fullPage}
+            onToggleFullPage={() => fullPage ? exitFullPage() : setFullPage(true)} /></main>
+          <aside className="right"><Telemetry simulation={simulation} /><Timeline logs={logs} /></aside>
+          {fullPage && <>
+            <button className="drawer-toggle drawer-toggle-left" aria-expanded={leftOpen} onClick={() => setLeftOpen(!leftOpen)}>
+              {leftOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}<span>SHIP CONTROLS</span>
+            </button>
+            <button className="drawer-toggle drawer-toggle-right" aria-expanded={rightOpen} onClick={() => setRightOpen(!rightOpen)}>
+              {rightOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}<span>TELEMETRY / EVENT LOG</span>
+            </button>
+          </>}
         </div>
       )}
-
-      <footer>
-        INTERSTELLAR X⁴ / HACKATHON PROTOTYPE{' '}
-        <span>3D UI DEMO — PHYSICS AND AI BACKEND INTEGRATION PENDING</span>
-      </footer>
+      <footer>INTERSTELLAR X⁴ / HACKATHON PROTOTYPE<span>{simulation.ready ? 'LIVE SPACE ROS / GAZEBO ENVIRONMENT' : 'WAITING FOR SIMULATOR'}</span></footer>
     </div>
   );
 }

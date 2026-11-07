@@ -21,6 +21,201 @@
       <specular>0.4 0.4 0.4 1</specular>
       <cast_shadows>true</cast_shadows>
     </light>
+    <model name="destination_planet">
+      <static>true</static>
+      <pose>600 0 0 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>45</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.14 0.45 0.8 1</ambient>
+            <diffuse>0.14 0.45 0.8 1</diffuse>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>45</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="departure_planet">
+      <static>true</static>
+      <pose>-180 -100 -70 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>35</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.65 0.3 0.16 1</ambient>
+            <diffuse>0.65 0.3 0.16 1</diffuse>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>35</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="moon">
+      <static>true</static>
+      <pose>560 120 45 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>12</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.52 0.57 1</ambient>
+            <diffuse>0.5 0.52 0.57 1</diffuse>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>12</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="asteroid_1">
+      <static>true</static>
+      <pose>150 35 15 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.38 0.3 0.22 1</ambient>
+            <diffuse>0.38 0.3 0.22 1</diffuse>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="asteroid_2">
+      <static>true</static>
+      <pose>280 -45 -10 0 0 0</pose>
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.42 0.35 0.26 1</ambient>
+            <diffuse>0.42 0.35 0.26 1</diffuse>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
     <model name="starship">
       <self_collide>true</self_collide>
       <pose>0 0 0 0 0 0</pose>
@@ -425,15 +620,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_power_yaw</joint_name>
-        <topic>/arms/power/yaw/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_power_shoulder" type="revolute">
         <parent>arm_power_yaw_link</parent>
         <child>arm_power_upper</child>
@@ -450,15 +636,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_power_shoulder</joint_name>
-        <topic>/arms/power/shoulder/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_power_elbow" type="revolute">
         <parent>arm_power_upper</parent>
         <child>arm_power_forearm</child>
@@ -475,15 +652,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_power_elbow</joint_name>
-        <topic>/arms/power/elbow/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <link name="arm_life_support_base">
         <pose>4 -2.5 0.4 0 0 1.57079633</pose>
         <inertial>
@@ -666,15 +834,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_life_support_yaw</joint_name>
-        <topic>/arms/life_support/yaw/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_life_support_shoulder" type="revolute">
         <parent>arm_life_support_yaw_link</parent>
         <child>arm_life_support_upper</child>
@@ -691,15 +850,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_life_support_shoulder</joint_name>
-        <topic>/arms/life_support/shoulder/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_life_support_elbow" type="revolute">
         <parent>arm_life_support_upper</parent>
         <child>arm_life_support_forearm</child>
@@ -716,15 +866,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_life_support_elbow</joint_name>
-        <topic>/arms/life_support/elbow/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <link name="arm_thermal_base">
         <pose>-5 2.5 0.4 0 0 -1.57079633</pose>
         <inertial>
@@ -907,15 +1048,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_thermal_yaw</joint_name>
-        <topic>/arms/thermal/yaw/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_thermal_shoulder" type="revolute">
         <parent>arm_thermal_yaw_link</parent>
         <child>arm_thermal_upper</child>
@@ -932,15 +1064,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_thermal_shoulder</joint_name>
-        <topic>/arms/thermal/shoulder/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_thermal_elbow" type="revolute">
         <parent>arm_thermal_upper</parent>
         <child>arm_thermal_forearm</child>
@@ -957,15 +1080,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_thermal_elbow</joint_name>
-        <topic>/arms/thermal/elbow/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <link name="arm_navigation_base">
         <pose>4 2.5 0.4 0 0 -1.57079633</pose>
         <inertial>
@@ -1148,15 +1262,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_navigation_yaw</joint_name>
-        <topic>/arms/navigation/yaw/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_navigation_shoulder" type="revolute">
         <parent>arm_navigation_yaw_link</parent>
         <child>arm_navigation_upper</child>
@@ -1173,15 +1278,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_navigation_shoulder</joint_name>
-        <topic>/arms/navigation/shoulder/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <joint name="arm_navigation_elbow" type="revolute">
         <parent>arm_navigation_upper</parent>
         <child>arm_navigation_forearm</child>
@@ -1198,15 +1294,6 @@
           </dynamics>
         </axis>
       </joint>
-      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
-        <joint_name>arm_navigation_elbow</joint_name>
-        <topic>/arms/navigation/elbow/target</topic>
-        <p_gain>80</p_gain>
-        <d_gain>12</d_gain>
-        <i_gain>0</i_gain>
-        <cmd_min>-200</cmd_min>
-        <cmd_max>200</cmd_max>
-      </plugin>
       <plugin filename="gz-sim-velocity-control-system" name="gz::sim::systems::VelocityControl" />
       <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
@@ -1218,201 +1305,114 @@
       <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
         <topic>/starship/joint_states</topic>
       </plugin>
-    </model>
-    <model name="destination_planet">
-      <static>true</static>
-      <pose>600 0 0 0 0 0</pose>
-      <link name="body">
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
-          </inertia>
-        </inertial>
-        <visual name="surface">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>45</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.14 0.45 0.8 1</ambient>
-            <diffuse>0.14 0.45 0.8 1</diffuse>
-          </material>
-        </visual>
-        <collision name="surface_collision">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>45</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-    </model>
-    <model name="departure_planet">
-      <static>true</static>
-      <pose>-180 -100 -70 0 0 0</pose>
-      <link name="body">
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
-          </inertia>
-        </inertial>
-        <visual name="surface">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>35</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.65 0.3 0.16 1</ambient>
-            <diffuse>0.65 0.3 0.16 1</diffuse>
-          </material>
-        </visual>
-        <collision name="surface_collision">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>35</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-    </model>
-    <model name="moon">
-      <static>true</static>
-      <pose>560 120 45 0 0 0</pose>
-      <link name="body">
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
-          </inertia>
-        </inertial>
-        <visual name="surface">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>12</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.5 0.52 0.57 1</ambient>
-            <diffuse>0.5 0.52 0.57 1</diffuse>
-          </material>
-        </visual>
-        <collision name="surface_collision">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>12</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-    </model>
-    <model name="asteroid_1">
-      <static>true</static>
-      <pose>150 35 15 0 0 0</pose>
-      <link name="body">
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
-          </inertia>
-        </inertial>
-        <visual name="surface">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>3</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.38 0.3 0.22 1</ambient>
-            <diffuse>0.38 0.3 0.22 1</diffuse>
-          </material>
-        </visual>
-        <collision name="surface_collision">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>3</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
-    </model>
-    <model name="asteroid_2">
-      <static>true</static>
-      <pose>280 -45 -10 0 0 0</pose>
-      <link name="body">
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
-          </inertia>
-        </inertial>
-        <visual name="surface">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>5</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0.42 0.35 0.26 1</ambient>
-            <diffuse>0.42 0.35 0.26 1</diffuse>
-          </material>
-        </visual>
-        <collision name="surface_collision">
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-      </link>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_power_yaw</joint_name>
+        <topic>/arms/power/yaw/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_power_shoulder</joint_name>
+        <topic>/arms/power/shoulder/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_power_elbow</joint_name>
+        <topic>/arms/power/elbow/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_life_support_yaw</joint_name>
+        <topic>/arms/life_support/yaw/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_life_support_shoulder</joint_name>
+        <topic>/arms/life_support/shoulder/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_life_support_elbow</joint_name>
+        <topic>/arms/life_support/elbow/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_thermal_yaw</joint_name>
+        <topic>/arms/thermal/yaw/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_thermal_shoulder</joint_name>
+        <topic>/arms/thermal/shoulder/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_thermal_elbow</joint_name>
+        <topic>/arms/thermal/elbow/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_navigation_yaw</joint_name>
+        <topic>/arms/navigation/yaw/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_navigation_shoulder</joint_name>
+        <topic>/arms/navigation/shoulder/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>arm_navigation_elbow</joint_name>
+        <topic>/arms/navigation/elbow/target</topic>
+        <p_gain>80</p_gain>
+        <d_gain>12</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-200</cmd_min>
+        <cmd_max>200</cmd_max>
+      </plugin>
     </model>
   </world>
 </sdf>

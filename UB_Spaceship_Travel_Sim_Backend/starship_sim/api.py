@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, FiniteFloat, Field
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ArmCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    targets: dict[str, FiniteFloat] = Field(min_length=1, max_length=3)
+    targets: dict[str, FiniteFloat] = Field(min_length=1)
 
 
 class WorldControl(BaseModel):
@@ -25,8 +26,8 @@ class WorldControl(BaseModel):
     paused: bool
 
 
-def create_app(backend=None, origins=None):
-    scene = json.loads((ROOT / "config/scene.json").read_text(encoding="utf-8"))
+def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
+    scene = json.loads(Path(scene_path or ROOT / "config/scene.json").read_text(encoding="utf-8"))
     allowed_origins = origins if origins is not None else [
         value.strip() for value in os.getenv(
             "WEB_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
@@ -49,6 +50,7 @@ def create_app(backend=None, origins=None):
                   description="Live Space ROS/Gazebo state and commands. Coordinates are Z-up; angles are radians.")
     app.add_middleware(CORSMiddleware, allow_origins=allowed_origins,
                        allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+    app.mount(f'/api/v1/assets/{scene["revision"]}', StaticFiles(directory=assets_dir or ROOT / "assets"), name="environment-assets")
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_request, exc):

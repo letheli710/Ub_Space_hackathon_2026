@@ -22,6 +22,30 @@ button {
 button:hover {
   border-color: #04d9ef;
 }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+.status.disconnected { color: #e9ac75; }
+.status.disconnected i { background: #e9ac75; }
+.connection-banner { padding: 10px 14px; color: #ffd0a1; background: #32251e; border-bottom: 1px solid #73543b; }
+.scene-empty { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; color: #9bc0d3; padding: 24px; }
+.live.stale { color: #e9ac75; }
+.arm-controls { padding-top: 18px; }
+.arm-controls > label { display: block; color: #91adc2; margin-bottom: 8px; }
+.arm-controls select { width: 100%; padding: 10px; background: #0a1d33; color: #d5f9ff; border: 1px solid #234763; border-radius: 6px; text-transform: capitalize; }
+.joint-control { margin-top: 22px; }
+.joint-control label { display: flex; justify-content: space-between; text-transform: capitalize; }
+.joint-control output { color: #00deef; font-variant-numeric: tabular-nums; }
+.joint-control input { width: 100%; margin: 14px 0 8px; accent-color: #00d9e9; }
+.joint-control small { color: #7d9bb3; font-variant-numeric: tabular-nums; }
+.arm-submit { width: 100%; margin-top: 24px; background: #00cde2; color: #001523; font-weight: 800; }
+.future-disasters { margin-top: 24px; border-top: 1px solid #234763; padding-top: 18px; }
+.future-disasters summary { display: flex; gap: 8px; align-items: center; color: #91adc2; cursor: pointer; }
+.joint-readings { padding: 12px 15px 0; }
+.joint-readings h4 { color: #00d6e8; font-size: 10px; letter-spacing: 1px; margin-bottom: 8px; }
+.arm-reading { border-top: 1px solid #16364b; padding: 9px 0; }
+.arm-reading strong { display: block; text-transform: capitalize; margin-bottom: 6px; font-size: 11px; }
+.arm-reading > div { display: flex; justify-content: space-between; padding: 3px 0; color: #91adc2; font-size: 11px; }
+.arm-reading output { color: #c6edf3; font-variant-numeric: tabular-nums; }
+.telemetry-note { padding: 0 15px; }
 header {
   height: 76px;
   border-bottom: 1px solid #17627a;
