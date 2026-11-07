@@ -1,0 +1,16 @@
+{
+  "name": "Shuttle Simulation Backend",
+  "build": { "dockerfile": "Dockerfile" },
+  "forwardPorts": [6080, 9090, 3000],
+  "overrideCommand": false,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-iot.vscode-ros",
+        "ms-python.python",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "remoteUser": "ubuntu"
+}
