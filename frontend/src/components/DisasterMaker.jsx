@@ -1,0 +1,83 @@
+import { AlertTriangle, RotateCcw, Send, Target } from 'lucide-react';
+import { DISASTER_PARAMETERS, INNER_DISASTERS, OUTER_DISASTERS } from '../data/disasters.js';
+
+function DisasterChoices({ disasters, choice, onChoiceChange }) {
+  return (
+    <div className="choices">
+      {disasters.map((name) => (
+        <button
+          key={name}
+          className={choice === name ? 'selected' : ''}
+          onClick={() => onChoiceChange(name)}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function DisasterMaker({
+  choice,
+  onChoiceChange,
+  placed,
+  onInject,
+  onReset,
+}) {
+  const { severity, speed, angle } = DISASTER_PARAMETERS;
+
+  return (
+    <aside className="panel left">
+      <div className="panelhead">
+        <AlertTriangle size={18} /> DISASTER MAKER
+      </div>
+      <p className="muted">
+        Select and inject simulated hazards into your autonomous spacecraft.
+      </p>
+
+      <h4>OUTER DISASTERS</h4>
+      <DisasterChoices
+        disasters={OUTER_DISASTERS}
+        choice={choice}
+        onChoiceChange={onChoiceChange}
+      />
+
+      <h4>INNER DISASTERS</h4>
+      <DisasterChoices
+        disasters={INNER_DISASTERS}
+        choice={choice}
+        onChoiceChange={onChoiceChange}
+      />
+
+      <h4>DISASTER PARAMETERS</h4>
+      <dl className="params">
+        <div>
+          <dt>Severity</dt>
+          <dd>{severity}%</dd>
+        </div>
+        <div>
+          <dt>Relative Speed</dt>
+          <dd>{speed} km/s</dd>
+        </div>
+        <div>
+          <dt>Approach Angle</dt>
+          <dd>{angle}°</dd>
+        </div>
+      </dl>
+
+      <div className="tip">
+        <Target size={16} />{' '}
+        {placed ? 'Placement target set' : 'Click the 3D scene to mark a disaster location (demo)'}
+      </div>
+
+      <div className="actions">
+        <button className="primary" onClick={onInject}>
+          <Send size={16} /> INJECT DISASTER
+        </button>
+        <button onClick={onReset}>
+          <RotateCcw size={16} />
+        </button>
+      </div>
+    </aside>
+  );
+}
