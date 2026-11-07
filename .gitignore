@@ -1,5 +1,6 @@
-# Node.js API Bridge
-api_bridge/node_modules/
+# Node.js (frontend and API bridge)
+node_modules/
+dist/
 api_bridge/package-lock.json
 
 # ROS 2 Build Artifacts
