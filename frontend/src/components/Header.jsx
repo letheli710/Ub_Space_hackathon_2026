@@ -11,7 +11,7 @@ export default function Header({ tab, onTabChange, event }) {
         </div>
         <div>
           <b>
-            ASTRA<span>CTRL</span>
+            INTERSTELLAR <span>X⁴</span>
           </b>
           <small>SPACE DISASTER SIMULATION LAB</small>
         </div>

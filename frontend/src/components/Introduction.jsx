@@ -1,12 +1,12 @@
-import { Orbit } from 'lucide-react';
+import logo from '../assets/interstellar-x4-logo.webp';
 
 export default function Introduction() {
   return (
     <section className="intro">
       <div className="intro-text">
-        <h2>Welcome to ASTRACTRL</h2>
+        <h2>Welcome to Interstellar X⁴</h2>
         <p>
-          ASTRACTRL is a spacecraft simulator where you create the emergencies and an onboard AI
+          Interstellar X⁴ is a spacecraft simulator where you create the emergencies and an onboard AI
           handles them.
         </p>
         <p>
@@ -25,12 +25,7 @@ export default function Introduction() {
       </div>
 
       <div className="intro-logo">
-        <div className="intro-logo-mark">
-          <Orbit size={150} strokeWidth={1.2} />
-        </div>
-        <b>
-          ASTRA<span>CTRL</span>
-        </b>
+        <img src={logo} alt="Interstellar X⁴" />
       </div>
     </section>
   );
