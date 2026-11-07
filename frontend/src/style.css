@@ -344,7 +344,7 @@ main {
 }
 .intro {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr);
   gap: 48px;
   align-items: center;
   max-width: 1120px;
@@ -375,26 +375,13 @@ main {
 }
 .intro-logo {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  justify-content: center;
 }
-.intro-logo-mark {
-  display: grid;
-  place-items: center;
-  width: 240px;
-  height: 240px;
-  border: 1px solid #00d9ed;
-  border-radius: 28px;
-  color: #00e5f4;
-  box-shadow: 0 0 40px #006a8670;
-}
-.intro-logo b {
-  font-size: 28px;
-  letter-spacing: 3px;
-}
-.intro-logo b span {
-  color: #00e2ef;
+.intro-logo img {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
 }
 /* Full page: the viewer fills the window and the side columns become drawers. */
 .workspace.fullpage .viewer {

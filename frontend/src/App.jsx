@@ -134,7 +134,7 @@ export default function App() {
       )}
 
       <footer>
-        ASTRACTRL / HACKATHON PROTOTYPE{' '}
+        INTERSTELLAR X⁴ / HACKATHON PROTOTYPE{' '}
         <span>3D UI DEMO — PHYSICS AND AI BACKEND INTEGRATION PENDING</span>
       </footer>
     </div>
