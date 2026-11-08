@@ -1,80 +1,146 @@
 # Interstellar X⁴
 
-A React/Three.js frontend connected to a Space ROS/Gazebo spaceship environment.
-The browser renders the backend's ship and mission map, displays measured arm
-positions and simulation time, and sends real pause/resume and arm commands.
-Disaster injection, ship-health dynamics and autonomous AI agents are future work.
+A spaceship simulation with a React/Three.js frontend and a Space ROS/Gazebo
+backend. The browser displays the backend's ship and mission map, measured arm
+positions, and simulation time. Its controls send real arm and pause/resume
+commands to the simulator.
 
-## Run on this Windows machine
+Disaster injection, ship-health simulation and autonomous AI agents are planned
+features. The current ship and map are replaceable starter assets.
 
-The repository root is:
+## Start here
+
+The project folder is **`Ub_Space_hackathon_2026`**. All instructions use paths
+inside this folder, so they work wherever you keep the project.
 
 ```text
-C:\Users\usjac\Desktop\Coding Studio\Codex\UB_Hacking-Starship_Travel_Simulator\Ub_Space_hackathon_2026
+Ub_Space_hackathon_2026/
+├── frontend/                           React website
+│   └── README.md                       Frontend setup and troubleshooting
+├── UB_Spaceship_Travel_Sim_Backend/    Space ROS/Gazebo backend
+│   ├── README.md                       Backend setup and troubleshooting
+│   ├── tools/                          Setup, start and stop scripts
+│   ├── config/environment.json         Ship/map selection and arm mappings
+│   └── assets/                         SDF models, maps and mesh files
+├── api_bridge/                         Separate scaffold; not used to run this app
+└── shuttle_sim_backend/                Separate scaffold; not used to run this app
 ```
 
-**PowerShell terminal 1 — backend:**
+For the first run, follow these guides in order:
+
+1. [Backend: install WSL/Docker, build and start the simulator](UB_Spaceship_Travel_Sim_Backend/README.md).
+2. [Frontend: install Node.js/dependencies and start the website](frontend/README.md).
+
+The frontend runs in Windows PowerShell. The backend's PowerShell launcher runs
+the Linux simulator inside Ubuntu WSL. ROS and Gazebo do not need to be installed
+directly on Windows. The Humble `.devcontainer/` is a separate development
+scaffold and is not required for the launch steps below.
+
+## Open PowerShell in the project folder
+
+1. Open File Explorer and open `Ub_Space_hackathon_2026`.
+2. Click the address bar, type `powershell`, and press Enter.
+3. Confirm you opened the correct folder:
 
 ```powershell
-cd "C:\Users\usjac\Desktop\Coding Studio\Codex\UB_Hacking-Starship_Travel_Simulator\Ub_Space_hackathon_2026"
-.\UB_Spaceship_Travel_Sim_Backend\tools\start.ps1
+Test-Path .\frontend\package.json
+Test-Path .\UB_Spaceship_Travel_Sim_Backend\compose.yaml
 ```
 
-This builds the current environment and starts it in a hidden WSL session.
-Docker Engine and Compose must be installed in Ubuntu WSL, or use the existing
-setup script described in the backend README. After a successful build, use
-`start.ps1 -NoBuild` for quicker starts when backend code/assets have not changed.
-Before rebuilding an already running backend, stop it with:
+Both commands should print `True`. Open a second PowerShell window the same way
+when starting the frontend.
+
+## Everyday launch after first-time setup
+
+### Terminal 1: start the backend
+
+Start in `Ub_Space_hackathon_2026`:
 
 ```powershell
-.\UB_Spaceship_Travel_Sim_Backend\tools\stop.ps1
+cd .\UB_Spaceship_Travel_Sim_Backend
+.\tools\start.ps1 -NoBuild
 ```
 
-**PowerShell terminal 2 — frontend:**
+Use `-NoBuild` only after a successful full build. For the first build, or after
+changing backend code, ship assets, maps or configuration, use:
 
 ```powershell
-cd "C:\Users\usjac\Desktop\Coding Studio\Codex\UB_Hacking-Starship_Travel_Simulator\Ub_Space_hackathon_2026\frontend"
-npm ci
+.\tools\start.ps1
+```
+
+The default launcher runs the simulator in the background. Wait for
+<http://127.0.0.1:8000/readyz> to show `"ready": true` before testing controls.
+Initial HTTP 503 responses mean the simulator is still starting.
+
+### Terminal 2: start the frontend
+
+Open a **new** PowerShell window in `Ub_Space_hackathon_2026`:
+
+```powershell
+cd .\frontend
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. The status should change to **LIVE** after telemetry
-arrives. The initial camera follows the backend ship; Planetary Trajectories
-shows the actual mission map. Select a ship system to command its arm, and read
-the measured joint angles to confirm movement. Arm targets accepted while
-paused take effect after resuming. Stop the frontend with Ctrl+C and the backend
-with `UB_Spaceship_Travel_Sim_Backend\tools\stop.ps1` from the repository root.
+If this is the first frontend run, or `package-lock.json` changed since the last
+dependency installation, run `npm ci` in this folder before `npm run dev`.
 
-- API documentation: <http://127.0.0.1:8000/docs>
-- Backend readiness: <http://127.0.0.1:8000/readyz>
-- Frontend: <http://127.0.0.1:5173>
+Keep this terminal open. Open **<http://127.0.0.1:5173>** in a browser. The
+header should show **LIVE**, or **PAUSED** if the simulator has been paused.
 
-Vite forwards `/api` HTTP requests, model assets and WebSocket connections to
-port 8000. There is no need to launch `api_bridge/` or `shuttle_sim_backend/`.
-Those folders and the Humble `.devcontainer/` are separate scaffolds; the active
-simulator is the Jazzy environment under `UB_Spaceship_Travel_Sim_Backend/`.
+## Check that everything works
+
+1. Open the Generator tab. The backend spaceship and four arms should appear.
+2. Change a joint target and press **Send arm target**.
+3. Watch the measured joint readings change as the arm moves.
+4. Press **Pause simulation**. Simulation time should stop.
+5. Press **Resume simulation** to continue.
+6. Open **Planetary Trajectories** to see the backend mission map.
+
+Vite forwards the website's `/api` requests, model files and live WebSocket
+connection to the backend. There is no additional API bridge to start.
+
+| Address | Purpose |
+|---|---|
+| <http://127.0.0.1:5173> | Frontend website |
+| <http://127.0.0.1:8000/docs> | Interactive backend API reference |
+| <http://127.0.0.1:8000/readyz> | Simulator readiness |
+| <http://127.0.0.1:8000/api/v1/state> | Current measured simulation state |
+
+These are the default ports. The component guides explain how to change them.
+
+## Stop or rebuild
+
+**Frontend:** press Ctrl+C in the terminal running `npm run dev`.
+
+**Backend:** in Terminal 1, still inside `UB_Spaceship_Travel_Sim_Backend`:
+
+```powershell
+.\tools\stop.ps1
+```
+
+For a full backend rebuild from that same folder:
+
+```powershell
+.\tools\stop.ps1
+.\tools\start.ps1
+```
+
+Stopping and starting the backend creates a fresh voyage. Restarting the
+frontend alone reconnects to the existing simulation.
 
 ## Replace the ship or map
 
-The current assets are placeholders. Put SDF models/maps and their mesh files
-under `UB_Spaceship_Travel_Sim_Backend/assets/`, then select them in
-`UB_Spaceship_Travel_Sim_Backend/config/environment.json`. Rebuild the backend.
-The Docker build generates both the physics world and the browser scene from
-those same inputs. No React model code needs changing.
+Put the SDF models/maps and their mesh dependencies under
+`UB_Spaceship_Travel_Sim_Backend/assets/`, select them in
+`UB_Spaceship_Travel_Sim_Backend/config/environment.json`, then rebuild the
+backend. The same assets generate the physics world and browser scene; a model
+change does not require editing React geometry.
 
 See [model and map import instructions](UB_Spaceship_Travel_Sim_Backend/docs/models-and-maps.md)
-for formats, articulation, frame mapping and a configuration example.
+for formats, joint mappings and import limitations.
 
-## Configuration and verification
+## More help
 
-Copy `frontend/.env.example` to `frontend/.env.local` to configure the development
-proxy target or a separately hosted backend. Restart Vite after changing it.
-For production, serve `frontend/dist/` after `npm run build` and reverse-proxy
-`/api` (including WebSocket upgrades) to the simulator. The backend's
-`WEB_ORIGINS` must allow the website's exact origin. See the
-[web integration guide](UB_Spaceship_Travel_Sim_Backend/docs/web-integration.md).
-
-Frontend checks: `npm test` and `npm run build` from `frontend/`.
-Backend checks and live smoke test are described in the
-[backend README](UB_Spaceship_Travel_Sim_Backend/README.md).
-All changes remain local under the standing no-push instruction.
+- [Backend setup, configuration, logs and troubleshooting](UB_Spaceship_Travel_Sim_Backend/README.md)
+- [Frontend setup, configuration, builds and troubleshooting](frontend/README.md)
+- [HTTP/WebSocket integration contract](UB_Spaceship_Travel_Sim_Backend/docs/web-integration.md)
