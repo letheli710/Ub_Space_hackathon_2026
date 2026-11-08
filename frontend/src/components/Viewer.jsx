@@ -13,8 +13,7 @@ import { MAX_TIME_SCALE, MIN_TIME_SCALE, formatTimeScale, parseTimeScale } from 
 import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
 import BackendMap from './BackendMap.jsx';
-import AIControlPanel from './AIControlPanel.jsx';
-import DemoAIControls from './DemoAIControls.jsx';
+import AiLogs from './AiLogs.jsx';
 
 const TITLES = {
   'Planetary Trajectories': 'PLANETARY TRAJECTORIES',
@@ -175,10 +174,7 @@ export default function Viewer({
 
       {tab === 'AI Logs' && (
         <div className="ai-log-view">
-          {viewMode === 'demo' ? <DemoAIControls ai={demoAI} /> : <AIControlPanel simulation={simulation} onShowLiveShip={onShowLiveShip} />}
-          <details className="biglogs"><summary>Simulation and demo events</summary>
-            {logs.map((item) => <div key={item.id}>{item.text}</div>)}
-          </details>
+          <AiLogs viewMode={viewMode} demoAI={demoAI} simulation={simulation} logs={logs} onShowLiveShip={onShowLiveShip} />
         </div>
       )}
 

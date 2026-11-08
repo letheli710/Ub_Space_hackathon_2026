@@ -2,7 +2,7 @@ import { Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { BLACK_HOLE_POSITION, MOON, PLANETS, ROUTE, SUN, routeParameter, shipPose } from '../../data/voyage.js';
+import { BLACK_HOLE_POSITION, LOOP_LENGTH, MOON, PLANETS, ROUTE, SUN, demoRenderQuaternion, loopPoints, routeParameter, shipPose } from '../../data/voyage.js';
 import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
 import StationShip from '../station/StationShip.jsx';
 import DemoPhysicsObjects from '../DemoPhysicsObjects.jsx';
@@ -41,6 +41,27 @@ const ROUTE_SEGMENTS = 400;
 const ROUTE_POINTS = ROUTE.getSpacedPoints(ROUTE_SEGMENTS); // evenly spaced by distance
 const ROUTE_POINTS_REVERSED = [...ROUTE_POINTS].reverse();
 const ROUTE_COLOR = '#29eaff';
+const LOOP_SEGMENTS = 900;
+const LOOP_POINTS = loopPoints(LOOP_SEGMENTS);
+
+/**
+ * DEMO round trip: Earth → Mars, half a lap around Mars, back to Earth on the other side,
+ * half a lap around Earth. Dashed everywhere; solid for the part flown since leaving Earth.
+ */
+function LoopLine({ voyage }) {
+  const flown = useRef();
+  useFrame(() => {
+    if (!flown.current) return;
+    const lap = (voyage.current.routeDistance % LOOP_LENGTH) / LOOP_LENGTH;
+    flown.current.geometry.instanceCount = Math.floor(lap * LOOP_SEGMENTS);
+  });
+  return (
+    <>
+      <Line points={LOOP_POINTS} color={ROUTE_COLOR} lineWidth={2.2} dashed dashSize={4} gapSize={3} transparent opacity={0.85} depthWrite={false} />
+      <Line ref={flown} points={LOOP_POINTS} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
+    </>
+  );
+}
 
 /**
  * The Earth ⇄ Mars route: dashed ahead of the ship, solid for the part of the
@@ -65,7 +86,6 @@ function RouteLine({ voyage }) {
     }
   });
 
-  if (voyage.current.physics) return <Line points={[ROUTE.getPointAt(0), ROUTE.getPointAt(1)]} color={ROUTE_COLOR} lineWidth={1.5} dashed dashSize={4} gapSize={3} transparent opacity={.5} />;
   return (
     <>
       <Line
@@ -178,7 +198,7 @@ export default function FlightScene({
     // The model's nose is +Z: point it along the route and keep its top facing up.
     headingMatrix.lookAt(direction, ORIGIN, UP);
     heading.setFromRotationMatrix(headingMatrix);
-    if (voyage.current.physics) headingRef.current.quaternion.copy(voyage.current.physics.ship.q);
+    if (voyage.current.physics) demoRenderQuaternion(voyage.current, voyage.current.physics.ship.q, headingRef.current.quaternion);
     else headingRef.current.quaternion.slerp(heading, 0.08);
   });
 
@@ -242,7 +262,7 @@ export default function FlightScene({
         <ImpactFlash key={impact.id} impact={impact} onDone={onImpactDone} />
       ))}
 
-      <RouteLine voyage={voyage} />
+      {voyage.current.physics ? <LoopLine voyage={voyage} /> : <RouteLine voyage={voyage} />}
       <SpaceDust shipFrame={shipFrame} />
     </>
   );

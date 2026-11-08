@@ -4,8 +4,9 @@ import { useFrame } from '@react-three/fiber';
 import { MODULES } from './station/StationShip.jsx';
 import { SolarArrays, Wing } from './station/modules.jsx';
 import { modelOrigin, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
-import { demoRenderPosition } from '../data/voyage.js';
+import { demoRenderPosition, demoRenderQuaternion } from '../data/voyage.js';
 import Asteroid from './space/Asteroid.jsx';
+import RockTrail from './space/RockTrail.jsx';
 
 // Floating origin: astronomical travel uses the map scale; nearby objects all use
 // the same enlarged meter scale as the ship. Physics never uses rendered units.
@@ -37,7 +38,7 @@ function Part({ voyage, id }) {
     const state = voyage.current.physics;
     const current = state.fragments.find(f => f.id === id) ?? state.ship;
     ref.current.position.copy(demoRenderPosition(voyage.current, modelOrigin(current)));
-    ref.current.quaternion.copy(current.q);
+    demoRenderQuaternion(voyage.current, current.q, ref.current.quaternion);
   });
   return <group ref={ref} scale={DEMO_RENDER_SCALE}>
     {id === 'solar' ? <SolarArrays arm={arm} status={status} mainWings={false} /> :
@@ -52,18 +53,29 @@ function Part({ voyage, id }) {
 }
 function Rock({ voyage, id, radius }) {
   const ref = useRef();
+  const trail = useRef();
   useFrame(() => {
     const s = voyage.current.physics, rock = s.rocks.find(r => r.id === id);
     if (ref.current) {
       ref.current.visible = Boolean(rock);
       if (rock) {
         ref.current.position.copy(demoRenderPosition(voyage.current, rock.p));
+        trail.current?.position.copy(ref.current.position);
         // Cosmetic tumble uses physical age, so pause/reset affect it too.
         ref.current.rotation.set(rock.age * 1.5, rock.age, 0);
       }
     }
   });
-  return <group ref={ref}><Asteroid radius={radius * DEMO_RENDER_SCALE} /></group>;
+  // Tail follows the rock's motion as seen from the ship (relative velocity, in map axes).
+  const getMotion = (out) => {
+    const s = voyage.current.physics, rock = s.rocks.find(r => r.id === id);
+    if (!rock) return false;
+    out.copy(rock.v).sub(s.ship.v).applyQuaternion(voyage.current.frame);
+  };
+  return <>
+    <group ref={ref}><Asteroid radius={radius * DEMO_RENDER_SCALE} /></group>
+    <group ref={trail}><RockTrail radius={radius * DEMO_RENDER_SCALE} getMotion={getMotion} /></group>
+  </>;
 }
 export default function DemoPhysicsObjects({ voyage }) {
   const s = voyage.current.physics;

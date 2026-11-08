@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { createVoyage, demoRenderPosition, setVoyageTimeScale, shipPose, stepVoyage } from '../src/data/voyage.js';
+import { DEFAULT_TIME_SCALE, createVoyage, demoRenderPosition, setVoyageTimeScale, shipPose, stepVoyage } from '../src/data/voyage.js';
 import { launchDemoRock, launchDemoRockAtPointer, modelOrigin, DEMO_RENDER_SCALE } from '../src/simulation/demoPhysics.js';
 import { pickLaunchOffset } from '../src/simulation/launchPlacement.js';
 
@@ -16,7 +16,7 @@ test('placing a rock preserves visible cruise speed while physical motion contin
   stepVoyage(v, .1);
   assert.ok(Math.abs(start.distanceTo(shipPose(v, new Vector3())) / coastDistance - 1) < .001,
     'map travel must not drop a millionfold when a rock is placed');
-  assert.equal(v.timeScale, 1e6);
+  assert.equal(v.timeScale, DEFAULT_TIME_SCALE);
   assert.ok(Math.abs(v.physics.elapsed - time - .1) < 1e-6);
   assert.ok(Math.abs(v.physics.ship.p.distanceTo(physicalStart) - 790) < .01);
   assert.ok(v.physics.rocks[0].age < .11, 'do not fast-forward through the impact');
@@ -48,6 +48,7 @@ test('screen clicks round-trip through rotated ship physics to the exact cursor,
 
 test('a pointer shot intercepts a translating ship without freezing it, and the map/rocks share an anchor', () => {
   const v = createVoyage({ physical: true }), s = v.physics;
+  setVoyageTimeScale(v, 1e6);
   stepVoyage(v, .1);
   const start = new Vector3(0, 90, 15.5).applyQuaternion(s.ship.q).multiplyScalar(DEMO_RENDER_SCALE);
   const rock = launchDemoRockAtPointer(s, start.toArray(), { target_id: 'command', speed_m_s: 40 });

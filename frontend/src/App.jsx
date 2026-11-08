@@ -16,7 +16,9 @@ import { DISASTER_PARAMETERS } from './data/disasters.js';
 import {
   createVoyage,
   destination,
-  LEG_DAYS,
+  TRANSFER_DAYS,
+  demoLocalOffset,
+  voyagePhase,
   stepTimeScaleValue,
   formatTimeScale,
   missionDay,
@@ -138,11 +140,11 @@ export default function App() {
 
   // ---------- demo voyage ----------
   const voyage = useVoyage(playing && !live, (legEvent, v) => {
-    if (legEvent === 'arrived') addLogs([`ARRIVED · ${destination(v)} orbit reached · Holding position`]);
+    if (legEvent === 'arrived') addLogs([`ARRIVED · ${destination(v)} orbit reached · Half a lap before heading back`]);
     else addLogs([`DEPARTURE · ${origin(v)} → ${destination(v)}`]);
   });
   const demoAI = useDemoAI(voyage, playing && !live, addLog);
-  const voyageLabel = `EARTH → MARS · FREE FLIGHT · MAP DAY ${Math.floor(missionDay(voyage.current))}`;
+  const voyageLabel = `${voyagePhase(voyage.current)} · MAP DAY ${Math.floor(missionDay(voyage.current))}`;
   // Map playback stays continuous while local collision/AI time runs safely at 1x.
   const timeScale = voyage.current.timeScale;
   function setTimeScale(value) {
@@ -159,7 +161,7 @@ export default function App() {
     physics: demoTelemetry(voyage.current.physics),
     speedKmS: shipSpeedKmS(voyage.current),
     day: missionDay(voyage.current),
-    legDays: LEG_DAYS,
+    legDays: TRANSFER_DAYS,
     inOrbit: voyage.current.dwell > 0,
     timeScaleLabel: formatTimeScale(timeScale),
   };
@@ -203,7 +205,7 @@ export default function App() {
   // If the AI changes the ship's course in the meantime, they miss.
   function launch(offsetFromShip) {
     if (armed === 'Asteroid Collision') {
-      try { launchDemoRockAtPointer(voyage.current.physics, offsetFromShip, rockSettings); }
+      try { launchDemoRockAtPointer(voyage.current.physics, demoLocalOffset(voyage.current, offsetFromShip), rockSettings); }
       catch (error) { addLog(error.message); }
       return;
     }

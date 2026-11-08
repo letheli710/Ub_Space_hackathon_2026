@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import Asteroid from './space/Asteroid.jsx';
+import RockTrail from './space/RockTrail.jsx';
 
 export const TRAVEL_SECONDS = 2.5; // planned time from launch to impact
 const IMPACT_RADIUS = 1.6; // roughly the ship hull
@@ -54,6 +55,7 @@ function HazardBody({ name }) {
  */
 export function IncomingHazard({ hazard, playing, shipFrame, onImpact, onMiss }) {
   const ref = useRef();
+  const spin = useRef();
   const done = useRef(false);
   const elapsed = useRef(0);
   const start = useMemo(() => new THREE.Vector3(...hazard.start), [hazard.start]);
@@ -72,8 +74,10 @@ export function IncomingHazard({ hazard, playing, shipFrame, onImpact, onMiss })
     previous.copy(obj.position);
     elapsed.current += dt;
     obj.position.copy(start).addScaledVector(velocity, elapsed.current);
-    obj.rotation.x += dt * 1.5;
-    obj.rotation.y += dt;
+    if (spin.current) {
+      spin.current.rotation.x += dt * 1.5;
+      spin.current.rotation.y += dt;
+    }
 
     const ship = shipFrame.current?.position;
     if (ship && distanceToSegment(ship, previous, obj.position) <= IMPACT_RADIUS) {
@@ -89,7 +93,12 @@ export function IncomingHazard({ hazard, playing, shipFrame, onImpact, onMiss })
 
   return (
     <group ref={ref}>
-      <HazardBody name={hazard.name} />
+      <group ref={spin}>
+        <HazardBody name={hazard.name} />
+      </group>
+      {hazard.name === 'Asteroid Collision' && (
+        <RockTrail radius={0.6} getMotion={(out) => (done.current ? false : out.copy(velocity))} />
+      )}
     </group>
   );
 }
