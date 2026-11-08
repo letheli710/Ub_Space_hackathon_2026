@@ -6,6 +6,7 @@ import ArmControls from './ArmControls.jsx';
 const PRESS_FLASH_MS = 450;
 
 const BLACK_HOLE = 'Black Hole Encounter';
+const SOLAR_STORM = 'Solar Storm';
 
 // Left column of the Generator tab: disasters (demo view) and robotic arm control (live simulator).
 export default function DisasterMaker({
@@ -15,22 +16,29 @@ export default function DisasterMaker({
   armed,
   onArm,
   onTrigger,
+  activeFaults = [],
   blackHole,
+  solarStorm,
+  onSolarStorm,
   onToggleBlackHole,
 }) {
   const { severity, speed, angle } = DISASTER_PARAMETERS;
-  // Inner buttons are momentary: they fire once and spring back, with a short flash.
+  // Inner buttons flash when pressed, then stay lit until the failure is resolved.
   const [pressed, setPressed] = useState(null);
   const timer = useRef();
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function fire(name) {
+    if (activeFaults.includes(name)) return;
     onTrigger(name);
     clearTimeout(timer.current);
     setPressed((p) => ({ name, count: (p?.count ?? 0) + 1 }));
     timer.current = setTimeout(() => setPressed(null), PRESS_FLASH_MS);
   }
+
+  const active = (name) =>
+    name === BLACK_HOLE ? blackHole : name === SOLAR_STORM ? solarStorm : armed === name;
 
   return (
     <aside className="panel left">
@@ -48,12 +56,14 @@ export default function DisasterMaker({
         {OUTER_DISASTERS.map((name) => (
           <button
             key={name}
-            className={(name === BLACK_HOLE ? blackHole : armed === name) ? 'selected' : ''}
-            aria-pressed={name === BLACK_HOLE ? blackHole : armed === name}
+            className={active(name) ? 'selected' : ''}
+            aria-pressed={active(name)}
             disabled={live}
-            onClick={() =>
-              name === BLACK_HOLE ? onToggleBlackHole() : onArm(armed === name ? null : name)
-            }
+            onClick={() => {
+              if (name === BLACK_HOLE) onToggleBlackHole();
+              else if (name === SOLAR_STORM) onSolarStorm();
+              else onArm(armed === name ? null : name);
+            }}
           >
             {name}
           </button>
@@ -64,10 +74,13 @@ export default function DisasterMaker({
       <div className="choices">
         {INNER_DISASTERS.map((name) => {
           const isPressed = pressed?.name === name;
+          const unresolved = activeFaults.includes(name);
           return (
             <button
               key={isPressed ? `${name}-${pressed.count}` : name}
-              className={isPressed ? 'momentary fired' : 'momentary'}
+              className={['momentary', isPressed && 'fired', unresolved && 'unresolved'].filter(Boolean).join(' ')}
+              aria-pressed={unresolved}
+              title={unresolved ? 'Active failure · waiting for the AI to resolve it' : undefined}
               disabled={live}
               onClick={() => fire(name)}
             >
@@ -98,7 +111,7 @@ export default function DisasterMaker({
           <Target size={16} />{' '}
           {armed
             ? `Click anywhere in the 3D view to launch ${armed}. Click the button again or press Esc to cancel.`
-            : 'Outer: pick one, then click the 3D view to launch it. Black Hole appears on its own. Inner: click to trigger.'}
+            : 'Outer: pick one, then click the 3D view to launch it. Black Hole and Solar Storm start on their own. Inner: click to trigger; it stays lit until it is resolved.'}
         </div>
       )}
 

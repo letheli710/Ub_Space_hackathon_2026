@@ -6,7 +6,7 @@ import CameraControls from './CameraControls.jsx';
 import EnvironmentModel from './EnvironmentModel.jsx';
 
 // Keep the camera configuration stable across 10 Hz telemetry renders.
-const CAMERA = { position: [22, 18, 26], fov: 45, near: 0.05, far: 20000 };
+const CAMERA = { position: [22, 18, 26], fov: 45, near: 0.001, far: 1e8 };
 
 function FollowCamera({ rootRef, shipId, mapView, resetCount, revision }) {
   const { camera, controls, size } = useThree();
@@ -29,9 +29,10 @@ function FollowCamera({ rootRef, shipId, mapView, resetCount, revision }) {
       const distance = Math.max(6, radius * 1.3 / Math.sin(Math.min(camera.fov * Math.PI / 180, 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)) / 2));
       camera.position.copy(center).add(new Vector3(0.8, mapView ? 0.65 : 1.8, 1).normalize().multiplyScalar(distance));
       controls.target.copy(center);
-      controls.minDistance = Math.max(0.2, radius * 0.1);
-      controls.maxDistance = Math.max(100, distance * 8);
-      camera.far = Math.max(10000, distance * 30);
+      // No zoom limit in or out.
+      controls.minDistance = 0;
+      controls.maxDistance = Infinity;
+      camera.far = 1e8;
       camera.updateProjectionMatrix();
       fitted.current = fitKey;
       previous.current = position.current.clone();
@@ -48,7 +49,7 @@ function FollowCamera({ rootRef, shipId, mapView, resetCount, revision }) {
 export default function Scene({ scene, state, planet = false, fullPage = false, viewResetCount = 0, onError }) {
   const rootRef = useRef();
   return (
-    <Canvas camera={CAMERA}>
+    <Canvas camera={CAMERA} gl={{ logarithmicDepthBuffer: true }}>
       <color attach="background" args={['#030a19']} />
       <ambientLight intensity={1.1} />
       <directionalLight position={[30, 50, 20]} intensity={2.5} />

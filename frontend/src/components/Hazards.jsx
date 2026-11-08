@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import Asteroid from './space/Asteroid.jsx';
 
 export const TRAVEL_SECONDS = 2.5; // planned time from launch to impact
 const IMPACT_RADIUS = 1.6; // roughly the ship hull
@@ -23,19 +24,7 @@ function distanceToSegment(p, a, b) {
 function HazardBody({ name }) {
   switch (name) {
     case 'Asteroid Collision':
-      return (
-        <mesh>
-          <dodecahedronGeometry args={[0.7, 1]} />
-          <meshStandardMaterial color="#8b7771" roughness={0.95} flatShading />
-        </mesh>
-      );
-    case 'Solar Storm':
-      return (
-        <mesh>
-          <sphereGeometry args={[0.7, 24, 24]} />
-          <meshStandardMaterial color="#ffb347" emissive="#ff7a18" emissiveIntensity={2} />
-        </mesh>
-      );
+      return <Asteroid size={0.6} />;
     case 'Alien Encounter':
       return (
         <group>

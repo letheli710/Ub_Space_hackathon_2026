@@ -56,7 +56,7 @@ function Meter({ value }) {
   );
 }
 
-export default function Home({ event, onNavigate }) {
+export default function Home({ event, onNavigate, demoStatus }) {
   const metrics = Object.fromEntries(getMetrics(event));
   const systems = [
     ['Power', metrics['Battery Level']],
@@ -116,7 +116,7 @@ export default function Home({ event, onNavigate }) {
             <span className="home-card-label">
               <Rocket size={15} /> VELOCITY
             </span>
-            <strong>7.62 km/s</strong>
+            <strong>{demoStatus?.inOrbit ? 'IN ORBIT' : `${(demoStatus?.speedKmS ?? 0).toFixed(1)} km/s`}</strong>
           </div>
 
           <div className="home-card card-ai">

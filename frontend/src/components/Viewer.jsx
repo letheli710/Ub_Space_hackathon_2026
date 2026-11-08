@@ -9,6 +9,7 @@ import {
   Satellite,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { MAX_TIME_SCALE, MIN_TIME_SCALE, formatTimeScale, parseTimeScale } from '../data/voyage.js';
 import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
 import BackendMap from './BackendMap.jsx';
@@ -22,6 +23,66 @@ function formatTime(seconds) {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
   const rest = String(seconds % 60).padStart(2, '0');
   return `${minutes}:${rest}`;
+}
+
+/** − [typed value] + control for the demo time scale. Accepts 100000, 100K, 2.5M, 1Mx… */
+function TimeScaleControl({ value, onStep, onChange }) {
+  const [draft, setDraft] = useState(null); // text while editing, null otherwise
+  const [invalid, setInvalid] = useState(false);
+  const cancelled = useRef(false);
+
+  function commit() {
+    if (cancelled.current) {
+      cancelled.current = false;
+      setDraft(null);
+      return;
+    }
+    if (draft === null) return;
+    const parsed = parseTimeScale(draft);
+    setDraft(null);
+    if (parsed === null) {
+      setInvalid(true);
+      setTimeout(() => setInvalid(false), 1200);
+    } else if (parsed !== value) {
+      onChange(parsed);
+    }
+  }
+
+  return (
+    <div
+      className={`time-scale ${invalid ? 'invalid' : ''}`}
+      role="group"
+      aria-label="Demo time scale"
+      title="Mission time per real second. Type a value such as 100K or 2.5M."
+    >
+      <button aria-label="Slower" disabled={value <= MIN_TIME_SCALE} onClick={() => onStep(-1)}>
+        −
+      </button>
+      <input
+        aria-label="Time scale"
+        value={draft ?? formatTimeScale(value)}
+        onFocus={(e) => {
+          setDraft(formatTimeScale(value));
+          requestAnimationFrame(() => e.target.select());
+        }}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Escape') {
+            cancelled.current = true;
+            setDraft(null);
+            e.currentTarget.blur();
+          }
+        }}
+        spellCheck={false}
+        autoComplete="off"
+      />
+      <button aria-label="Faster" disabled={value >= MAX_TIME_SCALE} onClick={() => onStep(1)}>
+        +
+      </button>
+    </div>
+  );
 }
 
 export default function Viewer({
@@ -39,6 +100,9 @@ export default function Viewer({
   seconds,
   onTogglePlaying,
   onResetDemo,
+  timeScale,
+  onTimeScaleStep,
+  onTimeScaleChange,
   voyage,
   voyageLabel,
   armed,
@@ -49,6 +113,10 @@ export default function Viewer({
   onMiss,
   onImpactDone,
   blackHole,
+  solarStorm,
+  stormFlash,
+  onStormReach,
+  onStormDone,
   onMapInspect,
 }) {
   const [viewResetCount, setViewResetCount] = useState(0);
@@ -149,8 +217,12 @@ export default function Viewer({
             onImpactDone={onImpactDone}
             blackHole={blackHole}
             blackHoleMarker={blackHoleMarker}
+            solarStorm={solarStorm}
+            onStormReach={onStormReach}
+            onStormDone={onStormDone}
           />
           <div className="scenehint">DEMO · UNMANNED AI SPACECRAFT · {voyageLabel}</div>
+          {stormFlash > 0 && <div key={stormFlash} className="storm-flash" aria-hidden="true" />}
           {event && <div className="warning">⚠ {event.name.toUpperCase()} DETECTED</div>}
           {armed && <div className="armed-hint">Click to launch {armed} · Esc to cancel</div>}
           {blackHole && (
@@ -202,6 +274,9 @@ export default function Viewer({
           </>
         )}
         <div className="view-buttons">
+          {generator && !live && (
+            <TimeScaleControl value={timeScale} onStep={onTimeScaleStep} onChange={onTimeScaleChange} />
+          )}
           {generator && (
             <button onClick={() => setViewResetCount((n) => n + 1)}>
               <LocateFixed size={16} />
