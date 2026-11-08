@@ -951,6 +951,7 @@ footer {
   font-size: 12px;
 }
 .ai-api-body select,
+.ai-api-body > input,
 .ai-api-key input {
   width: 100%;
   padding: 10px;

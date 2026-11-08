@@ -1,8 +1,70 @@
 # DEMO AI: launch, avoidance and repair
 
 DEMO physics runs in the browser. A small Python gateway calls the four configured
-DeepSeek roles and returns Main Judging-approved actions. **Gazebo, WSL and Docker
+AI roles and returns Main Judging-approved actions. **Gazebo, WSL and Docker
 are not required for this gateway.** The existing native Gazebo AI remains separate.
+
+## Connect from the frontend
+
+Start the gateway and frontend using the Windows/macOS steps below. After updating
+this project, restart the gateway so it loads the new connection endpoints.
+
+1. Open **AI API**. Select **DeepSeek**, leave API link empty for its standard
+   address (or enter `https://api.deepseek.com`), and use model **deepseek-flash**.
+2. Enter your key locally in that page and click **Save**. All four DEMO roles use
+   this saved provider/model/key. You can edit the API link or model without
+   re-entering the saved key. Switching providers requires a key for that provider.
+3. Click **Check saved connection**. This checks credentials and model access
+   through the gateway using model metadata, without generating tokens or moving
+   the ship. A successful check does not guarantee model decisions will be valid.
+4. Click **Open spacecraft AI controls**, then **Run DEMO AI once** or **Enable
+   DEMO autopilot**. Generator → DEMO has the same controls. Each cycle supplies
+   measured telemetry and nearby objects to the subsystems, then Main Judging
+   reviews and combines their proposals. Only approved, still-valid actions execute.
+5. Open **AI Logs**. **All** contains the run/autopilot controls and combined log;
+   **Main Judging**, **Propelling**, **Energy**, and **Robot Arms** show each role's
+   latest assessment, proposals, reviews, errors, and event history. The right-side
+   cards show that role's model and connection state. Check the ship and DEMO
+   TELEMETRY for the resulting burn or repair.
+
+The connection panel polls the local gateway every 10 seconds without calling a
+model provider. **Configured · not verified** means a key/model is present, not that
+it has been tested. **Check again** explicitly verifies model access. **Connected**
+means that role completed a valid model call; failed or skipped roles are reported
+separately. A provider error does not mean the Python gateway is offline. The
+optional live/Gazebo status is independent of DEMO.
+
+The last 20 DEMO cycles remain in the role logs while navigating between pages.
+Resetting DEMO, changing the AI connection, or reloading the website clears this
+browser-session history. Failed Main Judging responses and decisions discarded by
+local safety checks show **zero executed actions**, even when a proposal was made.
+
+The new Earth–Mars round trip, parking orbits and asteroid trails use the teammate's
+frontend design. AI observations include the current route phase, destination and
+map orientation. Local collision sensing, burns and repairs stay in physical body
+coordinates at the safe encounter clock while the map keeps moving. The parking
+route is scripted guidance, not a gravity-based orbital simulation.
+
+The menu supports DeepSeek, OpenAI Chat Completions, Anthropic Messages, Gemini
+generateContent, and **Other (OpenAI-compatible)** endpoints. For providers other
+than DeepSeek, enter an explicit text model ID supported by your account. Use an
+API **base** URL, not `/chat/completions` or another method URL. HTTP is accepted
+only for localhost proxies; remote endpoints require HTTPS. Custom endpoints must
+support JSON Chat Completions; the connection check additionally requires `/models`.
+
+With no browser connection saved, the gateway uses the existing backend `.env`,
+including different models/keys per role. Click **Remove** to return to that mode.
+Browser connections work without setting `AI_ENABLED` or a key in `.env`; the
+gateway must still be running. Saving/removing settings stops autopilot and
+discards any in-flight decision. Start autopilot again explicitly afterward.
+
+The key is kept in sessionStorage by default, or localStorage when **Remember on
+this device** is checked. On a check/cycle request it travels to your configured
+gateway, then the selected provider. The gateway keeps it only for that request;
+it never rewrites `.env`, puts credentials into model prompts, or falls back to
+the server key after a custom connection fails. Changing one browser's settings
+does not reconfigure another browser. The optional Gazebo AI remains configured
+through its backend `.env`.
 
 ## Windows setup
 
@@ -19,7 +81,9 @@ are not required for this gateway.** The existing native Gazebo AI remains separ
 
    If your installed Python is newer, replace `-3.12` with its version. Skip these
    two commands for later starts with the environment already installed.
-3. Enter the backend folder. Keep any existing `.env`; create it only if missing:
+3. Enter the backend folder. If configuring through **AI API**, only the `cd`
+   command is required. For the optional server-configured connection, keep any
+   existing `.env`; create it only if missing:
 
    ```powershell
    cd UB_Spaceship_Travel_Sim_Backend
@@ -46,8 +110,9 @@ are not required for this gateway.** The existing native Gazebo AI remains separ
 
    Run `npm ci` only on first setup or dependency updates, after stopping existing
    frontend servers. For subsequent launches use just `npm run dev`.
-6. Open Vite's URL, normally `http://127.0.0.1:5173`. Choose **Generator → DEMO**,
-   then **Check AI connection** in DEMO AI MANAGEMENT. It should say CONFIGURED.
+6. Open Vite's URL, normally `http://127.0.0.1:5173`. Configure **AI API** as above,
+   or use the backend `.env`. Choose **Generator → DEMO**, then **Check AI connection**
+   in DEMO AI MANAGEMENT. It should say MODEL ACCESS VERIFIED.
    Use **Run DEMO AI once** or **Enable DEMO autopilot**. The **AI Logs** tab also
    shows these DEMO controls when DEMO is selected.
 
@@ -67,7 +132,8 @@ policy change is needed.
    .venv-demo/bin/python -m pip install 'fastapi>=0.120,<1' 'uvicorn>=0.38,<1' 'httpx>=0.28,<1' 'websockets>=15,<17'
    ```
 
-3. Open the backend configuration without overwriting existing keys:
+3. Enter the backend folder. When using **AI API**, only `cd` is required.
+   To use the optional backend configuration without overwriting existing keys:
 
    ```bash
    cd UB_Spaceship_Travel_Sim_Backend
@@ -115,13 +181,17 @@ policy change is needed.
   terminal stops the frontend and gateway. No persistent paid loop is enabled by default.
 
 The gateway uses port **8001**, with `GET /api/v1/demo-ai/status` and
-`POST /api/v1/demo-ai/cycle`. Vite proxies that prefix to the gateway, while the
+`POST /api/v1/demo-ai/check` and `POST /api/v1/demo-ai/cycle`. The new cycle body is
+`{observation, connection}`; `connection: null` selects backend settings. Legacy
+observation-only requests remain supported. No credentials are returned in status
+or cycle results. Vite proxies that prefix to the gateway, while the
 optional Gazebo API stays on 8000. Restart Vite after changing its configuration.
 For another gateway host/port use `DEMO_AI_PROXY_TARGET` in frontend `.env.local`;
 for production, route `/api/v1/demo-ai` to the gateway and allow long requests
 (the browser timeout is 150 s). `VITE_DEMO_AI_URL` is available for a separate
-API origin; configure that origin's CORS explicitly. Keys belong only in backend
-`.env`, never in a `VITE_` variable or the browser AI API settings tab.
+API origin; configure that origin's CORS explicitly. Never put a key in a `VITE_`
+variable or commit it. Use HTTPS and authentication when deploying a shared
+gateway; the default command binds to localhost for local development.
 
 ## Authority and limits
 
@@ -141,8 +211,11 @@ panels from rocks. Other nonphysical disaster artwork remains illustrative.
 
 The provider requests JSON output and validates it before use, following
 [DeepSeek's JSON output documentation](https://api-docs.deepseek.com/guides/json_mode/).
-Provider errors are sanitized, keys stay server-side, and private reasoning content
-is neither returned nor saved.
+Provider errors are sanitized and private reasoning content is neither returned
+nor saved. Adapters follow the [OpenAI Chat Completions reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+[Anthropic Messages reference](https://platform.claude.com/docs/en/api/messages/create),
+and [Gemini generateContent reference](https://ai.google.dev/api/generate-content).
+Provider JSON is always validated against the simulation's schema before use.
 
 ## Verified real-model trials (2026-11-08)
 

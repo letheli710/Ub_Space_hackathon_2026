@@ -32,6 +32,7 @@ import {
 import useSimulation from './simulation/useSimulation.js';
 import { commandDemoBurn, coastDemo, demoTelemetry, launchDemoRock, launchDemoRockAtPointer, injectDemoFault } from './simulation/demoPhysics.js';
 import useDemoAI from './simulation/useDemoAI.js';
+import { loadAiSettings } from './ai/settings.js';
 
 // Two ways to run the 3D view:
 //  - Live: the ROS/Gazebo simulator is connected; ship, map, telemetry and arms come from it.
@@ -68,6 +69,7 @@ function useVoyage(playing, onLegEvent) {
 export default function App() {
   const [tab, setTab] = useState('Home');
   const [viewMode, setViewMode] = useState('demo');
+  const [aiSettings, setAiSettings] = useState(loadAiSettings);
   const simulation = useSimulation({ enabled: viewMode === 'live' || ['Spacecraft', 'Planetary Trajectories'].includes(tab) });
   const live = (viewMode === 'live' || tab === 'Planetary Trajectories') && Boolean(simulation.scene);
 
@@ -143,7 +145,12 @@ export default function App() {
     if (legEvent === 'arrived') addLogs([`ARRIVED · ${destination(v)} orbit reached · Half a lap before heading back`]);
     else addLogs([`DEPARTURE · ${origin(v)} → ${destination(v)}`]);
   });
-  const demoAI = useDemoAI(voyage, playing && !live, addLog);
+  const demoAI = useDemoAI(voyage, playing && !live, addLog, aiSettings, seconds);
+  function changeAiSettings(settings) {
+    demoAI.stop();
+    setAiSettings(settings);
+    addLog('DEMO AI connection changed · autopilot stopped; run a cycle or enable it again when ready');
+  }
   const voyageLabel = `${voyagePhase(voyage.current)} · MAP DAY ${Math.floor(missionDay(voyage.current))}`;
   // Map playback stays continuous while local collision/AI time runs safely at 1x.
   const timeScale = voyage.current.timeScale;
@@ -348,7 +355,7 @@ export default function App() {
       ) : tab === 'Spacecraft' ? (
         <SpacecraftViewer simulation={simulation} onLog={addLog} />
       ) : tab === 'AI API' ? (
-        <AiApiSettings />
+        <AiApiSettings ai={demoAI} onSettingsChange={changeAiSettings} onOpenControls={() => { setViewMode('demo'); setTab('AI Logs'); }} />
       ) : (
         <div className={workspaceClass}>
           {planetTab ? (

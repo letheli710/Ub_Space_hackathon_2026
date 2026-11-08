@@ -27,6 +27,7 @@ class AISettings:
     timeout_s: float = 45
     max_cycle_age_s: float = 120
     loop_interval_s: float = 10
+    provider: str = 'deepseek'
 
 
 def load_settings(environ=None):

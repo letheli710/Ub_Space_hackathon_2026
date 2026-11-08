@@ -115,6 +115,13 @@ ROLE = {
 }
 
 
+class DemoCycleError(ModelError):
+    """A failed cycle still carries safe diagnostics for the per-system UI."""
+    def __init__(self, message, cycle):
+        super().__init__(message)
+        self.cycle = cycle
+
+
 def validated_selection(observation, proposals, decision):
     by_id = {p['id']: p for p in proposals}
     if len(decision.reviews) != len(by_id) or {r.proposal_id for r in decision.reviews} != set(by_id):
@@ -141,21 +148,38 @@ class DemoAdvisor:
 
     def status(self):
         return {'enabled': self.settings.enabled, 'busy': self.lock.locked(),
+                'provider': self.settings.provider, 'base_url': self.settings.base_url,
                 'systems': [{'id': role, 'model': config.model, 'configured': bool(config.api_key)}
                             for role, config in self.settings.roles.items()]}
 
     async def cycle(self, observation):
         if not self.settings.enabled or any(not r.api_key for r in self.settings.roles.values()):
-            raise ModelError('Set AI_ENABLED=true and DEEPSEEK_API_KEY in the backend .env, then restart the DEMO AI service.')
+            raise ModelError('Save a connection in AI API, or set AI_ENABLED=true and DEEPSEEK_API_KEY in the backend .env and restart the DEMO AI service.')
         if self.lock.locked():
             raise ModelError('A DEMO AI cycle is already running')
         async with self.lock:
             started = time.monotonic()
             proposals, errors, assessments = [], {}, {}
             catalog = {o.id: o for o in observation.options}
+            calls = {}
+            result = {'id': uuid.uuid4().hex, 'run_id': observation.run_id, 'epoch': observation.epoch,
+                      'sim_time_s': observation.sim_time_s, 'approved_options': [], 'reviews': [],
+                      'proposals': proposals, 'assessments': assessments, 'errors': errors, 'calls': calls,
+                      'summary': '', 'combination_rationale': '', 'status': 'failed'}
+
+            def finish():
+                result['latency_s'] = round(time.monotonic() - started, 3)
+                return result
+
+            def call_finished(role, began, error=None):
+                calls[role] = {'status': 'error' if error else 'ok', 'model': self.settings.roles[role].model,
+                               'duration_s': round(time.monotonic() - began, 3)}
+                if error:
+                    calls[role]['error'] = error
 
             async def propose(role):
                 prompt = COMMON + '\n' + ROLE[role] + '\nJSON schema: ' + json.dumps(Proposals.model_json_schema())
+                began = time.monotonic()
                 try:
                     payload = observation.model_dump()
                     payload['options'] = [o.model_dump() for o in observation.options if o.owner == role]
@@ -167,22 +191,33 @@ class DemoAdvisor:
                         owned.append({'id': f'{role}_{len(owned)}', 'system': role, **item.model_dump()})
                     proposals.extend(owned)
                     assessments[role] = output.assessment
+                    call_finished(role, began)
                 except ModelError as exc:
                     errors[role] = str(exc)
+                    call_finished(role, began, str(exc))
 
             await asyncio.gather(*(propose(role) for role in SUBSYSTEMS))
             if len(errors) == len(SUBSYSTEMS):
-                raise ModelError('All DEMO subsystems failed: ' + '; '.join(f'{role}: {message}' for role, message in errors.items()))
+                result['summary'] = 'All DEMO subsystems failed; Main Judging was not called and no actions were authorized.'
+                calls['main_judging'] = {'status': 'skipped', 'model': self.settings.roles[SystemId.MAIN_JUDGING].model}
+                raise DemoCycleError(result['summary'], finish())
             prompt = COMMON + '\n' + ROLE['main_judging'] + '\nJSON schema: ' + json.dumps(Decision.model_json_schema())
-            decision = await self.client.complete(SystemId.MAIN_JUDGING, prompt,
-                {'observation': observation.model_dump(), 'proposals': proposals, 'subsystem_errors': errors,
-                 'analysis_elapsed_s': time.monotonic() - started}, Decision)
-            selected = validated_selection(observation, proposals, decision)
-            return {'id': uuid.uuid4().hex, 'run_id': observation.run_id, 'epoch': observation.epoch,
-                    'approved_options': selected, 'summary': decision.summary,
-                    'combination_rationale': decision.combination_rationale, 'reviews': [r.model_dump() for r in decision.reviews],
-                    'proposals': proposals, 'assessments': assessments, 'errors': errors,
-                    'latency_s': round(time.monotonic() - started, 3)}
+            began = time.monotonic()
+            try:
+                decision = await self.client.complete(SystemId.MAIN_JUDGING, prompt,
+                    {'observation': observation.model_dump(), 'proposals': proposals, 'subsystem_errors': errors,
+                     'analysis_elapsed_s': time.monotonic() - started}, Decision)
+                selected = validated_selection(observation, proposals, decision)
+                call_finished(SystemId.MAIN_JUDGING, began)
+            except ModelError as exc:
+                errors['main_judging'] = str(exc)
+                call_finished(SystemId.MAIN_JUDGING, began, str(exc))
+                result['summary'] = 'Main Judging failed; no actions were authorized.'
+                raise DemoCycleError(str(exc), finish()) from exc
+            result.update(approved_options=selected, summary=decision.summary, status='judged',
+                          combination_rationale=decision.combination_rationale,
+                          reviews=[r.model_dump() for r in decision.reviews])
+            return finish()
 
     async def close(self):
         await self.client.close()

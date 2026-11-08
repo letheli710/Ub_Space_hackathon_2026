@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { assetUrl } from '../simulation/useSimulation.js';
 import AIControlPanel from './AIControlPanel.jsx';
 import DemoAIControls from './DemoAIControls.jsx';
+import { demoConnection, demoCycleEntries, demoGatewayConnection } from '../ai/logs.js';
 
 // AI Logs tab: one "All" view plus one view per AI system. Left: that system's management
 // details and event log. Right: that system's connection status (live backend and DEMO gateway).
@@ -75,18 +76,6 @@ function liveConnection(live, id) {
   return ['ok', 'Ready', `${role.model} · not called yet`];
 }
 
-/** Connection state of one system on the DEMO AI gateway: [tone, text, detail]. */
-function demoConnection(ai, id) {
-  if (ai.busy) return ['ok', 'Analyzing…', ''];
-  if (!ai.service) return ai.error ? ['bad', 'Gateway offline', 'Start the DEMO AI gateway on port 8001.'] : ['wait', 'Not checked', ''];
-  const role = ai.service.systems?.find((item) => item.id === id);
-  if (!role) return ['wait', 'Unknown', ''];
-  if (!ai.service.enabled) return ['warn', 'AI disabled', role.model];
-  if (!role.configured) return ['warn', 'No API key', role.model];
-  if (ai.latest?.errors?.[id]) return ['bad', 'Last call failed', ai.latest.errors[id]];
-  return ['ok', 'Ready', role.model];
-}
-
 function StatusRow({ title, state }) {
   const [tone, text, detail] = state;
   return (
@@ -114,7 +103,8 @@ function SystemStatus({ system, live, ai, compact }) {
 
 /** Everything one system did: AI events, proposals, decisions and matching simulation logs. */
 function systemEntries(id, { live, ai, logs }) {
-  const entries = [];
+  const entries = (ai.history ?? []).flatMap(c => demoCycleEntries(c, id))
+    .map(e => ({ ...e, time: formatClock(e.seconds) }));
   for (const item of live.status?.events ?? []) {
     const owner = item.system_id ?? (item.kind === 'judgement' ? 'main_judging' : null);
     if (owner === id) entries.push({ key: `live-${item.id}`, time: new Date(item.at).toLocaleTimeString(), source: 'LIVE AI', text: item.text });
@@ -183,6 +173,8 @@ function SystemDetail({ system, live, ai, logs }) {
             <p><strong>Summary: </strong>{ai.latest.summary}</p>
             <p className="muted">{ai.latest.combination_rationale}</p>
             <p className="muted">{ai.latest.executed} action(s) executed · {ai.latest.latency_s?.toFixed(1)} s</p>
+            {ai.latest.reviews?.map(review => <p key={review.proposal_id} className="muted">{review.proposal_id} · {review.approve ? 'APPROVED' : 'REJECTED'} · {review.reason}</p>)}
+            {ai.latest.execution_error && <p className="ai-notice">No actions executed · {ai.latest.execution_error}</p>}
           </>
         ) : (
           <>
@@ -221,14 +213,20 @@ export default function AiLogs({ viewMode, demoAI, simulation, logs, onShowLiveS
   const [selected, setSelected] = useState('all');
   const live = useLiveAiStatus();
   const system = AI_SYSTEMS.find((item) => item.id === selected);
+  const demoEntries = (demoAI.history ?? []).flatMap(c => demoCycleEntries(c));
 
-  // Check the DEMO gateway once when the page opens, then every 10 s.
-  const { connect } = demoAI;
+  // Poll local configuration, without sending repeated requests to model providers.
+  // Only the explicit check button verifies credentials with the selected provider.
+  const { connect, refreshStatus, settings } = demoAI;
   useEffect(() => {
-    connect();
-    const timer = setInterval(connect, 10000);
-    return () => clearInterval(timer);
-  }, [connect]);
+    let stopped = false, timer;
+    const poll = async () => {
+      await refreshStatus();
+      if (!stopped) timer = setTimeout(poll, 10000);
+    };
+    poll();
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [refreshStatus, settings]);
 
   return (
     <div className="ai-logs-page">
@@ -254,7 +252,12 @@ export default function AiLogs({ viewMode, demoAI, simulation, logs, onShowLiveS
             <>
               {viewMode === 'demo' ? <DemoAIControls ai={demoAI} /> : <AIControlPanel simulation={simulation} onShowLiveShip={onShowLiveShip} />}
               <section className="ai-system-log">
-                <h3>SIMULATION AND DEMO EVENTS · {logs.length}</h3>
+                <h3>SIMULATION AND DEMO EVENTS · {logs.length + demoEntries.length}</h3>
+                {demoEntries.map(item => <div key={item.key}>
+                  <time>{formatClock(item.seconds)}</time>
+                  <span className="ai-log-source">{AI_SYSTEMS.find(s => s.id === item.system_id)?.label}</span>
+                  <span>{item.text}</span>
+                </div>)}
                 {logs.map((item) => (
                   <div key={item.id}>
                     <time>{formatClock(item.seconds)}</time>
@@ -275,9 +278,9 @@ export default function AiLogs({ viewMode, demoAI, simulation, logs, onShowLiveS
             />
             <StatusRow
               title="DEMO AI gateway · port 8001"
-              state={demoAI.service ? (demoAI.service.enabled ? ['ok', 'Online', demoAI.service.busy ? 'Analyzing' : 'Idle'] : ['warn', 'Online · AI disabled', '']) : demoAI.error ? ['bad', 'Offline', ''] : ['wait', 'Checking…', '']}
+              state={demoGatewayConnection(demoAI)}
             />
-            <button onClick={connect}>Check again</button>
+            <button disabled={demoAI.checking} onClick={connect}>{demoAI.checking ? 'Checking…' : 'Check again'}</button>
           </div>
           {(system ? [system] : AI_SYSTEMS).map((item) => (
             <SystemStatus key={item.id} system={item} live={live} ai={demoAI} compact={!system} />

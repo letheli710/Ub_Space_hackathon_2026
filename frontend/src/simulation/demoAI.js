@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { commandDemoBurn, demoTelemetry, protectDemoSolar, repairDemoPart } from './demoPhysics.js';
 import { DEMO_ARM_MOUNTS } from './demoShip.js';
+import { destination, origin, voyagePhase } from '../data/voyage.js';
 
 // Conservative constant-attitude prediction, not a promise of collision avoidance.
 // The 26 m envelope covers the current ship and its arms. Real contacts use boxes.
@@ -15,7 +16,7 @@ function closestApproach(s, rock, acceleration = new Vector3(), duration = 0) {
   }
   return { closest_in_s: time, clearance_m: best - 26 - rock.radius };
 }
-export function buildDemoObservation(s) {
+export function buildDemoObservation(s, voyage = null) {
   const telemetry = demoTelemetry(s), inv = s.ship.q.clone().invert();
   const threats = s.rocks.map(r => ({ id: `rock-${r.id}`, radius_m: r.radius, mass_kg: r.mass,
     relative_position_body_m: r.p.clone().sub(s.ship.p).applyQuaternion(inv).toArray(),
@@ -42,7 +43,13 @@ export function buildDemoObservation(s) {
   options.push({ id: 'solar_isolate', owner: 'energy', action: { type: 'solar_protection', enabled: true }, prediction: { effect: 'Isolate panel generation for maintenance; charging stops. Does not prevent kinetic impacts.' } });
   options.push({ id: 'solar_restore', owner: 'energy', action: { type: 'solar_protection', enabled: false }, prediction: { effect: 'Restore charging from surviving wings.' } });
   return { run_id: s.runId, epoch: s.epoch, sim_time_s: s.elapsed,
-    telemetry: { ...telemetry, bonds: telemetry.bonds.map(({ marks, ...b }) => b) },
+    telemetry: { ...telemetry, bonds: telemetry.bonds.map(({ marks, ...b }) => b),
+      ...(voyage ? { navigation: {
+        phase: voyagePhase(voyage), origin: origin(voyage), destination: destination(voyage),
+        in_orbit: voyage.dwell > 0, mission_time_s: voyage.mapElapsed, map_time_scale: voyage.timeScale,
+        map_position_units: voyage.mapPosition.toArray(), physics_to_map_quaternion: voyage.frame.toArray(),
+        guidance: 'Scripted Earth-Mars round trip with local thrust and impact deviations. Encounters use the physical clock and body-frame measurements, not accelerated map time.',
+      } } : {}) },
     coordinate_frame: 'ship body: +Z nose/forward, +Y up, +X right. Translation and attitude are independent.',
     active_faults: [...s.faults], threats, options };
 }

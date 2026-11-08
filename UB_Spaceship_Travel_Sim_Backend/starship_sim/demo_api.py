@@ -7,7 +7,9 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from .ai.demo import DemoAdvisor, Observation
+from .ai.demo import DemoAdvisor, DemoCycleError, Observation
+from .ai.connection import BrowserConnection
+from .ai.contracts import Contract
 from .ai.provider import ModelError
 from .ai.settings import load_settings
 
@@ -27,8 +29,31 @@ def load_local_env(path=None):
             os.environ.setdefault(key, value)
 
 
-def create_demo_app(settings=None, client=None):
+class ConnectionRequest(Contract):
+    connection: BrowserConnection | None = None
+
+
+class CycleRequest(ConnectionRequest):
+    observation: Observation
+
+
+def create_demo_app(settings=None, client=None, connection_client_factory=None):
     advisor = DemoAdvisor(settings or load_settings(), client)
+
+    @asynccontextmanager
+    async def selected(connection):
+        if connection is None:
+            yield advisor
+            return
+        configured = connection.settings()
+        active = DemoAdvisor(configured, connection_client_factory(configured) if connection_client_factory else None)
+        try:
+            yield active
+        finally:
+            await active.close()
+
+    def public_status(active, connection):
+        return {**active.status(), 'source': 'browser' if connection else 'backend'}
 
     @asynccontextmanager
     async def lifespan(app):
@@ -57,12 +82,38 @@ def create_demo_app(settings=None, client=None):
 
     @app.get('/api/v1/demo-ai/status')
     def status():
-        return advisor.status()
+        return public_status(advisor, None)
+
+    @app.post('/api/v1/demo-ai/status')
+    async def selected_status(command: ConnectionRequest):
+        # Connection cards poll configuration only; no provider traffic or generation.
+        async with selected(command.connection) as active:
+            return public_status(active, command.connection)
+
+    @app.post('/api/v1/demo-ai/check')
+    async def check(command: ConnectionRequest):
+        try:
+            async with selected(command.connection) as active:
+                if not active.settings.enabled or any(not c.api_key for c in active.settings.roles.values()):
+                    raise ModelError('No active AI connection. Save settings in AI API or configure the backend .env.')
+                await active.client.check()
+                return {**public_status(active, command.connection), 'verified': True,
+                        'message': 'Model access verified. Run a DEMO cycle to test decisions.'}
+        except ModelError as exc:
+            raise HTTPException(503, str(exc)) from exc
 
     @app.post('/api/v1/demo-ai/cycle')
-    async def cycle(observation: Observation):
+    async def cycle(command: CycleRequest | Observation):
         try:
-            return await advisor.cycle(observation)
+            connection = command.connection if isinstance(command, CycleRequest) else None
+            observation = command.observation if isinstance(command, CycleRequest) else command
+            async with selected(connection) as active:
+                try:
+                    result = await active.cycle(observation)
+                except DemoCycleError as exc:
+                    return JSONResponse(status_code=503, content={'detail': str(exc), 'cycle': exc.cycle,
+                                        'connection': public_status(active, connection)})
+                return {**result, 'connection': public_status(active, connection)}
         except ModelError as exc:
             raise HTTPException(503, str(exc)) from exc
 

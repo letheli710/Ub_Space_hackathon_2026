@@ -78,3 +78,20 @@ def test_invalid_or_oversized_observations_never_call_models():
         o = observation().model_dump(); o['options'][0]['action']['linear'] = [2, 0, 0]
         assert client.post('/api/v1/demo-ai/cycle', json=o).status_code == 422
         assert not models.calls
+
+
+def test_per_system_diagnostics_preserve_partial_success_and_judge_failure():
+    with TestClient(create_demo_app(settings(), Models(bad_role=True))) as client:
+        cycle = client.post('/api/v1/demo-ai/cycle', json=observation().model_dump()).json()
+        assert cycle['calls']['energy']['status'] == 'error'
+        assert cycle['calls']['robot_arms']['status'] == 'ok'
+        assert cycle['calls']['main_judging']['duration_s'] >= 0
+        assert cycle['status'] == 'judged'
+    with TestClient(create_demo_app(settings(), Models(bad_judge=True))) as client:
+        response = client.post('/api/v1/demo-ai/cycle', json=observation().model_dump())
+        assert response.status_code == 503
+        cycle = response.json()['cycle']
+        assert cycle['status'] == 'failed' and cycle['approved_options'] == []
+        assert len(cycle['proposals']) == 3 and len(cycle['assessments']) == 3
+        assert cycle['calls']['main_judging']['status'] == 'error'
+        assert 'review each' in cycle['errors']['main_judging']

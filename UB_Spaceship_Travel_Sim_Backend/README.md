@@ -8,7 +8,15 @@ on Windows or macOS and the [DEMO physics guide](../frontend/docs/demo-physics.m
 For AI in DEMO, run the new lightweight gateway from this directory with
 `python -m starship_sim.demo_api` in the Python environment described in the
 [Windows/macOS DEMO AI guide](../frontend/docs/demo-ai.md). It reads the same local
-`.env` and exposes `/api/v1/demo-ai/status` and `/api/v1/demo-ai/cycle` on **8001**.
+`.env` and exposes `/api/v1/demo-ai/status`, `/api/v1/demo-ai/check` and
+`/api/v1/demo-ai/cycle` on **8001**. The frontend **AI API** tab can supply a
+provider, API base URL, model and key for each request, applying them to all four
+DEMO roles without changing `.env`. Remove browser settings to use `.env` again.
+Restart this gateway after updating. See the linked guide for exact frontend steps.
+The frontend's per-system **AI Logs** cards poll `POST /api/v1/demo-ai/status`
+for the selected connection without contacting the provider. Cycle responses
+include each role's call status and duration; failed cycles preserve diagnostics
+and authorize no actions. The optional Gazebo AI status remains separate.
 The four models can propose, judge and execute DEMO evasion and timed repairs.
 No ROS, WSL, Docker or Gazebo process is required for this mode.
 

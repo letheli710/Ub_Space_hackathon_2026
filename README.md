@@ -11,6 +11,13 @@ Disasters remain available while paused and after destruction, including wreckag
 Four-role AI now controls DEMO through a lightweight Python gateway on **8001**:
 Main Judging approves/combines evasion burns, local arm repairs and solar isolation.
 Follow the [DEMO AI setup for Windows/macOS](frontend/docs/demo-ai.md) to enable it.
+The frontend **AI API** tab now connects its saved provider, API link, model and
+key to all four DEMO roles. Use **Save → Check saved connection**, then run a cycle
+from **AI Logs** or **Generator**. Removing the saved connection restores backend
+`.env` settings. Restart the Python gateway after updating this code.
+The teammate's Earth–Mars round trip, parking orbits and rock trails are included.
+**AI Logs** now connects the new per-system tabs and status cards to real gateway
+results, including failed calls, judgement reviews and executed-action counts.
 
 ### Launch DEMO on Windows or macOS
 

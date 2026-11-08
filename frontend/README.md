@@ -53,6 +53,15 @@ combines actions. For avoidance tests use **60 s warning**: physics continues
 while the API responds. AI Logs also shows the DEMO controls when DEMO is selected.
 Paid requests occur only when you run a cycle or enable autopilot.
 
+To configure from the website, open **AI API**, select DeepSeek, enter model
+`deepseek-flash` and your key, then **Save → Check saved connection**. The API link
+can use the provider default or a custom base address. Click **Open spacecraft AI
+controls** to run a cycle. Saved settings apply to all four DEMO roles; **Remove**
+returns to backend `.env` settings. Restart the gateway after updating its code.
+The new **AI Logs** page has **All** and four system tabs. Its connection cards
+and role logs use the gateway's real configuration, decisions and errors; automatic
+status polling does not call providers. See the DEMO AI guide for status meanings.
+
 ## Optional backend features
 
 The longer platform setup below also covers the optional Gazebo integration.
@@ -77,9 +86,9 @@ acceleration, detailed asteroids, a solar-storm wave and persistent inner-failur
 indicators. These are browser simulation features. Live scenarios and AI approval
 remain connected to the backend independently.
 
-The **AI API** tab stores optional browser settings only. Live DeepSeek credentials
-belong in the backend `.env`, and **AI Logs** controls that connection. Saving a
-browser key neither configures the backend nor tests a provider connection.
+The **AI API** tab configures DEMO AI through the gateway on port 8001. Keys are
+sent to the gateway only when checking or running AI; `.env` is not changed.
+The optional Gazebo AI still uses its backend `.env` configuration on port 8000.
 
 Planetary Trajectories now displays the backend's solar-system SDF and measured
 planet/ship positions. It always uses the backend, independently of the

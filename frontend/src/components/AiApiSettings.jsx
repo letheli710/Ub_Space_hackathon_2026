@@ -5,6 +5,8 @@ import {
   baseUrlError,
   clearAiSettings,
   defaultBaseUrl,
+  defaultModel,
+  modelConnection,
   keyFormatHint,
   loadAiSettings,
   maskKey,
@@ -12,11 +14,12 @@ import {
 } from '../ai/settings.js';
 
 /** AI API tab: users enter the API key the AI features will use. */
-export default function AiApiSettings() {
+export default function AiApiSettings({ ai, onSettingsChange, onOpenControls }) {
   const [saved, setSaved] = useState(loadAiSettings);
-  const [provider, setProvider] = useState(saved?.provider ?? PROVIDERS[0].id);
+  const [provider, setProvider] = useState(saved?.provider ?? 'deepseek');
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState(saved?.baseUrl ?? '');
+  const [model, setModel] = useState(saved?.model ?? defaultModel(provider));
   const [remember, setRemember] = useState(saved?.remember ?? false);
   const [showKey, setShowKey] = useState(false);
   const [message, setMessage] = useState('');
@@ -26,20 +29,22 @@ export default function AiApiSettings() {
   const link = baseUrl.trim().replace(/\/+$/, '');
   const linkError = baseUrlError(link);
   // A new link can be saved on its own while a key is already stored.
-  const keyToSave = trimmed || saved?.apiKey || '';
-  const changed = trimmed || link !== (saved?.baseUrl ?? '') || provider !== saved?.provider;
-  const canSave = Boolean(keyToSave) && !linkError && Boolean(changed);
+  const keyToSave = trimmed || (provider === saved?.provider ? saved.apiKey : '') || '';
+  const changed = trimmed || link !== (saved?.baseUrl ?? '') || provider !== saved?.provider || model.trim() !== saved?.model || remember !== saved?.remember;
+  const canSave = Boolean(keyToSave && model.trim()) && !linkError && Boolean(changed);
   const savedProvider = PROVIDERS.find((item) => item.id === saved?.provider);
 
   function save(event) {
     event.preventDefault();
     if (!canSave) return;
-    const next = { provider, apiKey: keyToSave, baseUrl: link, remember };
+    const next = { provider, apiKey: keyToSave, baseUrl: link, model: model.trim(), remember };
+    try { modelConnection(next); } catch (error) { setMessage(error.message); return; }
     if (!saveAiSettings(next)) {
       setMessage('This browser blocked storage, so the key could not be saved.');
       return;
     }
     setSaved(next);
+    onSettingsChange(next);
     setApiKey('');
     setBaseUrl(link);
     setShowKey(false);
@@ -47,10 +52,12 @@ export default function AiApiSettings() {
   }
 
   function clear() {
-    clearAiSettings();
+    if (!clearAiSettings()) { setMessage('Browser storage blocked removal. Clear this site’s stored data in browser settings.'); return; }
     setSaved(null);
+    setApiKey('');
     setBaseUrl('');
-    setMessage('Key and API link removed from this browser.');
+    onSettingsChange(null);
+    setMessage('Browser connection removed. DEMO AI will use the backend configuration.');
   }
 
   return (
@@ -62,8 +69,9 @@ export default function AiApiSettings() {
 
         <div className="ai-api-body">
           <p className="muted">
-            Optional browser-only provider settings. Live spacecraft AI uses the backend .env configuration
-            and runs from AI Logs. Saving a key here does not change that connection.
+            Connect Main Judging, Propelling, Energy and Robot Arms in DEMO. Saved settings apply
+            to all four roles on the next AI cycle. With no browser connection saved, DEMO uses
+            the backend .env. The optional Gazebo AI uses its separate backend configuration.
           </p>
 
           <div className={`ai-api-status ${saved ? 'set' : ''}`} role="status">
@@ -76,20 +84,29 @@ export default function AiApiSettings() {
                   {saved.baseUrl || `${defaultBaseUrl(saved.provider) || 'No API link'} (default)`}
                 </small>
                 <small>{saved.remember ? 'Remembered on this device' : 'Saved for this browser tab'}</small>
+                <small>Model: {saved.model || 'Enter a model ID to finish setup'}</small>
               </>
             ) : (
-              <span>No API key saved</span>
+              <span>Using backend connection · no browser override saved</span>
             )}
           </div>
 
           <label htmlFor="ai-provider">Provider</label>
-          <select id="ai-provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
+          <select id="ai-provider" value={provider} onChange={(e) => {
+            setProvider(e.target.value); setBaseUrl(''); setModel(defaultModel(e.target.value));
+            setApiKey(''); setMessage('Enter a key and model for the selected provider.');
+          }}>
             {PROVIDERS.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.label}
               </option>
             ))}
           </select>
+
+          <label htmlFor="ai-model">Model ID</label>
+          <input id="ai-model" value={model} onChange={e => setModel(e.target.value)}
+            placeholder="Enter a text model ID from your provider" autoComplete="off" spellCheck={false} maxLength={200} />
+          <p className="muted ai-api-help">DeepSeek defaults to deepseek-flash. Other providers require a model ID available to your account. Custom providers must support OpenAI-compatible Chat Completions and JSON output.</p>
 
           <label htmlFor="ai-url">API link</label>
           <div className="ai-api-key">
@@ -149,13 +166,22 @@ export default function AiApiSettings() {
             </button>
           </div>
           {message && <p className="muted ai-api-message">{message}</p>}
+          <p className="muted">Saving or removing a connection stops DEMO autopilot and cancels pending decisions. Resume it from the AI controls when ready.</p>
+          <div className="ai-api-actions">
+            <button type="button" disabled={ai.checking || Boolean(saved && changed) || Boolean(!saved && (trimmed || link))} onClick={ai.connect}>
+              {ai.checking ? 'Checking connection…' : saved ? 'Check saved connection' : 'Check backend connection'}
+            </button>
+            <button type="button" onClick={onOpenControls}>Open spacecraft AI controls</button>
+          </div>
+          {ai.service?.verified && <p role="status">{ai.service.message}</p>}
+          {ai.error && <p role="alert">{ai.error}</p>}
 
           <div className="ai-api-note">
             <ShieldAlert size={16} />
             <p>
-              The key stays in this browser and is not sent anywhere yet. Anyone using this browser can read
-              it, so only use your own key on a computer you trust. For a shared or public deployment, keep the
-              key on the backend instead.
+              Checking or running AI sends this key through your DEMO AI gateway to the selected API
+              address. The gateway does not save it or change .env. “Remember” stores it on this device;
+              otherwise it lasts for this browser tab. Save only keys for the endpoint you intend to use.
             </p>
           </div>
         </div>
