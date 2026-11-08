@@ -4,7 +4,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { BLACK_HOLE_POSITION, MOON, PLANETS, ROUTE, SUN, routeParameter, shipPose } from '../../data/voyage.js';
 import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
-import Ship from '../Ship.jsx';
+import StationShip from '../station/StationShip.jsx';
 import BlackHoleMarker from './BlackHoleMarker.jsx';
 import SolarStorm from './SolarStorm.jsx';
 import BlackHole from './BlackHole.jsx';
@@ -85,8 +85,11 @@ function RouteLine({ voyage }) {
 
 // Heading line: points straight out of the ship's nose (+Z in the model), so any angle
 // between it and the route shows that the ship is not flying along the route.
-const NOSE = [0, 0, 2.7];
-const SHIP_LENGTH = 4.6;
+// The modular ship is modelled about 41 units long (nose at z = 17.2); the flight view shows it
+// scaled down so it fits the camera, hazard and route scale used here.
+const SHIP_SCALE = 0.15;
+const NOSE = [0, 0, 17.2 * SHIP_SCALE];
+const SHIP_LENGTH = 41 * SHIP_SCALE;
 const HEADING_POINTS = [NOSE, [0, 0, NOSE[2] + SHIP_LENGTH * 2]]; // about two ship lengths
 
 function HeadingLine() {
@@ -211,7 +214,9 @@ export default function FlightScene({
 
       <group ref={shipFrame}>
         <group ref={headingRef}>
-          <Ship event={event} playing={playing} />
+          <group scale={SHIP_SCALE}>
+            <StationShip event={event} ringSpin={playing} />
+          </group>
           <HeadingLine />
         </group>
         <pointLight position={[5, 6, 8]} intensity={80} color="#7ecbff" />

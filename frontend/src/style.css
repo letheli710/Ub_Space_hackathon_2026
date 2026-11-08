@@ -1071,3 +1071,93 @@ footer {
   padding: 7px 0;
   font-size: 16px;
 }
+
+/* Spacecraft tab */
+.spacecraft-page {
+  position: relative;
+  height: calc(100vh - 104px);
+  min-height: 520px;
+}
+.spacecraft-page > div:first-child {
+  position: absolute !important;
+  inset: 0;
+}
+.spacecraft-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 260px;
+  max-height: calc(100% - 32px);
+  overflow: auto;
+  padding: 14px 16px;
+  background: #04172bdd;
+}
+.spacecraft-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+.spacecraft-panel .muted {
+  margin: 0 0 10px;
+}
+.spacecraft-panel h4 {
+  margin: 16px 0 6px;
+  color: #00d6e8;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+.spacecraft-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+.spacecraft-panel ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #b5d1df;
+  line-height: 1.7;
+}
+.spacecraft-panel select,
+.spacecraft-panel button {
+  width: 100%;
+  padding: 8px;
+  color: #d5f9ff;
+  background: #0a1d33;
+  border: 1px solid #234763;
+  border-radius: 6px;
+}
+.spacecraft-panel button {
+  margin-top: 10px;
+}
+.spacecraft-joint {
+  margin-top: 10px;
+}
+.spacecraft-joint span {
+  display: flex;
+  justify-content: space-between;
+  color: #91adc2;
+  font-size: 12px;
+}
+.spacecraft-joint b {
+  color: #00deef;
+  font-variant-numeric: tabular-nums;
+}
+.spacecraft-joint input {
+  width: 100%;
+  accent-color: #00d9e9;
+}
+@media (max-width: 720px) {
+  .spacecraft-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 10px;
+  }
+  .spacecraft-page {
+    height: auto;
+  }
+  .spacecraft-page > div:first-child {
+    position: relative !important;
+    height: 420px !important;
+  }
+}

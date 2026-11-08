@@ -12,7 +12,7 @@ import {
 import { useRef } from 'react';
 import logo from '../assets/interstellar-x4-logo.webp';
 import { getMetrics } from './Telemetry.jsx';
-import Ship from './Ship.jsx';
+import StationShip from './station/StationShip.jsx';
 
 const FEATURES = [
   {
@@ -40,9 +40,12 @@ function ShowcaseShip({ event }) {
     ref.current.rotation.y = SHOWCASE_YAW + Math.sin(time.current * 0.35) * 0.4;
   });
   return (
-    <group rotation={[0.38, 0, 0]} scale={1.05}>
+    <group rotation={[0.38, 0, 0]} scale={0.2}>
       <group ref={ref}>
-        <Ship event={event} playing />
+        {/* The ship's middle sits near z = -3.5 in model space; shift it to the centre. */}
+        <group position={[0, 0, 3.5]}>
+          <StationShip event={event} />
+        </group>
       </group>
     </group>
   );

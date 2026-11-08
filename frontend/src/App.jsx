@@ -7,6 +7,7 @@ import { TRAVEL_SECONDS } from './components/Hazards.jsx';
 import { STORM_SPEED } from './components/space/SolarStorm.jsx';
 import Header from './components/Header.jsx';
 import Home from './components/Home.jsx';
+import SpacecraftViewer from './components/SpacecraftViewer.jsx';
 import MissionControl, { DEFAULT_MAP_INFO } from './components/MissionControl.jsx';
 import Telemetry from './components/Telemetry.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -330,6 +331,8 @@ export default function App() {
 
       {tab === 'Home' ? (
         <Home event={event} onNavigate={setTab} demoStatus={demoStatus} />
+      ) : tab === 'Spacecraft' ? (
+        <SpacecraftViewer />
       ) : tab === 'AI API' ? (
         <AiApiSettings />
       ) : (
