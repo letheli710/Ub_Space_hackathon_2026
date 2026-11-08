@@ -31,7 +31,11 @@ const side = new THREE.Vector3();
 
 function zoom(camera, controls, factor) {
   view.subVectors(camera.position, controls.target);
-  const distance = THREE.MathUtils.clamp(view.length() * factor, controls.minDistance, controls.maxDistance);
+  const distance = THREE.MathUtils.clamp(
+    view.length() * factor,
+    controls.minDistance,
+    controls.maxDistance,
+  );
   camera.position.copy(controls.target).addScaledVector(view.normalize(), distance);
 }
 
@@ -44,9 +48,11 @@ function look(camera, controls, angle) {
   controls.target.copy(camera.position).addScaledVector(view, distance);
 }
 
-export default function CameraControls({ active }) {
+export default function CameraControls({ active, view: viewName, getHome, resetCount }) {
   const { camera, controls, gl } = useThree();
   const held = useRef(new Set());
+  const home = useRef(getHome);
+  home.current = getHome;
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -113,6 +119,17 @@ export default function CameraControls({ active }) {
   useEffect(() => {
     if (active) gl.domElement.focus({ preventScroll: true });
   }, [active, gl]);
+
+  // Starting view: applied on load, when switching views, and by the Reset View button.
+  useEffect(() => {
+    // The live view fits its own camera (see LiveScene), so it passes no getHome.
+    if (!controls || !home.current) return;
+    held.current.clear();
+    const { position, target } = home.current();
+    camera.position.copy(position);
+    controls.target.copy(target);
+    controls.update();
+  }, [camera, controls, viewName, resetCount]);
 
   useFrame((_, delta) => {
     const keys = held.current;
