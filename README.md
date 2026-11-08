@@ -26,17 +26,26 @@ Ub_Space_hackathon_2026/
 └── shuttle_sim_backend/                Separate scaffold; not used to run this app
 ```
 
-For the first run, follow these guides in order:
+Choose the instructions for your computer. **macOS** means a Mac laptop or
+desktop; the Mac commands below run in Terminal.
 
-1. [Backend: install WSL/Docker, build and start the simulator](UB_Spaceship_Travel_Sim_Backend/README.md).
+| Operating system | Backend first | Frontend second |
+|---|---|---|
+| Windows | [PowerShell + Ubuntu WSL setup](UB_Spaceship_Travel_Sim_Backend/README.md#windows-setup) | [Windows frontend setup](frontend/README.md#windows-setup) |
+| macOS, Intel or Apple Silicon | [Terminal + Docker Desktop setup](UB_Spaceship_Travel_Sim_Backend/README.md#macos-setup) | [macOS frontend setup](frontend/README.md#macos-setup) |
+
+For the first run, follow the backend guide before the frontend guide:
+
+1. [Backend: install the Docker tools for your operating system, build and start](UB_Spaceship_Travel_Sim_Backend/README.md).
 2. [Frontend: install Node.js/dependencies and start the website](frontend/README.md).
 
-The frontend runs in Windows PowerShell. The backend's PowerShell launcher runs
-the Linux simulator inside Ubuntu WSL. ROS and Gazebo do not need to be installed
-directly on Windows. The Humble `.devcontainer/` is a separate development
-scaffold and is not required for the launch steps below.
+On Windows, the PowerShell launcher runs the Linux simulator inside Ubuntu WSL.
+On macOS, Docker Desktop runs it inside its Linux VM; use `docker compose`
+directly from Terminal. ROS and Gazebo stay inside the container on both systems.
+The Humble `.devcontainer/` is a separate development scaffold and is not required
+for these launch steps.
 
-## Open PowerShell in the project folder
+## Windows: open PowerShell in the project folder
 
 1. Open File Explorer and open `Ub_Space_hackathon_2026`.
 2. Click the address bar, type `powershell`, and press Enter.
@@ -50,7 +59,7 @@ Test-Path .\UB_Spaceship_Travel_Sim_Backend\compose.yaml
 Both commands should print `True`. Open a second PowerShell window the same way
 when starting the frontend.
 
-## Everyday launch after first-time setup
+## Windows: launch after first-time setup
 
 ### Terminal 1: start the backend
 
@@ -82,10 +91,113 @@ npm run dev
 ```
 
 If this is the first frontend run, or `package-lock.json` changed since the last
-dependency installation, run `npm ci` in this folder before `npm run dev`.
+dependency installation, stop any existing frontend dev/preview server with
+Ctrl+C, then run `npm ci` in this folder before `npm run dev`. Wait for the
+installation to finish successfully.
 
 Keep this terminal open. Open **<http://127.0.0.1:5173>** in a browser. The
 header should show **LIVE**, or **PAUSED** if the simulator has been paused.
+
+## macOS: first-time setup and launch
+
+### Open Terminal in the project folder
+
+1. Find `Ub_Space_hackathon_2026` in Finder.
+2. Press Command+Space, search for **Terminal**, and open it.
+3. Type `cd `, including the space, then drag the project folder from Finder into
+   Terminal and press Enter. This selects your own project location.
+4. Check the folder:
+
+```bash
+ls frontend/package.json UB_Spaceship_Travel_Sim_Backend/compose.yaml
+```
+
+Both file names should appear. Open each additional Terminal window in the
+project folder the same way.
+
+### Install the prerequisites once
+
+1. Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/),
+   choosing Apple Silicon or Intel to match **Apple menu > About This Mac**.
+   Open Docker Desktop and wait for its engine to start. Keep Docker Desktop
+   running while using the backend.
+2. Install Node.js 24 with npm using the macOS installer from the
+   [Node.js download page](https://nodejs.org/en/download). Reopen Terminal after
+   installation. The [Mac frontend guide](frontend/README.md#macos-setup) includes
+   the version and architecture checks.
+
+Use the Mac guides instead of the Windows WSL setup script and `.ps1` launchers.
+
+### Terminal 1: build and start the backend
+
+Start in `Ub_Space_hackathon_2026`:
+
+```bash
+cd UB_Spaceship_Travel_Sim_Backend
+docker version
+docker compose version
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose up -d --build
+```
+
+`docker version` should show both Client and Server information. Resolve a
+Docker connection error before running the build. The platform setting matches
+the pinned Space ROS image and is required on Apple Silicon; set it in every
+new backend Terminal window. Docker emulates this architecture on Apple Silicon,
+so builds and simulation can take longer.
+
+The first build downloads a large image. After it succeeds, check:
+
+```bash
+curl --fail --silent --show-error http://127.0.0.1:8000/readyz
+```
+
+Wait for `"ready": true`. An initial HTTP 503 means startup is still in progress.
+For logs, readiness failures and optional settings, use the
+[Mac backend guide](UB_Spaceship_Travel_Sim_Backend/README.md#macos-setup).
+
+### Terminal 2: install and start the frontend
+
+Open a **new Terminal window** in `Ub_Space_hackathon_2026`:
+
+```bash
+cd frontend
+node --version
+npm --version
+npm ci
+```
+
+Wait for `npm ci` to finish successfully, then run:
+
+```bash
+npm run dev
+```
+
+Keep this frontend terminal open and visit **<http://127.0.0.1:5173>**.
+The header should show **LIVE** or **PAUSED** once connected.
+
+### Later macOS launches
+
+Open Docker Desktop first. In Terminal 1, starting at the project root:
+
+```bash
+cd UB_Spaceship_Travel_Sim_Backend
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose up -d --no-build
+```
+
+Use `--no-build` only after a successful build and while backend source, assets
+and configuration are unchanged. After changes, use `docker compose up -d --build`.
+Wait for readiness again. In Terminal 2, starting at the project root:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Run `npm ci` again only when dependencies need installing, such as after a
+changed lockfile or a move from Windows to Mac. Stop the frontend first and
+install packages on the Mac itself so native dependencies match its OS and CPU.
 
 ## Check that everything works
 
@@ -112,17 +224,31 @@ These are the default ports. The component guides explain how to change them.
 
 **Frontend:** press Ctrl+C in the terminal running `npm run dev`.
 
-**Backend:** in Terminal 1, still inside `UB_Spaceship_Travel_Sim_Backend`:
+**Windows backend:** in Terminal 1, still inside `UB_Spaceship_Travel_Sim_Backend`:
 
 ```powershell
 .\tools\stop.ps1
 ```
 
-For a full backend rebuild from that same folder:
+For a full Windows backend rebuild from that same folder:
 
 ```powershell
 .\tools\stop.ps1
 .\tools\start.ps1
+```
+
+**macOS backend:** from Terminal inside `UB_Spaceship_Travel_Sim_Backend`:
+
+```bash
+docker compose down
+```
+
+For a full macOS backend rebuild from that same folder:
+
+```bash
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose down
+docker compose up -d --build
 ```
 
 Stopping and starting the backend creates a fresh voyage. Restarting the

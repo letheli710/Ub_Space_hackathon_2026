@@ -10,6 +10,19 @@ open without it, but will show **OFFLINE** and disable simulation commands.
 All paths below start inside **`Ub_Space_hackathon_2026`**. No machine-specific
 parent folder is required.
 
+| Computer | Follow this guide |
+|---|---|
+| Windows | [Windows setup in PowerShell](#windows-setup) |
+| Mac, Intel or Apple Silicon | [macOS setup in Terminal](#macos-setup) |
+
+Configuration, connection checks and build commands are shared; each setup
+section explains how to start the backend for that operating system.
+
+## Windows setup
+
+Use Windows PowerShell for steps 1–7 below. Mac users should follow
+[macOS setup](#macos-setup).
+
 ## 1. Install or check Node.js
 
 Use **Node.js 24**, the version used to verify this project. It includes npm.
@@ -160,16 +173,159 @@ To stop the backend as well, open PowerShell in `Ub_Space_hackathon_2026` and ru
 .\UB_Spaceship_Travel_Sim_Backend\tools\stop.ps1
 ```
 
+## macOS setup
+
+Use **Terminal** for these Mac steps. The frontend runs on macOS with Node.js;
+Docker Desktop runs the Linux backend. Follow the Mac backend guide for its
+Docker setup rather than the Windows WSL commands or `.ps1` launchers.
+
+### Mac step 1: install or check Node.js
+
+1. Open the official [Node.js download page](https://nodejs.org/en/download).
+2. Select **Node.js 24**, **macOS**, and the installer (`.pkg`). If asked to
+   choose an architecture, use **arm64** for Apple Silicon or **x64** for Intel.
+   Check **Apple menu > About This Mac** if unsure which chip you have.
+3. Run the installer with npm included, then reopen Terminal.
+4. Check the installation:
+
+```bash
+node --version
+npm --version
+node -p 'process.platform + " " + process.arch'
+```
+
+The first two commands should print version numbers. Node.js 24 satisfies the
+locked Vite requirement, `^20.19.0` or `>=22.12.0`. The last command should show
+`darwin arm64` on Apple Silicon or `darwin x64` on Intel with the matching Node
+installation. Install dependencies separately on each operating system and CPU
+architecture so native packages match the machine running the frontend.
+
+### Mac step 2: open Terminal in the project folder
+
+1. Find `Ub_Space_hackathon_2026` in Finder.
+2. Press Command+Space, search for **Terminal**, and open it.
+3. Type `cd `, including the space. Drag the project folder from Finder into
+   Terminal, then press Enter.
+4. Check the project files:
+
+```bash
+ls frontend/package.json UB_Spaceship_Travel_Sim_Backend/compose.yaml
+```
+
+Both file names should appear. Repeat this folder-opening method whenever a
+step asks for a new Terminal window at the project root.
+
+### Mac step 3: start the backend first
+
+First complete the Docker Desktop setup in the
+[Mac backend guide](../UB_Spaceship_Travel_Sim_Backend/README.md#macos-setup).
+Open Docker Desktop and keep it running. If the backend is already ready at
+<http://127.0.0.1:8000/readyz>, continue to Mac step 4.
+
+For the first build, or after backend source/assets/configuration changed,
+start from `Ub_Space_hackathon_2026` in Terminal:
+
+```bash
+cd UB_Spaceship_Travel_Sim_Backend
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose up -d --build
+```
+
+The platform matches the pinned Space ROS image. On Apple Silicon, Docker
+emulates amd64, so builds and simulation can be slower. Repeat the export in
+each new backend Terminal window; it also works on Intel Macs.
+
+For a later start with an existing image and unchanged backend files, use
+`docker compose up -d --no-build` instead of the build command, from the same
+backend folder with the platform export set.
+
+After startup, check:
+
+```bash
+curl --fail --silent --show-error http://127.0.0.1:8000/readyz
+```
+
+Wait for **`"ready": true`**. An initial HTTP 503 means the simulator is still
+starting; check again after a short wait. The `-d` backend continues in the
+background while Docker Desktop is running.
+
+### Mac step 4: install frontend dependencies when needed
+
+Open a **new Terminal window** in `Ub_Space_hackathon_2026` and run:
+
+```bash
+cd frontend
+ls package.json package-lock.json
+```
+
+For the first setup, after a changed lockfile, or after moving the checkout
+from another OS/CPU architecture, stop any running frontend dev/preview server
+with Ctrl+C and install the dependencies on this Mac:
+
+```bash
+npm ci
+```
+
+Wait until npm finishes successfully. If it prints an error, fix the installation
+before starting Vite. Keep this Terminal window inside the frontend folder.
+For later launches with dependencies already installed and unchanged, skip the
+installation and continue to Mac step 5.
+
+### Mac step 5: start the website
+
+In the frontend Terminal window:
+
+```bash
+npm run dev
+```
+
+Open **<http://127.0.0.1:5173>** and keep this Terminal window open. Vite forwards
+the website's `/api` requests, model assets and live WebSocket connection to
+the backend at port 8000. The port is fixed; stop an older frontend dev/preview
+server before starting a second one on 5173.
+
+### Mac step 6: verify the connection
+
+Wait for **LIVE**, or **PAUSED** if simulation time is stopped. In Generator,
+confirm the backend ship and arms appear. Resume if paused, send an arm target
+and watch its measured readings change. The full
+[live connection checks](#6-verify-the-live-connection) above apply on Mac too.
+
+### Mac step 7: stop or restart
+
+Press **Ctrl+C** in the frontend terminal to stop Vite. To start it again from
+that same folder, run `npm run dev`; reinstalling dependencies is only needed
+when the conditions in Mac step 4 apply.
+
+To stop the backend, open Terminal in `Ub_Space_hackathon_2026` and run:
+
+```bash
+cd UB_Spaceship_Travel_Sim_Backend
+docker compose down
+```
+
+Use the [Mac backend guide](../UB_Spaceship_Travel_Sim_Backend/README.md#macos-setup)
+for backend restarts, rebuilds and container logs. Restarting only the frontend
+reconnects to the existing simulation.
+
 ## Configuration
 
 The default settings work with the backend on port 8000. Skip this section for
 the normal local setup.
 
 From the frontend folder, create a local settings file **if `.env.local` does
-not already exist**:
+not already exist**. In Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env.local
+```
+
+In macOS Terminal, this conditional preserves an existing file:
+
+```bash
+if [ ! -f .env.local ]; then
+  cp .env.example .env.local
+fi
 ```
 
 Edit it in your editor. Preserve any existing local settings.
@@ -196,9 +352,10 @@ The default backend configuration allows both localhost and 127.0.0.1 on 5173.
 
 ## Tests and a production-build preview
 
-Run from the frontend folder:
+Run from the frontend folder in Windows PowerShell or macOS Terminal; these
+commands are the same on both:
 
-```powershell
+```sh
 npm test
 npm run build
 ```
@@ -209,7 +366,7 @@ The build writes the compiled website to `dist/`.
 To inspect that build locally, stop a running development server with Ctrl+C,
 keep the backend running, then run:
 
-```powershell
+```sh
 npm run preview
 ```
 
@@ -226,6 +383,9 @@ local verification. See the
 | Problem | What to do |
 |---|---|
 | `node` or `npm` is not recognized | Install Node.js with npm, then reopen PowerShell. |
+| macOS says `zsh: command not found: node` or `npm` | Finish the Node.js macOS installer and reopen Terminal; see Mac step 1. |
+| macOS says `vite: command not found` | From the frontend folder, complete `npm ci` successfully before running `npm run dev`. |
+| A native Rolldown dependency is missing or has the wrong architecture on Mac | Stop Vite, check the Node architecture in Mac step 1 and rerun `npm ci` on this Mac to install its native dependencies. |
 | An `EBADENGINE` or unsupported Node version message appears | Check `node --version` and use Node.js 24, or a version satisfying the requirement in step 1. |
 | `npm ci` cannot find `package.json` or the lockfile | Confirm you are in `Ub_Space_hackathon_2026/frontend`; `Test-Path .\package-lock.json` should return `True`. |
 | `npm ci` reports `EPERM` while unlinking a Rolldown `.node` file | Stop the existing frontend dev/preview server before reinstalling; follow the recovery steps below. |
@@ -246,6 +406,8 @@ If a running Vite dev/preview server has
 `rolldown-binding.win32-x64-msvc.node` loaded, Windows prevents npm from deleting
 that file. The failed installation can leave `node_modules/.bin/vite.cmd`
 missing, so `npm run dev` then reports that `vite` is not recognized.
+The following `.cmd` and PowerShell recovery commands are for Windows; Mac
+users should use `npm ci` in Terminal as described in Mac step 4.
 
 1. Find each terminal running this project's `npm run dev` or `npm run preview`.
    Press **Ctrl+C** and wait until the PowerShell prompt returns. Keep the backend

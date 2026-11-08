@@ -4,9 +4,22 @@ This backend runs the spaceship physics and exposes an HTTP/WebSocket interface
 to the frontend. The default API port is **8000**. The default ship has four
 articulated arms and travels toward a destination planet in a zero-gravity map.
 
-This guide covers the Windows + Ubuntu WSL setup used for this project. Run the
-commands in **Windows PowerShell**, including commands that begin with `wsl`.
-The launcher handles the Linux/container side for you.
+Choose your operating system:
+
+| Computer | Instructions | Backend runtime |
+|---|---|---|
+| Windows | [Windows setup](#windows-setup) | PowerShell launchers + Docker inside Ubuntu WSL 2 |
+| Mac, Intel or Apple Silicon | [macOS setup](#macos-setup) | Terminal + Docker Desktop's Linux VM |
+
+The existing end-to-end validation was performed on Windows/WSL. The Mac guide
+below follows this project's Compose configuration and the linked Docker
+documentation; a full run on Mac hardware has not yet been verified.
+
+## Windows setup
+
+Run the Windows commands in **Windows PowerShell**, including commands that begin
+with `wsl`. The launcher handles the Linux/container side for you. Mac users
+should skip to [macOS setup](#macos-setup).
 
 ## 1. Open the correct project folder
 
@@ -298,7 +311,7 @@ After changing backend code, assets, maps, configuration, or pulling such change
 The simulation has no persistence or reset endpoint in this version. A new
 backend container starts a fresh voyage. The website reconnects automatically.
 
-## Logs and troubleshooting
+## Windows logs and troubleshooting
 
 Launcher logs are saved under `.runtime/` in this backend folder. You can also
 read container logs from PowerShell in the same folder:
@@ -342,13 +355,222 @@ organization policy still blocks scripts, follow that policy or contact its
 administrator. See Microsoft's
 [execution policy documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies).
 
+## macOS setup
+
+Run this section in **Terminal on a Mac**. Docker Desktop supplies the Linux VM
+for Space ROS and Gazebo. The Windows WSL setup script and PowerShell launchers
+are for the Windows instructions above.
+
+### Mac step 1: install and open Docker Desktop
+
+1. Open **Apple menu > About This Mac**. An Apple chip such as M1/M2/M3/M4 means
+   Apple Silicon; an Intel processor means Intel.
+2. Follow the official
+   [Docker Desktop for Mac installation guide](https://docs.docker.com/desktop/setup/install/mac-install/).
+   Download the installer matching your chip, install Docker in Applications,
+   and open Docker Desktop. Complete its first-run setup.
+3. Wait until Docker Desktop reports that its engine is running. Keep the app
+   running while using the backend. Docker Desktop includes Docker Compose.
+
+Check Docker's installation guide for current macOS system requirements. The
+backend runs headlessly in its container; the frontend supplies the 3D view.
+
+### Mac step 2: open Terminal in the backend folder
+
+1. Find `Ub_Space_hackathon_2026` in Finder.
+2. Press Command+Space, type **Terminal**, and open it.
+3. Type `cd ` with a trailing space. Drag `Ub_Space_hackathon_2026` from Finder
+   into the Terminal window, then press Enter.
+4. Enter the backend and check the files:
+
+```bash
+cd UB_Spaceship_Travel_Sim_Backend
+ls compose.yaml Dockerfile
+```
+
+You should see both file names. If Terminal is already inside the backend
+folder, skip the `cd` command. Keep the remaining backend commands in this folder.
+
+### Mac step 3: check Docker and select the image platform
+
+```bash
+docker version
+docker compose version
+```
+
+The first command should print **Client** and **Server** information; the second
+should print a Compose version. If Docker cannot connect, open Docker Desktop
+and wait for its engine before continuing. If the command is missing, reopen
+Terminal after installing Docker Desktop and check its CLI setup.
+
+Set the target architecture:
+
+```bash
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+```
+
+Run this export in **every new backend Terminal window**, including on Intel.
+It applies to commands in that window and leaves other terminal windows alone.
+The pinned `osrf/space-ros:jazzy-2026.07.0` tag is published for `linux/amd64`,
+as shown by its [Docker Hub image metadata](https://hub.docker.com/v2/repositories/osrf/space-ros/tags/jazzy-2026.07.0).
+Intel Macs use that CPU architecture directly inside the Linux VM. Apple Silicon
+Macs use Docker's emulation, which can make builds and simulation slower; see
+[Docker's emulation documentation](https://docs.docker.com/build/building/multi-platform/#qemu).
+
+### Mac step 4: optional local configuration
+
+The defaults use API port **8000** and allow the frontend on **5173**. Skip this
+step to use those defaults. To create `.env` while preserving an existing file:
+
+```bash
+if [ ! -f .env ]; then
+  cp .env.example .env
+fi
+```
+
+Edit `.env` if needed. `SIM_PORT` chooses the exposed API port, `WEB_ORIGINS`
+lists allowed browser origins, and `SPACE_ROS_IMAGE` selects the base image.
+Keep the supplied image for this setup. If you change `SIM_PORT`, update the
+frontend's `SIMULATOR_PROXY_TARGET` to match, using its
+[configuration instructions](../frontend/README.md#configuration).
+
+### Mac step 5: build and start the simulator
+
+Still inside `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_Backend`, after
+setting the platform in step 3:
+
+```bash
+docker compose up -d --build
+```
+
+The first build downloads Space ROS and simulation dependencies, installs the
+API dependencies, and generates the world/scene from the selected map and ship.
+Wait until the command succeeds. `-d` leaves the container in the background,
+so this Terminal window can be closed afterward. Keep Docker Desktop running.
+The build creates the local image `starship-environment:local`.
+
+For later starts after a successful build, when source, assets and configuration
+have not changed:
+
+```bash
+docker compose up -d --no-build
+```
+
+Open Docker Desktop first and repeat the platform export if using a new Terminal
+window. Use `--build` again after backend source, ship/map assets or configuration
+changes, including changes pulled from GitHub.
+
+### Mac step 6: confirm readiness
+
+```bash
+docker compose ps
+curl --fail --silent --show-error http://127.0.0.1:8000/readyz
+```
+
+Wait for **`"ready": true`**. An initial HTTP 503 means the API is waiting for
+Gazebo; repeat the check after a short wait. If the container exits or readiness
+never succeeds, inspect the logs in the troubleshooting section below.
+
+Open <http://127.0.0.1:8000/docs> for the API reference.
+`/healthz`, `/api/v1/scene`, `/api/v1/state` and `/api/v1/telemetry` use the same
+addresses documented in Windows step 6. Substitute your port if you changed it.
+
+### Mac step 7: start the frontend
+
+Install Node.js 24 with npm using the
+[Mac frontend setup guide](../frontend/README.md#macos-setup).
+Open a **new Terminal window** in `Ub_Space_hackathon_2026` using Finder as in
+Mac step 2, then enter the frontend folder:
+
+```bash
+cd frontend
+```
+
+On the first setup, or after the lockfile changes, stop any existing frontend
+dev/preview server with Ctrl+C and install dependencies:
+
+```bash
+npm ci
+```
+
+Wait for a successful installation, then start the website:
+
+```bash
+npm run dev
+```
+
+Keep this frontend Terminal window open and visit <http://127.0.0.1:5173>.
+The header should show **LIVE** or **PAUSED**. Send an arm target and compare its
+measured position; resume first if paused. The website proxies API calls, assets
+and WebSocket traffic to the same local backend as on Windows.
+
+### Mac step 8: stop, restart or rebuild
+
+Stop the frontend with **Ctrl+C** in its Terminal window. From Terminal inside
+the backend folder, stop the simulator:
+
+```bash
+docker compose down
+```
+
+For a fresh voyage using the existing image, from that same backend folder:
+
+```bash
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose down
+docker compose up -d --no-build
+```
+
+For a rebuild after backend code, assets or configuration changed:
+
+```bash
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker compose down
+docker compose up -d --build
+```
+
+Starting a new backend container creates a fresh voyage. Restarting only the
+frontend reconnects to the existing simulation.
+
+### Mac logs and troubleshooting
+
+From Terminal in the backend folder:
+
+```bash
+docker compose ps -a
+docker compose logs --tail 100
+```
+
+To follow new logs:
+
+```bash
+docker compose logs -f
+```
+
+Ctrl+C stops the log viewer; `docker compose down` stops the background simulator.
+The Windows launcher's `.runtime/` log files are specific to that launcher;
+use Compose logs for this Mac workflow.
+
+| Problem | What to do |
+|---|---|
+| `docker: command not found` | Install Docker Desktop, finish its CLI setup and reopen Terminal. |
+| Docker cannot connect to its daemon | Open Docker Desktop and wait for the engine to start, then repeat `docker version`. |
+| Compose cannot find its configuration file | Enter `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_Backend` and check `ls compose.yaml`. |
+| Apple Silicon reports `no matching manifest` or `exec format error` | Set `export DOCKER_DEFAULT_PLATFORM=linux/amd64`, then run the rebuild commands in Mac step 8. |
+| Builds or simulation are slow on Apple Silicon | The pinned image runs under amd64 emulation. Follow the logs for progress; see Docker's emulation documentation linked above. |
+| Port 8000 is occupied | Stop another copy of this simulator or select another `SIM_PORT` in `.env` and update the frontend proxy target. |
+| `/readyz` keeps failing or the container exits | Inspect `docker compose ps -a` and `docker compose logs --tail 100` for the actual error. |
+| The frontend says OFFLINE or rejects its WebSocket origin | Check readiness, its proxy target and the backend's allowed `WEB_ORIGINS`. |
+
 ## Optional development checks
+
+The following `uv` commands work in Windows PowerShell and macOS Terminal.
 
 Running the container does not require these host-side tools. For local Python
 tests, install Python 3.12+ and/or [uv](https://docs.astral.sh/uv/getting-started/installation/).
 From the backend folder:
 
-```powershell
+```sh
 uv sync --locked
 uv run python tools/generate_environment.py --check
 uv run pytest -q
@@ -356,13 +578,13 @@ uv run pytest -q
 
 With the backend running and unpaused, check the live simulator:
 
-```powershell
+```sh
 uv run python tools/smoke_test.py
 ```
 
 To exercise HTTP/WebSocket traffic through a running frontend as well:
 
-```powershell
+```sh
 uv run python tools/smoke_test.py --base-url http://127.0.0.1:5173
 ```
 
@@ -379,7 +601,7 @@ the backend. See [model/map import instructions](docs/models-and-maps.md).
 The build generates `worlds/environment.sdf`, `config/scene.json` and
 `config/bridge.yaml`. To refresh the host-side exports while developing:
 
-```powershell
+```sh
 uv run python tools/generate_environment.py
 uv run python -m tools.export_openapi
 ```
