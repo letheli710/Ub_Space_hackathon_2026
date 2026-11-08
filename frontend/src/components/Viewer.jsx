@@ -14,6 +14,7 @@ import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
 import BackendMap from './BackendMap.jsx';
 import AiLogs from './AiLogs.jsx';
+import DemoMap from './DemoMap.jsx';
 
 const TITLES = {
   'Planetary Trajectories': 'PLANETARY TRAJECTORIES',
@@ -129,6 +130,7 @@ export default function Viewer({
   useEffect(() => setModelError(''), [scene?.revision]);
 
   const planet = tab === 'Planetary Trajectories';
+  const demoMap = planet && !scene; // no backend map: show the in-browser DEMO solar system
   const generator = tab === 'Generator';
   const livePlaying = state?.paused === false;
   const liveLabel = !simulation.connected
@@ -166,7 +168,11 @@ export default function Viewer({
         {generator && <span className="tiny">WASD / ARROWS · SWIPE TO LOOK</span>}
       </div>
 
-      {(live || planet || viewMode === 'live') && (message || error || (generator && modelError)) && (
+      {demoMap ? (
+        <div className="connection-banner" role="status">
+          No simulator backend connected · showing the DEMO solar system
+        </div>
+      ) : (live || planet || viewMode === 'live') && (message || error || (generator && modelError)) && (
         <div className="connection-banner" role="status">
           {generator && modelError ? `Model asset error: ${modelError}` : error || message}
         </div>
@@ -181,7 +187,7 @@ export default function Viewer({
       {planet && (
         <div className="scene">
           {scene ? <BackendMap simulation={simulation} onInspect={onMapInspect} /> :
-            <div className="scene-empty"><strong>Waiting for the backend map</strong><p>Start the simulator to load its map, planet positions and navigation state.</p></div>}
+            <DemoMap voyage={voyage} playing={playing} onInspect={onMapInspect} />}
         </div>
       )}
 
@@ -235,7 +241,7 @@ export default function Viewer({
       )}
 
       <div className="controls">
-        {live || planet ? (
+        {live || (planet && !demoMap) ? (
           <>
             <button
               disabled={!ready || pending}
