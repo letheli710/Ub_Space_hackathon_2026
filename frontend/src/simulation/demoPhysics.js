@@ -1,5 +1,7 @@
 import { Vector3, Quaternion, Matrix3 } from 'three';
 import { DEMO_PARTS, DEMO_ARM_MOUNTS } from './demoShip.js';
+import { DEFAULT_POSE, ARM_CONTACT_TOLERANCE, advanceArmPose, armMount, armToolPoint, repairContactPlans } from './demoArmKinematics.js';
+import { ENERGY_PARTS, STORM_OUTAGE_SECONDS, SUBSYSTEM_IDS, energyIntegrity, mayRepair, propulsionIntegrity, subsystemStates } from './demoSystems.js';
 
 const V = a => new Vector3(...(a ?? [0, 0, 0]));
 const Z = V([0, 0, 1]);
@@ -60,10 +62,35 @@ export function createDemoPhysics({ position = [0, 0, 0], direction = [0, 0, 1],
     bonds: Object.fromEntries(parts.map(p => [p.id, { broken: false, health: 100, peak: 0, shearPa: 0, normalPa: 0, marks: [] }])),
     runId: globalThis.crypto?.randomUUID() ?? `${Date.now()}-${Math.random()}`, epoch: 0,
     repairs: [], battery: 100, solarProtection: false,
+    emergencyBattery: 20, stormUntil: {}, stormCount: 0, lastSubsystemModes: null,
+    cruiseVelocity: ship.v.clone(), cruiseDisplacement: V(), cruiseElapsed: 0, debrisSequence: 0,
+    armPoses: Object.fromEntries(Object.entries(DEMO_ARM_MOUNTS).map(([id,m]) => [id,{...DEFAULT_POSE,upper:m.upper ?? 1.5,lower:m.lower ?? 1.3}])),
     events: [], faults: [], lastImpact: null, initialVelocity: ship.v.clone(), initialPosition: ship.p.clone(),
   };
 }
 const emit = (s, e) => { s.events.push({ ...e, time: s.elapsed }); if (s.events.length > 100) s.events.shift(); };
+export function syncDemoSystems(s) {
+  const states = subsystemStates(s), modes = Object.fromEntries(Object.entries(states).map(([id,v])=>[id,v.mode]));
+  if (s.lastSubsystemModes && Object.keys(modes).some(id=>modes[id]!==s.lastSubsystemModes[id])) {
+    s.epoch++;
+    for (const id of SUBSYSTEM_IDS) if (modes[id]!==s.lastSubsystemModes[id]) emit(s,{type:'system',system_id:id,text:`${id.toUpperCase()} · ${modes[id]} · ${states[id].reason || 'power restored'}`});
+  }
+  s.lastSubsystemModes = modes;
+  if (states.propelling.mode !== 'online') { s.burn = null; s.force.set(0,0,0); s.torque.set(0,0,0); }
+  // The gameplay cruise reference changes for the entire local encounter frame;
+  // relative collision velocities and physical maneuver offsets remain unchanged.
+  const cruise = s.initialVelocity.clone().multiplyScalar(propulsionIntegrity(s)/100), change = cruise.clone().sub(s.cruiseVelocity);
+  if (change.lengthSq()>1e-16) for (const body of [s.ship,...s.fragments,...s.rocks]) body.v.add(change);
+  s.cruiseVelocity.copy(cruise);
+  return states;
+}
+export function triggerDemoSolarStorm(s, role = SUBSYSTEM_IDS[s.stormCount % SUBSYSTEM_IDS.length]) {
+  if (!SUBSYSTEM_IDS.includes(role)) throw new Error('Unknown solar-storm subsystem');
+  demoNormalTime(s); s.stormCount++; s.stormUntil[role] = s.elapsed + STORM_OUTAGE_SECONDS; s.epoch++;
+  emit(s,{type:'storm_hit',system_id:role,text:`SOLAR STORM HIT · ${role} offline for 15 seconds`});
+  syncDemoSystems(s);
+  return role;
+}
 export function demoNormalTime(s) { s.timeScale = 1; s.accumulator = 0; }
 export function setDemoTimeScale(s, scale) {
   if (!Number.isFinite(scale) || scale < 1 || scale > 1e7) throw new Error('Time scale must be between 1 and 10M.');
@@ -73,6 +100,7 @@ export function setDemoTimeScale(s, scale) {
   s.timeScale = scale;
 }
 export function commandDemoBurn(s, { linear = [0, 0, 0], angular = [0, 0, 0], seconds = 2 } = {}) {
+  if (subsystemStates(s).propelling.mode !== 'online') throw new Error('Propelling subsystem is offline');
   for (const vector of [linear, angular]) {
     if (!Array.isArray(vector) || vector.length !== 3 || !vector.every(Number.isFinite) || V(vector).length() > 1.000001) throw new Error('Throttle must be a finite three-vector of magnitude at most 1.');
   }
@@ -87,7 +115,7 @@ export function coastDemo(s) { s.burn = null; s.force.set(0, 0, 0); s.torque.set
 /** Ballistic rock aimed once; it never follows a moving/turning target. */
 export function launchDemoRock(s, { target_id = 'command', mass_kg = 200, radius_m = .6, speed_m_s = 40, direction_body, start_body, start_world, warning_s = 12 } = {}) {
   const target = target_id === 'cycle' ? s.parts[(s.nextId - 1) % s.parts.length] : s.parts.find(p => p.id === target_id) ?? s.parts[0];
-  const targetBody = s.fragments.find(f => f.id === target.id) ?? s.ship;
+  const targetBody = s.bonds[target.id]?.broken ? [...s.fragments].reverse().find(f => (f.partId ?? f.id) === target.id) ?? s.ship : s.ship;
   direction_body ??= target.approach ?? [0, -1, 0];
   for (const [value, min, max] of [[mass_kg, 1, 5000], [radius_m, .15, 2], [speed_m_s, 1, 150]]) {
     if (!Number.isFinite(value) || value < min || value > max) throw new Error('Rock settings are outside their allowed range.');
@@ -172,6 +200,8 @@ function detach(s, part) {
   fragment.v.copy(pointVelocity(b, fragment.p));
   fragment.L.copy(tensorWorld(fragment, omega));
   fragment.id = part.id;
+  fragment.partId = part.id; fragment.instanceId = `${part.id}-debris-${++s.debrisSequence}`;
+  fragment.damage = { ...s.bonds[part.id], broken: true, health: 0, marks: [...s.bonds[part.id].marks] };
   b.parts = b.parts.filter(p => p !== part);
   refreshMass(b, s.fuel);
   s.fragments.push(fragment); s.bonds[part.id].broken = true; s.bonds[part.id].health = 0; s.revision++;
@@ -222,16 +252,22 @@ export function damageStage(bond) {
   return bond.broken ? 'detached' : bond.health >= 99.95 ? 'intact' : bond.health >= 80 ? 'scuffed' : bond.health >= 50 ? 'damaged' : bond.health > 0 ? 'critical' : 'destroyed';
 }
 export function repairDemoPart(s, { arm_id, part_id, seconds = 10 }) {
-  const mount = DEMO_ARM_MOUNTS[arm_id], bond = s.bonds[part_id];
-  if (!mount || mount.part !== part_id || !bond || bond.broken || s.bonds[mount.part]?.broken || s.faults.includes('Robotic Arm Malfunction')) throw new Error('An attached arm can only repair its own attached module.');
-  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 30) throw new Error('Repair duration must be 0–30 seconds.');
+  const bond = s.bonds[part_id];
+  if (seconds !== 10) throw new Error('Repair requires 10 seconds of continuous tool contact.');
   if (s.repairs.some(r => r.arm_id === arm_id || r.part_id === part_id)) throw new Error('That arm or component already has a repair job.');
-  if (bond.health >= 95 || s.battery <= 0) throw new Error('No repairable damage or battery power available.');
+  if (!bond || (!bond.broken && bond.health >= 95)) throw new Error('No repairable damage available.');
+  if (!mayRepair(s,part_id)) throw new Error('Robot Arms is offline or restricted to emergency energy repairs.');
+  const plan = repairContactPlans(s,part_id).find(p=>p.arm_id===arm_id);
+  if (!plan) throw new Error('No attached arm can reach this component repair site.');
+  const emergency = subsystemStates(s).robot_arms.mode === 'emergency' || s.battery<1.6;
+  if (emergency && (!ENERGY_PARTS.includes(part_id) || s.emergencyBattery<1.6)) throw new Error('No repair battery power available.');
   demoNormalTime(s); s.epoch++;
-  s.repairs.push({ arm_id, part_id, remaining: seconds, recovered: 0 });
-  emit(s, { type: 'repair', text: `REPAIR STARTED · ${arm_id} servicing ${part_id}` });
+  s.repairs.push({ arm_id, part_id, remaining: 10, contactSeconds: 0, recovered: 0, target: plan.target,
+    targetPose: plan.pose, rebuild: bond.broken, status: 'moving', startHealth: bond.health });
+  emit(s, { type: 'repair', text: `REPAIR STARTED · ${arm_id} moving to ${part_id}${bond.broken ? ' missing mount' : ' repair socket'}` });
 }
 export function protectDemoSolar(s, enabled) {
+  if (subsystemStates(s).energy.mode !== 'online') throw new Error('Energy subsystem is offline');
   s.solarProtection = Boolean(enabled); s.epoch++;
   emit(s, { type: 'energy', text: `SOLAR PROTECTION · ${enabled ? 'power isolated for maintenance' : 'charging restored'}` });
 }
@@ -247,9 +283,10 @@ function integrate(b, dt) {
   if (speed > 1e-12) b.q.premultiply(new Quaternion().setFromAxisAngle(omega.divideScalar(speed), speed * dt)).normalize();
 }
 function physicsStep(s, dt) {
+  const systems = syncDemoSystems(s);
   const b = s.ship;
   s.force.set(0, 0, 0); s.torque.set(0, 0, 0);
-  if (s.burn && s.fuel > 0 && !s.faults.includes('Thruster Failure')) {
+  if (s.burn && systems.propelling.mode === 'online' && s.fuel > 0 && !s.faults.includes('Thruster Failure')) {
     const active = Math.min(dt, s.burn.remaining);
     const linear = s.burn.linear, main = b.parts.some(p => p.id === 'engine') && !s.faults.includes('Engine Failure');
     const rcs = s.bonds.spine?.broken ? 0 : .3 + .7 * (s.bonds.spine?.health ?? 100) / 100;
@@ -279,44 +316,69 @@ function physicsStep(s, dt) {
     rock.age += dt;
   }
   integrate(b, dt);
+  s.cruiseDisplacement.addScaledVector(s.cruiseVelocity,dt);
+  s.cruiseElapsed += propulsionIntegrity(s)/100*dt;
   for (const f of s.fragments) integrate(f, dt);
   const count = s.rocks.length;
   s.rocks = s.rocks.filter(r => r.age < r.ttl && r.p.distanceTo(b.p) < r.maxDistance);
   if (s.rocks.length !== count) s.revision++;
   s.elapsed += dt;
-  const solarHealth = ['solarLeft', 'solarRight'].reduce((n, id) => n + (s.bonds[id]?.health ?? 0), 0) / 200;
+  const solarHealth = energyIntegrity(s)/100;
   if (!s.solarProtection && !s.faults.includes('Solar Panel Power Crisis')) s.battery = Math.min(100, s.battery + solarHealth * .03 * dt);
+  if (solarHealth>.75 && s.battery>20) s.emergencyBattery = Math.min(20,s.emergencyBattery+.01*dt);
   for (const job of s.repairs) {
     const bond = s.bonds[job.part_id];
-    if (bond.broken || s.faults.includes('Robotic Arm Malfunction') || s.battery <= 0) { job.remaining = 0; continue; }
-    const amount = Math.max(0, Math.min(.8 * dt, 95 - bond.health, s.battery / .2));
-    bond.health += amount; job.recovered += amount; s.battery -= amount * .2; job.remaining -= dt;
-    if (job.remaining <= 0 || bond.health >= 95) { job.remaining = 0; emit(s, { type: 'repair', text: `REPAIR COMPLETE · ${job.part_id} · recovered ${job.recovered.toFixed(1)} integrity points` }); }
+    if (s.bonds[DEMO_ARM_MOUNTS[job.arm_id].part]?.broken || bond.broken!==job.rebuild) {
+      job.cancelled=true; emit(s,{type:'repair',text:`REPAIR CANCELLED · ${job.part_id} · arm or component detached/changed`}); continue;
+    }
+    const emergency = subsystemStates(s).robot_arms.mode==='emergency' || (ENERGY_PARTS.includes(job.part_id) && s.battery<1.6);
+    const supply = emergency && ENERGY_PARTS.includes(job.part_id) ? 'emergencyBattery' : 'battery';
+    if (!mayRepair(s,job.part_id) || s[supply]<=0) { job.status='suspended'; job.contactSeconds=0; job.remaining=10; continue; }
+    const pose=s.armPoses[job.arm_id]; advanceArmPose(pose,job.targetPose,dt);
+    const distance=armToolPoint(job.arm_id,pose).distanceTo(V(job.target)); job.contactDistance=distance;
+    if (distance>ARM_CONTACT_TOLERANCE) { job.status='moving'; job.contactSeconds=0; job.remaining=10; continue; }
+    if (job.status!=='holding') emit(s,{type:'repair',text:`TOOL CONTACT · ${job.arm_id} at ${job.part_id} · holding for 10 seconds`});
+    job.status='holding';
+    const held=Math.min(dt,10-job.contactSeconds,s[supply]/.16);
+    s[supply]=Math.max(0,s[supply]-.16*held); job.contactSeconds+=held; job.remaining=Math.max(0,10-job.contactSeconds);
+    if (job.contactSeconds>=10-1e-8) {
+      if (job.rebuild) {
+        const part=s.parts.find(p=>p.id===job.part_id);
+        if (!b.parts.some(p=>p.id===part.id)) b.parts.push(part);
+        Object.assign(bond,{broken:false,health:100,peak:0,shearPa:0,normalPa:0,marks:[]});
+        for (const [id,mount] of Object.entries(DEMO_ARM_MOUNTS)) if (mount.part===part.id) s.armPoses[id]={...DEFAULT_POSE,upper:mount.upper ?? 1.5,lower:mount.lower ?? 1.3};
+        refreshMass(b,s.fuel); job.recovered=100; s.revision++; s.epoch++;
+      } else { const amount=Math.max(0,Math.min(8,95-bond.health)); bond.health+=amount; job.recovered=amount; }
+      job.complete=true; s.epoch++;
+      emit(s,{type:'repair',text:`REPAIR COMPLETE · ${job.part_id} · ${job.rebuild ? 'component recreated at its original mount' : `recovered ${job.recovered.toFixed(1)} integrity points`}`});
+    }
   }
-  s.repairs = s.repairs.filter(j => j.remaining > 0);
+  s.repairs = s.repairs.filter(j => !j.complete && !j.cancelled);
 }
 /** Fast-forward is exact inertial coasting only. Encounters/burns switch to 120 Hz, 1x. */
 export function advanceDemo(s, realSeconds) {
   if (!Number.isFinite(realSeconds) || realSeconds <= 0) return;
+  syncDemoSystems(s);
   if (s.timeScale > 1) {
-    if (s.burn || s.repairs.length || s.rocks.length || s.fragments.length || angularVelocity(s.ship).length() > 1e-8) demoNormalTime(s);
-    else { const dt = realSeconds * s.timeScale; integrate(s.ship, dt); s.elapsed += dt; return; }
+    if (s.burn || s.repairs.length || s.rocks.length || s.fragments.length || Object.values(s.stormUntil).some(t=>t>s.elapsed) || angularVelocity(s.ship).length() > 1e-8) demoNormalTime(s);
+    else { const dt = realSeconds * s.timeScale; integrate(s.ship, dt); s.cruiseDisplacement.addScaledVector(s.cruiseVelocity,dt); s.cruiseElapsed+=propulsionIntegrity(s)/100*dt; s.elapsed += dt; return; }
   }
   s.accumulator += realSeconds;
   while (s.accumulator + 1e-10 >= H) { physicsStep(s, H); s.accumulator -= H; }
 }
 export function demoTelemetry(s) {
-  const b = s.ship, nominal = s.initialPosition.clone().addScaledVector(s.initialVelocity, s.elapsed);
+  const b = s.ship, nominal = s.initialPosition.clone().add(s.cruiseDisplacement);
   return { speedM_s: b.v.length(), velocity: b.v.toArray(), position: modelOrigin(b).toArray(),
     angularVelocity: angularVelocity(b).toArray(), quaternion: b.q.toArray(), fuelKg: s.fuel,
     forceN: s.force.length(), massKg: b.mass, elapsed: s.elapsed, timeScale: s.timeScale,
     deltaV: b.v.distanceTo(s.initialVelocity), deviationM: b.p.distanceTo(nominal),
-    mode: s.burn ? 'burn' : 'coast', detached: s.fragments.map(f => f.id), lastImpact: s.lastImpact,
+    mode: s.burn ? 'burn' : 'coast', detached: Object.entries(s.bonds).filter(([,bond])=>bond.broken).map(([id])=>id), lastImpact: s.lastImpact,
     bonds: Object.entries(s.bonds).map(([id, value]) => ({ id, ...value, stage: damageStage(value) })),
     integrity: Object.values(s.bonds).reduce((sum, b) => sum + b.health, 0) / s.parts.length,
     battery: s.battery, repairs: s.repairs.map(j => ({ ...j })), solarProtection: s.solarProtection,
-    arms: Object.entries(DEMO_ARM_MOUNTS).map(([id, m]) => ({ id, module: m.part, available: !s.bonds[m.part]?.broken, positionBody: m.position })),
-    objects: [...s.rocks.map(r => ({ id: `rock-${r.id}`, p: r.p, v: r.v })), ...s.fragments.map(f => ({ id: f.id, p: f.p, v: f.v }))].map(o => {
+    emergencyBattery: s.emergencyBattery, systems: subsystemStates(s), propulsionIntegrity: propulsionIntegrity(s), energyIntegrity: energyIntegrity(s), cruiseSpeedM_s: s.cruiseVelocity.length(),
+    arms: Object.entries(DEMO_ARM_MOUNTS).map(([id, m]) => ({ id, module: m.part, available: !s.bonds[m.part]?.broken, positionBody: armMount(id,s.armPoses[id]).position.toArray(), toolPositionBody: armToolPoint(id,s.armPoses[id]).toArray(), pose: {...s.armPoses[id]} })),
+    objects: [...s.rocks.map(r => ({ id: `rock-${r.id}`, p: r.p, v: r.v })), ...s.fragments.map(f => ({ id: f.instanceId ?? f.id, p: f.p, v: f.v }))].map(o => {
       const relative = o.p.clone().sub(b.p), distance = relative.length();
       return { id: o.id, distanceM: distance, closingM_s: -o.v.clone().sub(b.v).dot(relative.normalize()) };
     }),

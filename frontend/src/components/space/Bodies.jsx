@@ -3,14 +3,19 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { getTextures } from './textures.js';
 
-export function Planet({ position, radius, texture, atmosphere, ring, spin = 0.01 }) {
-  const ref = useRef();
+export function Planet({ position, radius, texture, atmosphere, ring, spin = 0.01, getState, tilt = 0 }) {
+  const ref = useRef(), frame = useRef();
   useFrame((_, delta) => {
-    ref.current.rotation.y += delta * spin;
+    const state = getState?.();
+    if (state) {
+      frame.current.position.copy(state.mapPosition);
+      ref.current.rotation.y = state.rotation;
+    } else ref.current.rotation.y += delta * spin;
   });
 
   return (
-    <group position={position.toArray()}>
+    <group ref={frame} position={position.toArray()}>
+      <group rotation={[0, 0, tilt]}>
       <mesh ref={ref}>
         <sphereGeometry args={[radius, 64, 48]} />
         <meshStandardMaterial map={texture} roughness={1} metalness={0} />
@@ -34,20 +39,22 @@ export function Planet({ position, radius, texture, atmosphere, ring, spin = 0.0
           <meshBasicMaterial color={ring} transparent opacity={0.55} side={THREE.DoubleSide} depthWrite={false} />
         </mesh>
       )}
+      </group>
     </group>
   );
 }
 
 /** Faint circle for a planet's orbit around the Sun. */
-export function OrbitLine({ radius }) {
+export function OrbitLine({ radius, points: orbitPoints }) {
   const geometry = useMemo(() => {
+    if (orbitPoints) return new THREE.BufferGeometry().setFromPoints(orbitPoints);
     const points = [];
     for (let i = 0; i < 256; i++) {
       const a = (i / 256) * Math.PI * 2;
       points.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
     }
     return new THREE.BufferGeometry().setFromPoints(points);
-  }, [radius]);
+  }, [radius, orbitPoints]);
 
   return (
     <lineLoop geometry={geometry}>

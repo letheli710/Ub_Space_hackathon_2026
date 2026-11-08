@@ -1,41 +1,22 @@
 import * as THREE from 'three';
-import { advanceDemo, createDemoPhysics, modelOrigin, setDemoTimeScale, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
+import { advanceDemo, createDemoPhysics, demoNormalTime, modelOrigin, setDemoTimeScale, triggerDemoSolarStorm, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
+import { propulsionIntegrity, STORM_MAX_RADIUS, STORM_WAVE_SPEED } from '../simulation/demoSystems.js';
+import { CELESTIAL_BODIES, createSolarSystem, MAP_UNITS_PER_AU, planetMapPosition, updateSolarSystem } from '../simulation/celestial.js';
+import { createMission, missionPoint, navigationState } from '../simulation/missionGuidance.js';
 
 // Browser-only demo solar system. Orbit radii follow real distances from the Sun (in AU);
 // planets are drawn much larger than real so they stay visible. The live map comes from the
 // backend SDF and measured state, independently of this demo.
-// The Sun is at the origin, orbits lie on the y = 0 plane, and planets stay at their
-// starting angles so the Earth → Mars route keeps lining up.
+// Planet positions follow inclined Kepler ellipses; the ship's guided transfers
+// reshape the Earth–Mars loop continuously. Local encounters retain their SI clock.
 
 /** World units per astronomical unit (Earth's orbit radius). */
-export const AU = 392;
+export const AU = MAP_UNITS_PER_AU;
 export const KM_PER_AU = 149597870.7;
 const KM_PER_UNIT = KM_PER_AU / AU;
 export const METERS_PER_MAP_UNIT = KM_PER_UNIT * 1000;
-const SIZE_SCALE = 2.5; // world units per pixel of planet size on the original map
-
-// [name, color, size on the map, real orbit radius in AU, starting angle]
-const LAYOUT = [
-  ['Mercury', '#aeb9c2', 3.6, 0.387, 2.5],
-  ['Venus', '#e3b77e', 6.3, 0.723, 4.2],
-  ['Earth', '#3ca9fa', 7.3, 1.0, 1.1],
-  ['Mars', '#dc7150', 5.2, 1.524, 5.4],
-  ['Jupiter', '#d2aa80', 15, 5.203, 2.8],
-  ['Saturn', '#d8c395', 12, 9.537, 1.6],
-  ['Uranus', '#8ce7ed', 9, 19.19, 3.7],
-  ['Neptune', '#588bdb', 9, 30.07, 5.7],
-];
-
-export const PLANETS = LAYOUT.map(([name, color, size, orbitAu, angle]) => {
-  const orbit = orbitAu * AU;
-  return {
-    name,
-    color,
-    radius: size * SIZE_SCALE,
-    orbit,
-    position: new THREE.Vector3(Math.cos(angle) * orbit, 0, Math.sin(angle) * orbit),
-  };
-});
+// Immutable catalog / epoch positions. Active positions are per voyage, never globals.
+export const PLANETS = CELESTIAL_BODIES.map(body => ({ ...body, position: planetMapPosition(body.name, 0) }));
 
 export const SUN = { position: new THREE.Vector3(0, 0, 0), radius: 70 };
 export const EARTH = PLANETS[2];
@@ -63,80 +44,7 @@ const end = MARS.position
 
 export const ROUTE = new THREE.QuadraticBezierCurve3(start, bend, end);
 
-// ---------- round trip with parking orbits (DEMO physics) ----------
-// Earth → Mars on a straight transfer, about half a lap around Mars, Mars → Earth on the
-// other side, about half a lap around Earth, then again. Each leg is the outer tangent of
-// the two parking orbits, so the ship joins and leaves every orbit smoothly. All orbits turn
-// the same way (counter-clockwise seen from above), so the whole loop is one racetrack.
-
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
-/** Extra full laps around each planet on top of the half lap. 0 = half a lap. */
-export const ORBIT_EXTRA_LAPS = 0;
-
-function parkingRadius(planet) {
-  return planet.radius + PARKING_ALTITUDE;
-}
-
-/** Outward direction from each planet's center to where the straight leg from `a` to `b` touches. */
-function tangentDirection(a, b) {
-  const d = b.position.clone().sub(a.position);
-  const distance = d.length();
-  d.normalize();
-  const n = d.clone().cross(Y_AXIS); // velocity at center + r·n is +d for counter-clockwise motion
-  const sin = (parkingRadius(a) - parkingRadius(b)) / distance;
-  const cos = Math.sqrt(1 - sin * sin);
-  return n.multiplyScalar(cos).addScaledVector(d, sin);
-}
-
-function leg(from, to) {
-  const u = tangentDirection(from, to);
-  const a = from.position.clone().addScaledVector(u, parkingRadius(from));
-  const b = to.position.clone().addScaledVector(u, parkingRadius(to));
-  return { type: 'leg', from: from.name, to: to.name, a, b, u, length: a.distanceTo(b), tangent: b.clone().sub(a).normalize() };
-}
-
-function arc(planet, u0, u1) {
-  // Counter-clockwise (about +Y) angle from u0 to u1, plus any extra laps.
-  let angle = Math.atan2(u0.clone().cross(u1).dot(Y_AXIS), u0.dot(u1));
-  if (angle <= 0) angle += Math.PI * 2;
-  angle += ORBIT_EXTRA_LAPS * Math.PI * 2;
-  const radius = parkingRadius(planet);
-  return { type: 'arc', planet: planet.name, center: planet.position, radius, u0, angle, length: angle * radius };
-}
-
-const outbound = leg(EARTH, MARS);
-const inbound = leg(MARS, EARTH);
-export const LOOP = [outbound, arc(MARS, outbound.u, inbound.u), inbound, arc(EARTH, inbound.u, outbound.u)];
-let loopStart = 0;
-for (const segment of LOOP) {
-  segment.start = loopStart;
-  loopStart += segment.length;
-}
-/** Length of one full round trip in world units. */
-export const LOOP_LENGTH = loopStart;
-
-/** Position, heading and segment at `distance` world units along the round trip (wraps). */
-export function loopPoint(distance, outPosition = new THREE.Vector3(), outTangent = new THREE.Vector3()) {
-  const s = ((distance % LOOP_LENGTH) + LOOP_LENGTH) % LOOP_LENGTH;
-  let index = LOOP.findIndex((segment) => s < segment.start + segment.length);
-  if (index < 0) index = LOOP.length - 1;
-  const segment = LOOP[index];
-  const along = s - segment.start;
-  if (segment.type === 'leg') {
-    outPosition.copy(segment.a).addScaledVector(segment.tangent, along);
-    outTangent.copy(segment.tangent);
-  } else {
-    const u = segment.u0.clone().applyAxisAngle(Y_AXIS, along / segment.radius);
-    outPosition.copy(segment.center).addScaledVector(u, segment.radius);
-    outTangent.copy(Y_AXIS).cross(u).normalize();
-  }
-  return { position: outPosition, tangent: outTangent, index, segment, along };
-}
-
-/** Evenly spaced points around the whole round trip, for drawing the route. */
-export function loopPoints(count) {
-  return Array.from({ length: count + 1 }, (_, i) => loopPoint((i / count) * LOOP_LENGTH * 0.99999).position.clone());
-}
 
 // ---------- timing ----------
 // The ship cruises at a constant 7.9 km/s along the route; the route length uses the real
@@ -147,8 +55,6 @@ export const ROUTE_KM = ROUTE.getLength() * KM_PER_UNIT;
 /** One Earth → Mars leg at cruise speed. */
 export const LEG_SECONDS = ROUTE_KM / SHIP_SPEED_KMS;
 export const LEG_DAYS = LEG_SECONDS / 86400;
-/** One straight Earth → Mars transfer of the round trip, in days at cruise speed. */
-export const TRANSFER_DAYS = (outbound.length * KM_PER_UNIT) / SHIP_SPEED_KMS / 86400;
 /** Time spent in orbit before heading back (mission time). */
 export const DWELL_SECONDS = 15 * 86400;
 
@@ -203,19 +109,21 @@ export function missionDay(voyage) {
 
 /** Mutable voyage state, advanced every animation frame. */
 export function createVoyage({ physical = false } = {}) {
-  const v = { progress: 0, direction: 1, dwell: 0, timeScale: DEFAULT_TIME_SCALE };
+  const v = { progress: 0, direction: 1, dwell: 0, timeScale: DEFAULT_TIME_SCALE, solarStorm: null, displayElapsed: 0 };
   if (physical) {
-    const first = loopPoint(0);
+    v.mission = createMission();
+    v.solarSystem = createSolarSystem();
+    const first = missionPoint(v.mission, 0);
     v.physics = createDemoPhysics({ position: first.position.clone().multiplyScalar(METERS_PER_MAP_UNIT).toArray(), direction: first.tangent.toArray() });
     v.physics.timeScale = DEFAULT_TIME_SCALE; // physics cruise starts at the same speed-up as the map
     v.mapPosition = modelOrigin(v.physics.ship).divideScalar(METERS_PER_MAP_UNIT);
     v.mapElapsed = 0;
+    v.travelElapsed = 0;
     // Map guidance: the ship follows the round trip; physics adds its local deviation on top.
-    v.routeDistance = 0;
     v.segment = 0;
     v.deviation = new THREE.Vector3(); // map units, in the ship's local (physics) axes
     v.frame = new THREE.Quaternion(); // local physics axes → map axes
-    v.forwardAngle = headingAngle(first.tangent);
+    v.initialFrameInverse = routeRotation(first.tangent).invert();
   }
   return v;
 }
@@ -229,13 +137,13 @@ export function setVoyageTimeScale(voyage, scale) {
   voyage.timeScale = scale;
 }
 
-function headingAngle(direction) {
-  return Math.atan2(direction.x, direction.z);
-}
-
 /** Rotation from the local physics axes to the map, which turns with the route. */
 function updateFrame(voyage, tangent) {
-  voyage.frame.setFromAxisAngle(Y_AXIS, headingAngle(tangent) - voyage.forwardAngle);
+  voyage.frame.copy(routeRotation(tangent)).multiply(voyage.initialFrameInverse);
+}
+
+function routeRotation(tangent) {
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(tangent, new THREE.Vector3(), Y_AXIS));
 }
 
 /** All nearby objects share the ship's map anchor and enlarged local meter scale. */
@@ -256,9 +164,8 @@ export function demoLocalOffset(voyage, offset) {
 
 /** Short label of the current phase, e.g. "EARTH → MARS" or "MARS ORBIT". */
 export function voyagePhase(voyage) {
-  const segment = voyage.physics ? LOOP[voyage.segment] : null;
-  if (!segment) return `${origin(voyage).toUpperCase()} → ${destination(voyage).toUpperCase()}`;
-  return segment.type === 'arc' ? `${segment.planet.toUpperCase()} ORBIT` : `${segment.from.toUpperCase()} → ${segment.to.toUpperCase()}`;
+  if (voyage.mission) return navigationState(voyage).phase;
+  return `${origin(voyage).toUpperCase()} → ${destination(voyage).toUpperCase()}`;
 }
 
 export function origin(voyage) {
@@ -283,19 +190,24 @@ export function stepVoyage(voyage, dtReal) {
   if (voyage.physics) {
     const s = voyage.physics;
     const before = modelOrigin(s.ship), elapsed = s.elapsed;
+    const cruiseBefore=s.cruiseDisplacement.clone(), cruiseTime=s.cruiseElapsed;
     advanceDemo(s, dtReal);
     const dt = s.elapsed - elapsed;
     if (!(dt > 0)) return null; // paused: nothing moved
     const displayRatio = voyage.timeScale / s.timeScale;
+    voyage.displayElapsed=(voyage.displayElapsed ?? 0)+dt/s.timeScale;
     const toMap = displayRatio / METERS_PER_MAP_UNIT;
     // Amplify only map travel, never local separations, contact speeds or timers.
     // The planned cruise follows the round trip; whatever the ship does beyond that
     // (collision or thrust deflections) is integrated as a deviation from the route.
     const moved = modelOrigin(s.ship).sub(before);
-    voyage.deviation.add(moved.addScaledVector(s.initialVelocity, -dt).multiplyScalar(toMap));
-    voyage.routeDistance += s.initialVelocity.length() * dt * toMap;
+    voyage.deviation.add(moved.sub(s.cruiseDisplacement.clone().sub(cruiseBefore)).multiplyScalar(toMap));
     voyage.mapElapsed += dt * displayRatio;
-    return placeOnLoop(voyage);
+    voyage.travelElapsed += (s.cruiseElapsed-cruiseTime)*displayRatio;
+    updateSolarSystem(voyage.solarSystem, voyage.mapElapsed);
+    const event=placeOnMission(voyage);
+    advanceSolarStorm(voyage,dt);
+    return event;
   }
   let remaining = Math.max(dtReal, 0) * (voyage.timeScale ?? 1);
   if (!Number.isFinite(remaining) || remaining <= 0) return null;
@@ -325,18 +237,18 @@ export function stepVoyage(voyage, dtReal) {
 }
 
 /** Put the physical ship on the round trip; returns 'arrived' / 'departed' when an orbit starts or ends. */
-function placeOnLoop(voyage) {
-  const point = loopPoint(voyage.routeDistance);
+function placeOnMission(voyage) {
+  const point = missionPoint(voyage.mission, voyage.mapElapsed, undefined, undefined, voyage.travelElapsed);
   updateFrame(voyage, point.tangent);
   voyage.mapPosition.copy(point.position).add(voyage.deviation.clone().applyQuaternion(voyage.frame));
   const previous = voyage.segment;
-  voyage.segment = point.index;
+  voyage.segment = point.index % 4;
   const segment = point.segment;
   // Outbound leg and Mars orbit count as heading to Mars; the rest as heading home.
-  voyage.direction = point.index < 2 ? 1 : -1;
-  voyage.dwell = segment.type === 'arc' ? ((segment.length - point.along) * KM_PER_UNIT) / SHIP_SPEED_KMS : 0;
-  voyage.progress = segment.type === 'leg' ? (voyage.direction === 1 ? point.along / segment.length : 1 - point.along / segment.length) : voyage.direction === 1 ? 1 : 0;
-  if (previous === point.index) return null;
+  voyage.direction = voyage.segment < 2 ? 1 : -1;
+  voyage.dwell = segment.type === 'arc' ? Math.max(1,segment.endTime-voyage.travelElapsed) : 0;
+  voyage.progress = segment.type === 'leg' ? (voyage.direction === 1 ? point.fraction : 1 - point.fraction) : voyage.direction === 1 ? 1 : 0;
+  if (previous === voyage.segment) return null;
   return segment.type === 'arc' ? 'arrived' : 'departed';
 }
 
@@ -346,9 +258,9 @@ function placeOnLoop(voyage) {
  */
 export function predictShipPosition(voyage, seconds, out) {
   if (voyage.physics) {
-    const ahead = voyage.physics.initialVelocity.length() * seconds * voyage.timeScale / METERS_PER_MAP_UNIT;
-    const point = loopPoint(voyage.routeDistance + ahead, out);
-    const frame = new THREE.Quaternion().setFromAxisAngle(Y_AXIS, headingAngle(point.tangent) - voyage.forwardAngle);
+    const point = missionPoint(voyage.mission, voyage.mapElapsed + seconds * voyage.timeScale, out, undefined,
+      voyage.travelElapsed + seconds*voyage.timeScale*propulsionIntegrity(voyage.physics)/100);
+    const frame = routeRotation(point.tangent).multiply(voyage.initialFrameInverse);
     return out.add(voyage.deviation.clone().applyQuaternion(frame));
   }
   const future = { ...voyage };
@@ -358,6 +270,24 @@ export function predictShipPosition(voyage, seconds, out) {
   }
   shipPose(future, out);
   return out;
+}
+
+export function startVoyageSolarStorm(voyage, id) {
+  demoNormalTime(voyage.physics);
+  const storm={id,progress:{radius:SUN.radius,age:0,reached:false,done:false}};
+  voyage.solarStorm=storm;
+  return storm;
+}
+function advanceSolarStorm(voyage, dt) {
+  const storm=voyage.solarStorm;
+  if (!storm || storm.progress.done) return;
+  const p=storm.progress;
+  p.age+=dt; p.radius=SUN.radius+STORM_WAVE_SPEED*p.age;
+  if (!p.reached && p.radius>=voyage.mapPosition.length()) { p.reached=true; triggerDemoSolarStorm(voyage.physics); }
+  if (p.radius>=STORM_MAX_RADIUS) {
+    p.done=true;
+    voyage.physics.events.push({type:'storm_passed',time:voyage.physics.elapsed,text:'SOLAR STORM PASSED · subsystem outage timers continue independently'});
+  }
 }
 
 /** Where the ship is along the route, 0 at Earth and 1 at Mars (constant speed). */

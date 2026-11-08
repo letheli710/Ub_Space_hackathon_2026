@@ -9,7 +9,8 @@ export default function DemoAIControls({ ai }) {
       <button onClick={ai.enabled || ai.busy ? ai.stop : ai.start}>{ai.enabled || ai.busy ? 'Stop DEMO AI' : 'Enable DEMO autopilot'}</button>
     </div>
     <p className="muted">{ai.busy ? 'Models are analyzing · physics continues' : ai.enabled ? 'Autopilot watching for threats and repairable damage' : 'Manual AI cycles only'}</p>
-    <p className="muted">Each cycle calls four models. For avoidance tests, use Launch space rock with a 60 s preset warning, or place a slower rock farther away. Pointer distance determines its arrival time. Short-warning impacts may be unavoidable.</p>
+    {Object.entries(ai.subsystems ?? {}).filter(([,s])=>s.mode!=='online').map(([id,s])=><p key={id} role="status">{id.replaceAll('_',' ')} · {s.mode} · {s.reason}{s.remaining_s>0 ? ` · ${s.remaining_s.toFixed(1)} s remaining` : ''}</p>)}
+    <p className="muted">Each cycle calls available subsystems, then Main Judging. Offline roles are skipped. For avoidance tests, use Launch space rock with a 60 s preset warning, or place a slower rock farther away. Pointer distance determines its arrival time. Short-warning impacts may be unavoidable.</p>
     {ai.service && <p className="muted">Gateway: {ai.service.verified ? 'MODEL ACCESS VERIFIED' : ai.service.enabled && ai.service.systems.every(s => s.configured) ? 'CONFIGURED' : 'NOT CONFIGURED'} · {ai.service.systems.map(s => `${s.id}: ${s.model}`).join(' · ')}</p>}
     {ai.error && <p role="alert">{ai.error}</p>}
     {ai.latest && <details open>

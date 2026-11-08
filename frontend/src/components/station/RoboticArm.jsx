@@ -1,20 +1,12 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { materials } from './materials.js';
+import { DEFAULT_POSE, JOINT_LIMITS } from '../../simulation/demoArmKinematics.js';
+export { DEFAULT_POSE, JOINT_LIMITS };
 
 // A movable robotic arm: base yaw → shoulder → elbow → wrist → two-finger gripper.
 // The arm stands along its local +Y axis; mount it by placing and rotating its group.
 
-export const JOINT_LIMITS = {
-  yaw: [-Math.PI, Math.PI],
-  shoulder: [-1.5, 1.5],
-  elbow: [-2.4, 0.6],
-  wrist: [-1.6, 1.6],
-  grip: [0, 1],
-  slide: [-Math.PI, Math.PI], // rail position, only for arms on a rail
-};
-
-export const DEFAULT_POSE = { yaw: 0, shoulder: 0.6, elbow: -1.2, wrist: 0.4, grip: 0.5, slide: 0 };
 
 /** Gentle idle motion so each arm looks alive; phase keeps arms out of sync. */
 export function idlePose(t, phase = 0) {
@@ -37,6 +29,7 @@ export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.
   const wrist = useRef();
   const fingerA = useRef();
   const fingerB = useRef();
+  const upperLink=useRef(), upperStrip=useRef(), lowerLink=useRef();
 
   useFrame((state) => {
     const p = animate ? idlePose(state.clock.elapsedTime, phase) : { ...DEFAULT_POSE, ...pose };
@@ -45,6 +38,12 @@ export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.
     shoulder.current.rotation.z = p.shoulder;
     elbow.current.rotation.z = p.elbow;
     wrist.current.rotation.z = p.wrist;
+    const a=p.upper ?? upper, b=p.lower ?? lower;
+    upperLink.current.position.y=a/2; upperLink.current.scale.y=a;
+    upperStrip.current.position.y=a/2; upperStrip.current.scale.y=a*.7;
+    elbow.current.position.y=a;
+    lowerLink.current.position.y=b/2; lowerLink.current.scale.y=b;
+    wrist.current.position.y=b;
     const open = 0.05 + p.grip * 0.13;
     fingerA.current.position.x = open;
     fingerB.current.position.x = -open;
@@ -69,11 +68,11 @@ export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.
           <mesh material={m.dark} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.17, 0.17, 0.34, 16]} />
           </mesh>
-          <mesh material={m.hull} position={[0, upper / 2, 0]}>
-            <boxGeometry args={[0.16, upper, 0.16]} />
+          <mesh ref={upperLink} material={m.hull} position={[0, upper / 2, 0]} scale={[1,upper,1]}>
+            <boxGeometry args={[0.16, 1, 0.16]} />
           </mesh>
-          <mesh material={m.gold} position={[0.085, upper / 2, 0]}>
-            <boxGeometry args={[0.01, upper * 0.7, 0.07]} />
+          <mesh ref={upperStrip} material={m.gold} position={[0.085, upper / 2, 0]} scale={[1,upper*.7,1]}>
+            <boxGeometry args={[0.01, 1, 0.07]} />
           </mesh>
 
           {/* Elbow */}
@@ -81,8 +80,8 @@ export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.
             <mesh material={m.dark} rotation={[Math.PI / 2, 0, 0]}>
               <cylinderGeometry args={[0.14, 0.14, 0.3, 16]} />
             </mesh>
-            <mesh material={m.hull} position={[0, lower / 2, 0]}>
-              <boxGeometry args={[0.13, lower, 0.13]} />
+            <mesh ref={lowerLink} material={m.hull} position={[0, lower / 2, 0]} scale={[1,lower,1]}>
+              <boxGeometry args={[0.13, 1, 0.13]} />
             </mesh>
 
             {/* Wrist and gripper */}

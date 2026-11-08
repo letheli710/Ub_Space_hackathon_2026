@@ -4,9 +4,20 @@ This React/Vite/Three.js app runs the main **DEMO simulation in the browser**.
 DEMO has rigid-body propulsion, rock impacts, breakable module/wing attachments,
 drifting debris and measured telemetry. Initial cruise remains **7.9 km/s**.
 
+The DEMO solar system is dynamic: all eight planets follow inclined, eccentric
+Keplerian orbits; the Moon follows Earth. The ship and dotted line share a closed
+Earth–Mars tangent loop that moves with the planets and circles behind each one.
+Use **Time scale**, **Celestial date (UTC)** and **Mission phase** to follow it.
+See [celestial motion and guidance](docs/celestial-motion.md) for controls,
+sources and the distinction between planetary physics and guided ship playback.
+
 Damage is now progressive: normal hits scar and weaken individual components;
 repeated/severe hits can detach them. Each component has an integrity bar, and
 Main Judging-approved local-arm repairs recover attached damage up to 95%.
+New [DEMO system rules](docs/demo-system-rules.md) add 15-second storm outages,
+subsystem power cuts for each 25% energy loss, cruise speed proportional to engine
+integrity, and 10-second arm-contact reconstruction of detached components.
+Emergency Robot Arms power remains available for energy repairs.
 Disaster controls remain usable while paused and after destruction. The default
 rock is 200 kg at 40 m/s; targets cycle through components or can be selected.
 
@@ -40,6 +51,20 @@ physics runs at 1x with the ship still moving. Only **Pause demo** pauses it. Se
 [DEMO physics guide](docs/demo-physics.md) for details and current approximations.
 
 ## Enable real AI in DEMO
+
+**To turn it on with an existing setup:** start/restart the DEMO gateway on
+**8001**, keep `npm run dev` running, then open **AI API → Check backend connection**
+(or **Check saved connection** for saved browser settings). After verification,
+click **Open spacecraft AI controls → All → Enable DEMO autopilot**. Keep DEMO
+playing. **Run DEMO AI once** runs a single cycle. For an avoidance test, use a
+**60-second preset warning** before **Launch space rock**.
+
+From `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_Backend`, start the gateway
+with `..\.venv-demo\Scripts\python.exe -m starship_sim.demo_api` in Windows
+PowerShell, or `../.venv-demo/bin/python -m starship_sim.demo_api` on macOS.
+If using an existing `.venv`, replace `.venv-demo` with `.venv`. Leave the gateway
+terminal open. The [existing-setup checklist](docs/demo-ai.md#enable-ai-with-your-existing-setup)
+shows the complete commands and what to do when `.env` already has your key.
 
 Follow the detailed [Windows/macOS DEMO AI launch guide](docs/demo-ai.md). Start
 the Python gateway with `python -m starship_sim.demo_api` from the backend folder,
@@ -86,8 +111,9 @@ acceleration, detailed asteroids, a solar-storm wave and persistent inner-failur
 indicators. These are browser simulation features. Live scenarios and AI approval
 remain connected to the backend independently.
 
-The **AI API** tab configures DEMO AI through the gateway on port 8001. Keys are
-sent to the gateway only when checking or running AI; `.env` is not changed.
+The **AI API** tab configures DEMO AI through the gateway on port 8001. Selected
+connection settings reach the gateway for status, check and cycle requests;
+only checks and cycles contact the provider. `.env` is not changed.
 The optional Gazebo AI still uses its backend `.env` configuration on port 8000.
 
 Planetary Trajectories now displays the backend's solar-system SDF and measured

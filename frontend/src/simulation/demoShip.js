@@ -30,13 +30,28 @@ export const DEMO_PARTS = [
 ];
 export const DEMO_ARM_MOUNTS = {
   command: { part: 'command', position: [0, 1.7, 11.8] },
-  hab: { part: 'hab', position: [1.45, 0, 8] },
-  node: { part: 'node', position: [-2.35, 0, 3.6] },
-  cargo: { part: 'cargo', position: [0, -5.8, 3.6] },
+  hab: { part: 'hab', position: [1.45, 0, 8], rotation: [0, 0, -Math.PI/2] },
+  node: { part: 'node', position: [-2.35, 0, 3.6], rotation: [0, 0, Math.PI/2] },
+  cargo: { part: 'cargo', position: [0, -5.8, 3.6], rotation: [Math.PI, 0, 0] },
   ringHub: { part: 'ring', position: [0, 1.55, -1.4] },
-  ringRailA: { part: 'ring', position: [9.21, 5.03, -.74] },
-  ringRailB: { part: 'ring', position: [-9.21, -5.03, -.74] },
-  solarRight: { part: 'solarRight', position: [1, .22, -6] },
-  solarLeft: { part: 'solarLeft', position: [-1, -.22, -6] },
-  engine: { part: 'engine', position: [2.8, 0, -14] },
+  ringRailA: { part: 'ring', position: [9.21, 5.03, -.74], railAngle: .5 },
+  ringRailB: { part: 'ring', position: [-9.21, -5.03, -.74], railAngle: .5 + Math.PI },
+  solarRight: { part: 'solarRight', position: [1, .22, -6], upper: 1.2, lower: 1 },
+  solarLeft: { part: 'solarLeft', position: [-1, -.22, -6], rotation: [0, 0, Math.PI], upper: 1.2, lower: 1 },
+  engine: { part: 'engine', position: [2.8, 0, -14], rotation: [0, 0, -Math.PI/2] },
+};
+
+// Repair sockets lie on the original component surfaces / attachment interfaces.
+// A surviving neighbouring arm can touch these even when the component is missing.
+export const DEMO_REPAIR_SITES = {
+  command: [[1.4,1.7,13],[-1.4,1.7,13],[0,1.7,10.5]],
+  hab: [[1.45,1,8],[0,1.45,9.6],[1.45,0,5.2]],
+  node: [[-1.9,0,3.6],[0,1.9,3.6],[0,-1.9,3.6]],
+  cargo: [[0,-3.1,3.6],[1.8,-4.4,3.6],[0,-5.7,3.6]],
+  spine: [[0,.6,-6],[.6,0,-5],[0,.6,-1]],
+  ring: [[0,1.55,-.8],[-1.55,0,-2],[1.55,0,-2],[10.5,0,-1.05]],
+  solar: [[0,1,-11.6],[0,-1,-11.6],[.8,3,-11.6]],
+  solarRight: [[1.5,.075,-6],[3,.075,-6],[1.5,0,-4.5]],
+  solarLeft: [[-1.5,-.075,-6],[-3,-.075,-6],[-1.5,0,-4.5]],
+  engine: [[1,0,-12.5],[-1,0,-12.5],[2.7,0,-14]],
 };

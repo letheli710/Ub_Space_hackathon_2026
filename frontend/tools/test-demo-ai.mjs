@@ -1,4 +1,4 @@
-// Explicit live-model smoke test: four API calls per cycle. Never prints credentials.
+// Explicit live-model smoke test: up to four API calls per cycle. Never prints credentials.
 // Start python -m starship_sim.demo_api in the backend before running this tool.
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -22,10 +22,11 @@ const latency = (performance.now() - started) / 1000;
 step(s, latency);
 let executionError = null, actions = [];
 try { actions = executeDemoDecision(s, observation, decision); } catch (error) { executionError = error.message; }
-step(s, scenario === 'repair' ? 12 : Math.max(12, 70 - latency));
+// Include arm travel/extension before the mandatory ten-second contact hold.
+step(s, scenario === 'repair' ? 30 : Math.max(12, 70 - latency));
 const baseline = createDemoPhysics();
 launchDemoRock(baseline, { target_id: 'command', mass_kg: 200, speed_m_s: 40, warning_s: warning });
-step(baseline, scenario === 'repair' ? 20 + latency : 70);
+step(baseline, scenario === 'repair' ? 38 + latency : 70);
 const result = { scenario, warning_s: warning, measured_api_latency_s: latency, decision, actions, executionError,
   initial_integrity: initialHealth, ai: demoTelemetry(s), baseline: demoTelemetry(baseline),
   ai_contacts: s.events.filter(e => e.type === 'contact'), baseline_contacts: baseline.events.filter(e => e.type === 'contact') };

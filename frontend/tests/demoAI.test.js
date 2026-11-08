@@ -26,22 +26,23 @@ test('stale decisions, unsubmitted actions, conflicting burns and replays cannot
   const reset = createDemoPhysics();
   assert.throws(() => executeDemoDecision(reset, o, decide(o, ['burn_right_8'])), /changed/);
 });
-test('Main Judging can combine repair and energy; repairs take time and cannot reattach wreckage', () => {
+test('Main Judging can combine repair and energy; repairs move the arm then require timed contact', () => {
   const s = createDemoPhysics(); launchDemoRock(s, { warning_s: 2 }); run(s, 3);
   const o = buildDemoObservation(s), health = s.bonds.command.health;
   executeDemoDecision(s, o, decide(o, ['repair_command', 'solar_isolate']));
   assert.equal(s.bonds.command.health, health); assert.equal(s.solarProtection, true);
   assert.throws(() => setDemoTimeScale(s, 100), /1x/);
-  run(s, 10);
+  run(s, 20);
   assert.ok(s.bonds.command.health > health); assert.ok(s.bonds.command.health <= 95);
   assert.ok(s.battery < 100);
   const wreck = createDemoPhysics(); launchDemoRock(wreck, { mass_kg: 5000, speed_m_s: 150, warning_s: 2 }); run(wreck, 3);
   assert.throws(() => repairDemoPart(wreck, { arm_id: 'command', part_id: 'command' }), /attached/);
-  assert.ok(!buildDemoObservation(wreck).options.some(p => p.id === 'repair_command'));
+  const rebuild=buildDemoObservation(wreck).options.find(p=>p.id==='repair_command');
+  assert.ok(rebuild.prediction.rebuild);assert.notEqual(rebuild.action.arm_id,'command');
 });
 test('repair authorization rejects wrong arm, repeated service and failed arms', () => {
   const s = createDemoPhysics(); launchDemoRock(s, { warning_s: 2 }); run(s, 3);
-  assert.throws(() => repairDemoPart(s, { arm_id: 'hab', part_id: 'command' }), /own attached/);
+  assert.throws(() => repairDemoPart(s, { arm_id: 'unknown', part_id: 'command' }), /attached/);
   repairDemoPart(s, { arm_id: 'command', part_id: 'command' });
   assert.throws(() => repairDemoPart(s, { arm_id: 'command', part_id: 'command' }), /already/);
   injectDemoFault(s, 'Robotic Arm Malfunction'); const health = s.bonds.command.health; run(s, 1);

@@ -18,7 +18,37 @@ for the selected connection without contacting the provider. Cycle responses
 include each role's call status and duration; failed cycles preserve diagnostics
 and authorize no actions. The optional Gazebo AI status remains separate.
 The four models can propose, judge and execute DEMO evasion and timed repairs.
+DEMO [subsystem rules](../frontend/docs/demo-system-rules.md) now include timed storm
+outages, energy-based role shutdowns and arm-contact reconstruction. The gateway
+skips offline models, limits emergency Robot Arms to energy repairs, and rejects
+plans assigning one arm to multiple components. Restart the gateway after updating.
 No ROS, WSL, Docker or Gazebo process is required for this mode.
+DEMO now has a [dynamic celestial model and moving-planet mission guidance](../frontend/docs/celestial-motion.md).
+The gateway receives the orbital date, planetary SI positions/velocities and
+predicted spacecraft arrival alongside local encounter telemetry. The DEMO
+physics logic runs in its browser simulation layer; the optional Gazebo map
+below has its own independent state.
+
+### Enable DEMO AI with an existing setup
+
+1. From this backend directory, run
+   `..\.venv-demo\Scripts\python.exe -m starship_sim.demo_api` in Windows PowerShell
+   or `../.venv-demo/bin/python -m starship_sim.demo_api` in macOS Terminal. If
+   your existing environment is named `.venv`, replace `.venv-demo` with `.venv`.
+   Keep the gateway terminal open; it should report `http://127.0.0.1:8001`.
+   To restart after code or `.env` changes, press Ctrl+C and rerun the command.
+2. Keep the frontend running with `npm run dev` from `Ub_Space_hackathon_2026/frontend`.
+3. Open **AI API → Check backend connection** for an existing `.env` with
+   `AI_ENABLED=true` and a valid key, or **Check saved connection** if you saved
+   browser settings. Wait for **Model access verified**.
+4. Click **Open spacecraft AI controls → All → Enable DEMO autopilot**. Keep DEMO
+   playing. **Run DEMO AI once** runs a single cycle. To test asteroid avoidance,
+   use a **60-second preset warning** before **Launch space rock**.
+
+First-time installation and the full activation checklist are in the
+[DEMO AI guide](../frontend/docs/demo-ai.md#enable-ai-with-your-existing-setup).
+The [backend AI management guide](docs/ai-management.md#enable-ai-for-the-main-demo-simulator)
+also contains these DEMO activation steps before the optional Gazebo instructions.
 
 The rest of this README documents the retained, optional Gazebo backend on **8000**.
 Its native AI execution, 25 m/s cruise and state remain independent of DEMO.

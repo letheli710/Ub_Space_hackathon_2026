@@ -2,7 +2,9 @@ import { Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { BLACK_HOLE_POSITION, LOOP_LENGTH, MOON, PLANETS, ROUTE, SUN, demoRenderQuaternion, loopPoints, routeParameter, shipPose } from '../../data/voyage.js';
+import { BLACK_HOLE_POSITION, MOON, PLANETS, ROUTE, SUN, demoRenderQuaternion, routeParameter, shipPose } from '../../data/voyage.js';
+import { orbitalPath } from '../../simulation/celestial.js';
+import { missionPath } from '../../simulation/missionGuidance.js';
 import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
 import StationShip from '../station/StationShip.jsx';
 import DemoPhysicsObjects from '../DemoPhysicsObjects.jsx';
@@ -41,24 +43,41 @@ const ROUTE_SEGMENTS = 400;
 const ROUTE_POINTS = ROUTE.getSpacedPoints(ROUTE_SEGMENTS); // evenly spaced by distance
 const ROUTE_POINTS_REVERSED = [...ROUTE_POINTS].reverse();
 const ROUTE_COLOR = '#29eaff';
-const LOOP_SEGMENTS = 900;
-const LOOP_POINTS = loopPoints(LOOP_SEGMENTS);
+const ORBIT_PATHS = Object.fromEntries(PLANETS.map(p => [p.name, orbitalPath(p.name)]));
 
-/**
- * DEMO round trip: Earth → Mars, half a lap around Mars, back to Earth on the other side,
- * half a lap around Earth. Dashed everywhere; solid for the part flown since leaving Earth.
- */
+// Reuse the line's GPU buffers while updating the current moving-planet loop.
+function updateGuidanceLine(line, points) {
+  const geometry = line.geometry, positions = geometry.attributes.instanceStart.data;
+  const distances = geometry.attributes.instanceDistanceStart?.data;
+  let distance = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    positions.array.set(points[i], i * 6); positions.array.set(points[i+1], i * 6 + 3);
+    if (distances) {
+      distances.array[i * 2] = distance;
+      distance += Math.hypot(...points[i].map((v, k) => points[i+1][k] - v));
+      distances.array[i * 2 + 1] = distance;
+    }
+  }
+  positions.needsUpdate = true;
+  if (distances) distances.needsUpdate = true;
+  geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+}
+
+/** Current Earth–Mars tangent loop and progress through the current lap. */
 function LoopLine({ voyage }) {
-  const flown = useRef();
+  const planned = useRef(), flown = useRef(), lastMissionTime = useRef(null);
+  const initial = useMemo(() => missionPath(voyage.current.mission, voyage.current.mapElapsed, voyage.current.travelElapsed), []);
   useFrame(() => {
-    if (!flown.current) return;
-    const lap = (voyage.current.routeDistance % LOOP_LENGTH) / LOOP_LENGTH;
-    flown.current.geometry.instanceCount = Math.floor(lap * LOOP_SEGMENTS);
+    if (!planned.current || !flown.current || lastMissionTime.current === voyage.current.mapElapsed) return;
+    const path = missionPath(voyage.current.mission, voyage.current.mapElapsed, voyage.current.travelElapsed);
+    updateGuidanceLine(planned.current, path.planned);
+    updateGuidanceLine(flown.current, path.flown);
+    lastMissionTime.current = voyage.current.mapElapsed;
   });
   return (
     <>
-      <Line points={LOOP_POINTS} color={ROUTE_COLOR} lineWidth={2.2} dashed dashSize={4} gapSize={3} transparent opacity={0.85} depthWrite={false} />
-      <Line ref={flown} points={LOOP_POINTS} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
+      <Line ref={planned} points={initial.planned} color={ROUTE_COLOR} lineWidth={2.2} dashed dashSize={4} gapSize={3} transparent opacity={0.85} depthWrite={false} />
+      <Line ref={flown} points={initial.flown} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
     </>
   );
 }
@@ -211,17 +230,19 @@ export default function FlightScene({
       <Sun position={SUN.position} radius={SUN.radius} />
       {PLANETS.map((planet) => (
         <group key={planet.name}>
-          <OrbitLine radius={planet.orbit} />
+          <OrbitLine points={ORBIT_PATHS[planet.name]} />
           <Planet
             position={planet.position}
             radius={planet.radius}
             texture={textures[planet.name]}
+            tilt={planet.tilt}
+            getState={() => voyage.current.solarSystem?.planets[planet.name]}
             atmosphere={ATMOSPHERES[planet.name]}
             ring={planet.name === 'Saturn' ? '#d9c79f' : undefined}
           />
         </group>
       ))}
-      <Planet position={MOON.position} radius={MOON.radius} texture={textures.Moon} spin={0.004} />
+      <Planet position={MOON.position} radius={MOON.radius} texture={textures.Moon} getState={() => voyage.current.solarSystem?.moon} />
       {blackHole && <BlackHole position={BLACK_HOLE_POSITION} />}
       {blackHole && <BlackHoleMarker element={blackHoleMarker} shipFrame={shipFrame} />}
       {solarStorm && (

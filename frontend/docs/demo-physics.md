@@ -57,8 +57,10 @@ The manual controls are physics tests. Real four-role AI now connects to DEMO
 through the gateway described in [DEMO AI setup](demo-ai.md). Only Main Judging's
 approved selections reach the simulation. The models receive component integrity,
 arm mounts, fuel, charge, nearby objects and predicted maneuver clearances.
-Attached local-arm repairs take time and battery and recover integrity up to 95%.
-They cannot reattach wreckage. Scars and damage tint fade as integrity recovers.
+Attached repairs require 10 continuous seconds of arm contact after positioning,
+and recover up to eight points, capped at 95%. A reachable missing component can
+be recreated at full integrity by a surviving arm; the old fragment remains debris.
+See [subsystem outages, cruise and reconstruction](demo-system-rules.md).
 
 Disaster controls never lock because the ship is paused, damaged or destroyed.
 Paused launches are queued; detached parts remain valid targets. A 48-rock limit
@@ -67,11 +69,15 @@ again while active. Valid ranges still apply to numeric settings.
 
 ## Physics and time
 
-The ship starts at the original **7900 m/s (7.9 km/s)**. This is an initial
-condition, not a speed clamp. The initial heading aims from the Earth departure
-point toward Mars. It now coasts in an inertial straight line instead of following
-the old curved animation. The displayed route is a reference; there is no automatic
-teleport, turnaround, arrival braking or orbit capture.
+The ship starts at **7900 m/s (7.9 km/s)**. The requested gameplay cruise reference
+is now `7900 × engine integrity / 100` m/s. Local thrust/contact offsets remain
+physical, and forward mission progress scales with the same health fraction.
+Celestial time keeps moving independently. See the system-rules guide for the
+co-moving encounter reference and its gameplay limits. The map's guidance separately
+loops between the current Earth and Mars, with tangent transfers and far-side
+parking arcs behind both planets. All eight planets follow inclined, eccentric Kepler orbits. See
+[dynamic celestial motion and guidance](celestial-motion.md) for the physical
+model, moving route, playback controls and limits of the guided spacecraft path.
 
 Body-frame thrust is transformed by the measured quaternion and integrated with
 `a = F / m`. Main thrust is 40 kN, translation RCS 18 kN and torque 80 kN·m.
@@ -92,7 +98,7 @@ playback scale, including collision/thrust deflections. Nearby rocks and wreckag
 share this moving map anchor, preserving their true relative motion.
 
 This deliberately separates illustrative map travel/day from SI physics position
-and elapsed time. Map acceleration never multiplies impact speed, burn duration,
+and elapsed time. Celestial motion follows map mission time. Map acceleration never multiplies impact speed, burn duration,
 repair rate or AI reaction time. Before an encounter, undisturbed coasting can use
 exact analytical fast-forward. Afterward physics stays at 1x until reset; the map
 scale can still be changed. Pause freezes both clocks and fuel. A suspended browser
@@ -133,8 +139,8 @@ surface collisions. Main wings separate independently; arms stay rigidly mounted
 to their parent fragment. The habitat ring is held fixed for matching collision
 geometry. Other disaster artwork (aliens, black hole, solar storm) and nonpropulsion
 faults remain illustrative/scenario state, not additional physical force solvers.
-No physical welding/reassembly is performed. Timed arm maintenance can restore
-attached integrity; reset is required to restore detached assemblies. Battery and
+No physical welding/reassembly is performed. Timed arm contact can restore
+attached integrity or recreate a missing assembly as a game mechanic. Battery and
 charging are modeled percentages, not an electrical-circuit simulation.
 
 ## Replace a model or tune materials

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildDemoObservation, executeDemoDecision } from './demoAI.js';
 import { createDemoAIClient } from '../ai/demoClient.js';
+import { subsystemStates } from './demoSystems.js';
 
 const client = createDemoAIClient({ baseUrl: import.meta.env.VITE_DEMO_AI_URL ?? '' });
 export default function useDemoAI(voyage, running, onLog, settings = null, displayTime = null) {
@@ -97,7 +98,7 @@ export default function useDemoAI(voyage, running, onLog, settings = null, displ
     }, 1000);
     return () => clearInterval(timer);
   }, [enabled, running, run]);
-  return { enabled, busy, checking, settings, service, error, gateway, connectionError,
+  return { enabled, busy, checking, settings, service, error, gateway, connectionError, subsystems:subsystemStates(voyage.current.physics),
     history: history.filter(c => c.run_id === voyage.current.physics.runId),
     latest: latest?.run_id === voyage.current.physics.runId ? latest : null, connect, refreshStatus, run, stop,
     reset: () => { stop(); setLatest(null); setHistory([]); setError(''); },

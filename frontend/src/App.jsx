@@ -16,7 +16,6 @@ import { DISASTER_PARAMETERS } from './data/disasters.js';
 import {
   createVoyage,
   destination,
-  TRANSFER_DAYS,
   demoLocalOffset,
   voyagePhase,
   stepTimeScaleValue,
@@ -28,11 +27,14 @@ import {
   shipSpeedKmS,
   stepVoyage,
   setVoyageTimeScale,
+  startVoyageSolarStorm,
 } from './data/voyage.js';
 import useSimulation from './simulation/useSimulation.js';
 import { commandDemoBurn, coastDemo, demoTelemetry, launchDemoRock, launchDemoRockAtPointer, injectDemoFault } from './simulation/demoPhysics.js';
 import useDemoAI from './simulation/useDemoAI.js';
 import { loadAiSettings } from './ai/settings.js';
+import { celestialDate } from './simulation/celestial.js';
+import { navigationState } from './simulation/missionGuidance.js';
 
 // Two ways to run the 3D view:
 //  - Live: the ROS/Gazebo simulator is connected; ship, map, telemetry and arms come from it.
@@ -164,11 +166,14 @@ export default function App() {
     const next = stepTimeScaleValue(current, direction);
     if (next !== current) setTimeScale(next);
   }
+  const demoNavigation = navigationState(voyage.current);
   const demoStatus = {
     physics: demoTelemetry(voyage.current.physics),
     speedKmS: shipSpeedKmS(voyage.current),
     day: missionDay(voyage.current),
-    legDays: TRANSFER_DAYS,
+    legDays: demoNavigation.transfer_days,
+    navigation: demoNavigation,
+    celestialDate: celestialDate(voyage.current.mapElapsed),
     inOrbit: voyage.current.dwell > 0,
     timeScaleLabel: formatTimeScale(timeScale),
   };
@@ -176,8 +181,10 @@ export default function App() {
   useEffect(() => {
     if (live) return undefined;
     const id = setInterval(() => {
-      setSeconds((s) => playing ? s + .1 : s);
+      setSeconds(voyage.current.displayElapsed ?? 0);
       const events = voyage.current.physics.events.splice(0);
+      if (events.some(e=>e.type==='storm_hit')) { setStormFlash(n=>n+1); setEvent({name:'Solar Storm',severity:DISASTER_PARAMETERS.severity}); }
+      if (events.some(e=>e.type==='storm_passed')) setSolarStorm(null);
       if (events.length) addLogs(events.map(e => e.text));
     }, 100);
     return () => clearInterval(id);
@@ -273,7 +280,7 @@ export default function App() {
   // Solar storm: a particle wave leaves the Sun and sweeps outward; it hits when it reaches the ship.
   function triggerSolarStorm() {
     setArmed(null);
-    setSolarStorm({ id: nextId.current++ });
+    setSolarStorm(startVoyageSolarStorm(voyage.current,nextId.current++));
     const distance = shipPose(voyage.current, new THREE.Vector3()).length();
     addLogs([`SOLAR FLARE DETECTED · Particle wave leaving the Sun · ETA ${(distance / STORM_SPEED).toFixed(1)}s`]);
   }

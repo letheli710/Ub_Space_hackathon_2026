@@ -1,5 +1,70 @@
 # LLM spacecraft management
 
+## Enable AI for the main DEMO simulator
+
+**DEMO AI needs the Python gateway on port 8001 and the running frontend.**
+Use these steps when Python dependencies and your API key are already configured.
+For first-time installation, follow the [Windows setup](../../frontend/docs/demo-ai.md#windows-setup)
+or [macOS setup](../../frontend/docs/demo-ai.md#macos-setup).
+
+1. Open PowerShell on Windows or Terminal on a Mac in `Ub_Space_hackathon_2026`.
+   Start the gateway using the environment created by the setup guide:
+
+   Windows PowerShell:
+
+   ```powershell
+   cd UB_Spaceship_Travel_Sim_Backend
+   ..\.venv-demo\Scripts\python.exe -m starship_sim.demo_api
+   ```
+
+   macOS Terminal:
+
+   ```bash
+   cd UB_Spaceship_Travel_Sim_Backend
+   ../.venv-demo/bin/python -m starship_sim.demo_api
+   ```
+
+   If your working Python environment is named `.venv`, use
+   `..\.venv\Scripts\python.exe -m starship_sim.demo_api` on Windows or
+   `../.venv/bin/python -m starship_sim.demo_api` on Mac instead. Both environment
+   folders live directly inside `Ub_Space_hackathon_2026`. Leave this terminal
+   open. After updating code or backend `.env`, press Ctrl+C here and rerun the
+   gateway command. Its startup message should show `http://127.0.0.1:8001`.
+
+2. Open a second terminal in `Ub_Space_hackathon_2026`. With frontend dependencies
+   already installed, run:
+
+   ```text
+   cd frontend
+   npm run dev
+   ```
+
+   Keep it open and visit Vite's printed URL, normally `http://127.0.0.1:5173`.
+
+3. Open **AI API**. With `AI_ENABLED=true` and a valid `DEEPSEEK_API_KEY` already
+   saved in backend `.env`, click **Check backend connection**. If a browser
+   connection is saved, click **Check saved connection** instead. To configure a
+   new browser connection, select **DeepSeek**, enter model `deepseek-flash` and
+   your key, leave API link empty for the default address, then click
+   **Save → Check saved connection**. Wait for **Model access verified**.
+
+4. Click **Open spacecraft AI controls**, then select **AI Logs → All → Enable
+   DEMO autopilot**. Keep the simulator playing; if paused, click **Resume demo**.
+   **Run DEMO AI once** performs a single manual cycle instead. Saving a connection
+   alone does not start automatic AI control.
+
+5. Autopilot watches for incoming threats and repairable damage. For an avoidance
+   test, set **Preset warning time (s)** to **60**, then click **Launch space rock**.
+   Read the four system tabs for proposals, Main Judging's approvals and errors;
+   inspect DEMO TELEMETRY for the outcome. Short-warning impacts may be unavoidable.
+
+Click **Stop DEMO AI** to stop automatic decisions. Check/status requests do not
+generate model output; manual cycles and autopilot decisions use your model API.
+WSL, Docker and Gazebo are not required for DEMO AI. The remaining sections below
+describe the optional Gazebo system on port 8000, which has different controls.
+
+## Optional Gazebo AI
+
 The default live ship now has ten individually identified Robot Arms rigs.
 See the [modular spacecraft guide](modular-spacecraft.md) for locations, joint
 units, measured mount/tool poses, rail movement and rebuild instructions.
@@ -28,7 +93,7 @@ Arm module labels describe mounting locations, not additional AI roles.
 Robot Arms owns all ten rigs, including both solar-wing arms. Energy owns
 the solar hinges, not the arms attached to those wings.
 
-## Configure later or enable now
+## Configure or enable optional Gazebo AI
 
 The default is **AI off**, with no key and no automatic model calls. You can run
 the environment and frontend normally without a DeepSeek account. To enable AI
@@ -82,7 +147,8 @@ when ready, open a terminal in `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_
    recreation: stop and `start.ps1 -NoBuild` on Windows, or `docker compose down`
    and `docker compose up -d --no-build` on Mac. `docker compose restart` alone
    does not apply changed environment variables. A direct Python/uv launch reads
-   process environment variables; it does not load `.env` automatically.
+   process environment variables; it does not load `.env` automatically. The
+   separate DEMO gateway described above loads backend `.env` when started.
 
 4. Wait for `http://127.0.0.1:8000/readyz` to report `ready: true`. Start the
    frontend using its [README](../../frontend/README.md), then open **AI Logs**.
@@ -168,12 +234,14 @@ charge/drain rates, scenario faults and pose-gated maintenance outcomes. Local
 detections include approximate closest approach. Physics supplies fuel, contact
 stress and attachment failures. Electrical watts and physical repair remain
 unavailable. Models must distinguish game
-outcomes from physical repair. Browser Demo remains a separate illustration.
+outcomes from physical repair. The main browser DEMO has its own physical
+simulation and AI gateway; use the activation steps at the top of this guide.
 
 ## Model connection ports
 
-All four logical model ports share the existing backend HTTP port **8000**.
-No additional process or TCP port is needed. Use IDs in the role table above.
+For optional Gazebo AI, all four logical model ports share backend HTTP port
+**8000**. DEMO AI instead requires the gateway on **8001** described above.
+Use IDs in the role table above for these Gazebo routes.
 
 | Method and route under `/api/v1/ai` | Purpose |
 |---|---|

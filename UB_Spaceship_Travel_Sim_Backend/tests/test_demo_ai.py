@@ -95,3 +95,45 @@ def test_per_system_diagnostics_preserve_partial_success_and_judge_failure():
         assert len(cycle['proposals']) == 3 and len(cycle['assessments']) == 3
         assert cycle['calls']['main_judging']['status'] == 'error'
         assert 'review each' in cycle['errors']['main_judging']
+
+
+def test_offline_subsystem_is_not_called_and_cannot_propose_but_main_judging_stays_online():
+    models = Models()
+    o = observation().model_dump()
+    o['telemetry']['systems'] = {'energy': {'mode': 'offline', 'reason': 'Solar storm', 'remaining_s': 15}}
+    with TestClient(create_demo_app(settings(), models)) as client:
+        response = client.post('/api/v1/demo-ai/cycle', json=o)
+        assert response.status_code == 200
+        cycle = response.json()
+        assert 'energy' not in models.calls and 'main_judging' in models.calls
+        assert cycle['calls']['energy']['status'] == 'offline'
+        assert 'solar' not in cycle['approved_options']
+
+
+def test_emergency_robot_arms_can_only_propose_energy_repairs():
+    class EmergencyModels(Models):
+        async def complete(self, role, prompt, context, output_type):
+            if role == 'robot_arms':
+                self.calls.append(role)
+                assert [o['id'] for o in context['options']] == ['solar_rebuild']
+                return Proposals(assessment='Restore emergency energy', proposals=[{'option_id': 'solar_rebuild', 'rationale': 'Restore power', 'risks': 'Contact required'}])
+            return await super().complete(role, prompt, context, output_type)
+    models = EmergencyModels()
+    o = observation().model_dump()
+    o['telemetry']['systems'] = {role: {'mode': 'emergency' if role == 'robot_arms' else 'offline'} for role in ['energy', 'propelling', 'robot_arms']}
+    o['options'].append({'id': 'solar_rebuild', 'owner': 'robot_arms', 'action': {'type': 'repair', 'arm_id': 'engine', 'part_id': 'solar', 'seconds': 10}, 'prediction': {}})
+    with TestClient(create_demo_app(settings(), models)) as client:
+        response = client.post('/api/v1/demo-ai/cycle', json=o)
+        assert response.status_code == 200, response.text
+        assert response.json()['approved_options'] == ['solar_rebuild']
+        assert set(models.calls) == {'robot_arms', 'main_judging'}
+
+
+def test_main_judging_cannot_assign_one_arm_to_two_components():
+    o = observation()
+    from starship_sim.ai.demo import Option
+    o.options.append(Option.model_validate({'id': 'repair2', 'owner': 'robot_arms', 'action': {'type': 'repair', 'arm_id': 'command', 'part_id': 'engine', 'seconds': 10}, 'prediction': {}}))
+    proposals = [{'id': 'a', 'option_id': 'repair'}, {'id': 'b', 'option_id': 'repair2'}]
+    decision = Decision(summary='Bad combination', combination_rationale='Bad', reviews=[{'proposal_id': p['id'], 'approve': True, 'reason': 'Bad'} for p in proposals])
+    with pytest.raises(ModelError, match='one arm'):
+        validated_selection(o, proposals, decision)

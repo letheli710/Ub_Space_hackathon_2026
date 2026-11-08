@@ -10,14 +10,14 @@ import RockTrail from './space/RockTrail.jsx';
 
 // Floating origin: astronomical travel uses the map scale; nearby objects all use
 // the same enlarged meter scale as the ship. Physics never uses rendered units.
-function Part({ voyage, id }) {
+function Part({ voyage, id, fragmentId = null }) {
   const ref = useRef();
   const tinted = useRef(new Map());
   const s = voyage.current.physics;
-  const bond = s.bonds[id];
-  const detached = s.fragments.find(f => f.id === id);
+  const detached = fragmentId ? s.fragments.find(f => f.instanceId === fragmentId) : null;
+  const bond = detached?.damage ?? s.bonds[id];
   const Module = MODULES.find(p => p.id === id)?.component;
-  const arm = armId => ({ animate: false, ...(s.repairs.some(j => j.arm_id === armId) ? { pose: { yaw: 0, shoulder: 1, elbow: -1.9, wrist: .6, grip: .2, slide: 0 } } : {}) });
+  const arm = armId => ({ animate: false, pose: detached ? undefined : s.armPoses[armId] });
   useEffect(() => {
     const color = new Color(bond.health > 50 ? '#b76c27' : '#9c3023');
     ref.current?.traverse(object => {
@@ -36,7 +36,8 @@ function Part({ voyage, id }) {
   useFrame(() => {
     if (!ref.current) return;
     const state = voyage.current.physics;
-    const current = state.fragments.find(f => f.id === id) ?? state.ship;
+    const current = fragmentId ? state.fragments.find(f => f.instanceId === fragmentId) : state.ship;
+    if (!current) return;
     ref.current.position.copy(demoRenderPosition(voyage.current, modelOrigin(current)));
     demoRenderQuaternion(voyage.current, current.q, ref.current.quaternion);
   });
@@ -80,7 +81,8 @@ function Rock({ voyage, id, radius }) {
 export default function DemoPhysicsObjects({ voyage }) {
   const s = voyage.current.physics;
   return <>
-    {s.parts.map(p => <Part key={p.id} voyage={voyage} id={p.id} />)}
+    {s.ship.parts.map(p => <Part key={p.id} voyage={voyage} id={p.id} />)}
+    {s.fragments.map(f => <Part key={f.instanceId} voyage={voyage} id={f.partId ?? f.id} fragmentId={f.instanceId} />)}
     {s.rocks.map(r => <Rock key={r.id} voyage={voyage} id={r.id} radius={r.radius} />)}
   </>;
 }

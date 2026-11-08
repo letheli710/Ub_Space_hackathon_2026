@@ -32,7 +32,7 @@ class Repair(Contract):
     type: Literal['repair']
     arm_id: str = Field(min_length=1, max_length=50)
     part_id: str = Field(min_length=1, max_length=50)
-    seconds: FiniteFloat = Field(gt=0, le=30)
+    seconds: Literal[10] = 10
 
 
 class SolarProtection(Contract):
@@ -67,6 +67,14 @@ class Observation(Contract):
     def unique_options(self):
         if len({o.id for o in self.options}) != len(self.options):
             raise ValueError('Duplicate option ID')
+        systems = self.telemetry.get('systems', {})
+        if not isinstance(systems, dict):
+            raise ValueError('Invalid subsystem availability')
+        for role, state in systems.items():
+            if role not in {r.value for r in SystemId} or not isinstance(state, dict) or state.get('mode') not in {'online', 'offline', 'emergency'}:
+                raise ValueError('Invalid subsystem availability')
+            if (role == 'main_judging' and state['mode'] != 'online') or (state['mode'] == 'emergency' and role != 'robot_arms'):
+                raise ValueError('Invalid subsystem availability')
         # Also reject nonfinite numbers hidden inside diagnostic dictionaries.
         json.dumps(self.model_dump(), allow_nan=False)
         return self
@@ -102,14 +110,26 @@ Only Main Judging may approve execution. Never invent an action or alter a catal
 Use the measured integrity, arm availability, battery, fuel and rock trajectories.
 Positive predicted clearance is safer. Predictions assume immediate burns and fixed attitude;
 account for API latency and rotating ships. Prefer a substantial clearance margin, not a grazing miss.
-Protect intact modules; repair attached damaged parts using their local arms. Detached parts cannot
-be repaired or reattached. Repairs consume time and battery; isolating solar power stops charging,
+Navigation and solar_system describe the long-range moving-planet map, in a separate
+heliocentric frame and accelerated mission clock. Automatic mission guidance handles those
+transfers. Use threats/body-frame telemetry for immediate collisions; do not treat planetary
+orbital velocity or arrival time as a local rock threat or invent a navigation actuator.
+Solar storms disable one subsystem for 15 physical seconds. Each 25% loss of aggregate solar
+integrity disables Propelling, then Energy, then normal Robot Arms power. Main Judging stays online.
+Use telemetry.systems for current availability. Emergency Robot Arms power permits ONLY energy
+component repairs; never propose ordinary work for an offline or restricted subsystem.
+Protect intact modules. Repair catalog entries identify a surviving arm and a reachable service
+socket. The arm must move there and maintain tool contact for 10 continuous physical seconds.
+For a detached component this recreates it at the original mount with full integrity; the old
+fragment remains debris. Other attached repairs restore the catalog's integrity amount.
+Repair restores the relevant energy/propulsion integrity and can restore subsystem power/cruise.
+Repairs consume time and battery; isolating solar power stops charging,
 and cannot shield the ship from an impact. Do not claim an action executed or a repair succeeded.
 No proposal is mandatory when it has no benefit. Keep reasoning concise.'''
 
 ROLE = {
     'propelling': 'Propose a translation burn to evade an incoming rock when it threatens contact. Compare catalog predicted clearances and fuel costs; normally choose one effective low-cost burn with at least 10 m margin. Avoid useless attitude-only maneuvers or burns toward the rock. If there is no threat, do not burn just to act.',
-    'robot_arms': 'Propose repairs only for damaged attached modules using an available local arm from the catalog. Never manipulate thrusters or solar power. Avoid duplicate service on the same part.',
+    'robot_arms': 'Propose catalog repairs or reconstruction using the named surviving arm. It must reach and touch the listed socket for 10 continuous seconds; motion time is additional. In emergency mode prioritize rebuilding/repairing solar energy components to restore subsystem power. Never manipulate thrusters or solar power switches. Avoid duplicate service on the same arm or part.',
     'energy': 'Manage surviving solar panels and charging. Restore charging if isolated and safe. Only isolate generation when maintenance requires it. Do not waste an action on an already-satisfied setting. Never control thrusters or arms.',
     'main_judging': 'Review every submitted proposal exactly once by its proposal_id. Approve compatible proposals that most reduce total ship damage; combine propulsion, repair and energy actions when beneficial. Reject conflicting burns or redundant repairs. Select only submitted proposals and use approve=false to reject. Prioritize imminent collision avoidance over minor repairs.',
 }
@@ -127,12 +147,16 @@ def validated_selection(observation, proposals, decision):
     if len(decision.reviews) != len(by_id) or {r.proposal_id for r in decision.reviews} != set(by_id):
         raise ModelError('Main Judging must review each proposal exactly once')
     options = {o.id: o for o in observation.options}
-    selected, used = [], set()
+    selected, used, arms = [], set(), set()
     for review in decision.reviews:
         if not review.approve:
             continue
         option = options[by_id[review.proposal_id]['option_id']]
         resource = f'repair:{option.action.part_id}' if option.action.type == 'repair' else option.owner
+        if option.action.type == 'repair':
+            if option.action.arm_id in arms:
+                raise ModelError('Main Judging assigned one arm to conflicting repairs')
+            arms.add(option.action.arm_id)
         if resource in used:
             raise ModelError('Main Judging selected conflicting actions')
         used.add(resource)
@@ -180,13 +204,22 @@ class DemoAdvisor:
             async def propose(role):
                 prompt = COMMON + '\n' + ROLE[role] + '\nJSON schema: ' + json.dumps(Proposals.model_json_schema())
                 began = time.monotonic()
+                availability = observation.telemetry.get('systems', {}).get(role, {})
+                if availability.get('mode') == 'offline':
+                    calls[role] = {'status': 'offline', 'model': self.settings.roles[role].model,
+                                   'reason': availability.get('reason', 'Subsystem offline')}
+                    assessments[role] = 'Subsystem offline; no model call or proposals.'
+                    return
                 try:
                     payload = observation.model_dump()
                     payload['options'] = [o.model_dump() for o in observation.options if o.owner == role]
+                    if availability.get('mode') == 'emergency':
+                        payload['options'] = [o for o in payload['options'] if o['action']['type'] == 'repair' and
+                                              o['action']['part_id'] in {'solar', 'solarLeft', 'solarRight'}]
                     output = await self.client.complete(role, prompt, payload, Proposals)
                     owned = []
                     for item in output.proposals:
-                        if item.option_id not in catalog or catalog[item.option_id].owner != role:
+                        if item.option_id not in {o['id'] for o in payload['options']}:
                             raise ModelError('Subsystem proposed an unknown or unauthorized action')
                         owned.append({'id': f'{role}_{len(owned)}', 'system': role, **item.model_dump()})
                     proposals.extend(owned)

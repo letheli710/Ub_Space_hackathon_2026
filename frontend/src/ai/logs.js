@@ -1,5 +1,8 @@
 /** Adapt gateway facts to the teammate's connection cards and per-system logs. */
 export function demoConnection(ai, id) {
+  const subsystem=ai.subsystems?.[id];
+  if (subsystem?.mode==='offline') return ['bad','Subsystem offline',`${subsystem.reason}${subsystem.remaining_s>0 ? ` · ${subsystem.remaining_s.toFixed(1)} s remaining` : ''}`];
+  if (subsystem?.mode==='emergency') return ['warn','Emergency repairs only',subsystem.reason];
   const role = ai.service?.systems?.find(item => item.id === id);
   if (ai.busy) return ['ok', 'Analyzing…', role?.model ?? ''];
   if (ai.gateway?.reachable === false) return ['bad', 'Gateway offline', ai.gateway.error];

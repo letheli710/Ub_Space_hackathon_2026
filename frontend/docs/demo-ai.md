@@ -4,6 +4,58 @@ DEMO physics runs in the browser. A small Python gateway calls the four configur
 AI roles and returns Main Judging-approved actions. **Gazebo, WSL and Docker
 are not required for this gateway.** The existing native Gazebo AI remains separate.
 
+See [DEMO subsystem rules](demo-system-rules.md) for 15-second solar-storm outages,
+25%-energy-loss shutdowns, integrity-scaled cruise, emergency power, and arm-contact
+reconstruction. Offline roles are skipped; only Main Judging-approved actions run.
+
+## Enable AI with your existing setup
+
+If Python dependencies and your DeepSeek key are already configured, use this
+checklist each time you launch. For first-time installation, use [Windows setup](#windows-setup)
+or [macOS setup](#macos-setup) below.
+
+1. Open a terminal in `Ub_Space_hackathon_2026` and start the gateway.
+
+   Windows PowerShell:
+
+   ```powershell
+   cd UB_Spaceship_Travel_Sim_Backend
+   ..\.venv-demo\Scripts\python.exe -m starship_sim.demo_api
+   ```
+
+   macOS Terminal:
+
+   ```bash
+   cd UB_Spaceship_Travel_Sim_Backend
+   ../.venv-demo/bin/python -m starship_sim.demo_api
+   ```
+
+   These commands use the `.venv-demo` created in the setup below. If you already
+   use the project's `.venv`, the Windows command is
+   `..\.venv\Scripts\python.exe -m starship_sim.demo_api`; on Mac use
+   `../.venv/bin/python -m starship_sim.demo_api`. Leave the terminal open and
+   confirm startup reports `http://127.0.0.1:8001`. To restart after an update or
+   `.env` edit, press Ctrl+C in that terminal and run the gateway command again.
+
+2. Open another terminal in `Ub_Space_hackathon_2026`, run `cd frontend`, then
+   `npm run dev`. Open Vite's printed URL and keep both terminals running.
+3. In **AI API**, click **Check backend connection** to use an existing backend
+   `.env` with `AI_ENABLED=true` and a valid key. If browser settings are saved,
+   click **Check saved connection** instead. You do not need to enter an already
+   configured key again. Wait for **Model access verified**. To add or change a
+   browser connection, follow [Connect from the frontend](#connect-from-the-frontend).
+4. Click **Open spacecraft AI controls**, then choose **AI Logs → All → Enable
+   DEMO autopilot**. Keep the simulator playing; click **Resume demo** if paused.
+   Use **Run DEMO AI once** for a single manual cycle. Saving a key or starting
+   the gateway alone does not enable autopilot.
+5. Autopilot waits for incoming threats or repairable damage. To test avoidance,
+   set **Preset warning time (s)** to **60**, then click **Launch space rock**.
+   Check proposals, approved actions and errors under the four AI system tabs.
+   A short warning may not give the models enough time to respond.
+
+Use **Stop DEMO AI** to disable autopilot. Checking a connection does not generate
+model output; running a cycle or an autopilot decision does use the model API.
+
 ## Connect from the frontend
 
 Start the gateway and frontend using the Windows/macOS steps below. After updating
@@ -39,11 +91,12 @@ Resetting DEMO, changing the AI connection, or reloading the website clears this
 browser-session history. Failed Main Judging responses and decisions discarded by
 local safety checks show **zero executed actions**, even when a proposal was made.
 
-The new Earth–Mars round trip, parking orbits and asteroid trails use the teammate's
-frontend design. AI observations include the current route phase, destination and
-map orientation. Local collision sensing, burns and repairs stay in physical body
-coordinates at the safe encounter clock while the map keeps moving. The parking
-route is scripted guidance, not a gravity-based orbital simulation.
+The [dynamic solar system](celestial-motion.md) uses moving Keplerian planets and
+guided Earth–Mars transfers. AI observations include the current route phase,
+destination, predicted arrival, celestial date, planetary position/velocity vectors
+and map orientation. Local collision sensing, burns and repairs stay in physical
+body coordinates at the safe encounter clock while the map keeps moving. The
+spacecraft route remains guided playback; planet motion uses the orbital model.
 
 The menu supports DeepSeek, OpenAI Chat Completions, Anthropic Messages, Gemini
 generateContent, and **Other (OpenAI-compatible)** endpoints. For providers other
@@ -59,8 +112,9 @@ gateway must still be running. Saving/removing settings stops autopilot and
 discards any in-flight decision. Start autopilot again explicitly afterward.
 
 The key is kept in sessionStorage by default, or localStorage when **Remember on
-this device** is checked. On a check/cycle request it travels to your configured
-gateway, then the selected provider. The gateway keeps it only for that request;
+this device** is checked. Status, check and cycle requests send it to your configured
+gateway; only checks and cycles forward it to the selected provider. The gateway
+keeps it only for that request;
 it never rewrites `.env`, puts credentials into model prompts, or falls back to
 the server key after a custom connection fails. Changing one browser's settings
 does not reconfigure another browser. The optional Gazebo AI remains configured
@@ -165,7 +219,9 @@ policy change is needed.
   Once the impact leaves attached damage, click **Run DEMO AI once**. Robot Arms
   can propose a local repair; Main Judging must approve. The arm moves to a
   maintenance pose and integrity recovers over time, using battery charge.
-  Repair reaches at most 95%; detached parts cannot be reattached.
+  An attached repair completes after 10 continuous seconds of arm contact and
+  recovers up to eight points, capped at 95%. A missing component can instead be
+  recreated at 100% by a surviving neighbouring arm; its old debris keeps drifting.
 - **Damage:** use Cycle through components to vary targets automatically, or
   choose any module/wing. Scars, tint and per-component health show partial damage.
   Repeated damage or extreme impacts can still detach parts. The default is 200 kg
@@ -218,6 +274,9 @@ and [Gemini generateContent reference](https://ai.google.dev/api/generate-conten
 Provider JSON is always validated against the simulation's schema before use.
 
 ## Verified real-model trials (2026-11-08)
+
+These historical trials preceded the contact/reconstruction update. Current repair
+duration includes arm positioning plus the mandatory 10-second contact hold.
 
 Using the configured `deepseek-flash` for all four roles:
 

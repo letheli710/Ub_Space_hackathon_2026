@@ -129,12 +129,21 @@ function DemoTelemetry({ event, demoStatus }) {
     ['Propulsion', p.mode.toUpperCase()],
     ['Physics time scale', `${p.timeScale}x`],
     ['Detached components', String(p.detached.length)],
+    ...(demoStatus.navigation ? [
+      ['Celestial date (UTC)', demoStatus.celestialDate.slice(0, 10)],
+      ['Mission phase', demoStatus.navigation.phase],
+      ['Next phase in', demoStatus.navigation.eta_s===null ? 'Propulsion repair required' : `${(demoStatus.navigation.eta_s / 86400).toFixed(1)} mission days`],
+      ['Guided map X/Y/Z (AU)', demoStatus.navigation.map_position_au.map(n => n.toFixed(3)).join(', ')],
+      ['Target orbital speed', `${demoStatus.navigation.target_orbital_speed_km_s.toFixed(2)} km/s`],
+    ] : []),
   ] : [];
   const metrics = p ? [
     ['Structural integrity', Number(p.integrity.toFixed(1))],
     ['Main solar wings attached', 100 - 50 * p.detached.filter(id => ['solarLeft', 'solarRight'].includes(id)).length],
     ['Propellant remaining', Math.round(p.fuelKg / 40)],
     ['Battery charge', Math.round(p.battery)],
+    ['Propulsion integrity', Number(p.propulsionIntegrity.toFixed(1))],
+    ['Energy integrity', Number(p.energyIntegrity.toFixed(1))],
   ] : getMetrics(event);
   return (
     <div className="panel">
@@ -182,12 +191,16 @@ function DemoTelemetry({ event, demoStatus }) {
       </div>
       {motion.map(([label, value]) => <div className="metric" key={label}><div><span>{label}</span><b>{value}</b></div></div>)}
       {p && <>
+        <p className="muted">Integrity cruise: {(p.cruiseSpeedM_s/1000).toFixed(3)} km/s · emergency repair reserve: {p.emergencyBattery.toFixed(1)}</p>
+        {Object.entries(p.systems).map(([id,status])=><p key={id} className={status.mode==='offline' ? 'telemetry-fault' : 'muted'}>{id.replaceAll('_',' ')} · {status.mode.toUpperCase()}{status.reason ? ` · ${status.reason}` : ''}{status.remaining_s>0 ? ` · ${status.remaining_s.toFixed(1)} s remaining` : ''}</p>)}
+      </>}
+      {p && <>
         <p className="muted">Measured browser physics · SI units. Map travel keeps its playback speed during encounters. Local impacts, burns and repairs use 1x time; map position and travel day are illustrative.</p>
         {p.lastImpact && <p className="telemetry-fault">Last contact: {p.lastImpact.part} · {p.lastImpact.impulseNs.toFixed(0)} N·s · {(p.lastImpact.utilization * 100).toFixed(0)}% attachment capacity</p>}
         <h4>COMPONENT DAMAGE</h4>
         {p.bonds.map(b => <div className="metric" key={b.id}><div><span>{b.id} · {b.stage.toUpperCase()}</span><b>{b.health.toFixed(1)}%</b></div><div className="track"><div style={{ width: `${b.health}%`, background: b.health < 50 ? '#e65a48' : b.health < 99.95 ? '#f6a15c' : '#00d9e9' }} /></div></div>)}
-        {p.repairs.map(j => <p className="muted" key={j.arm_id}>REPAIR · {j.arm_id} → {j.part_id} · {j.remaining.toFixed(1)} s left · recovered {j.recovered.toFixed(1)} points</p>)}
-        <p className="muted">Solar generation: {p.solarProtection ? 'ISOLATED' : 'ACTIVE'}. Attached damage can be repaired up to 95%; detached assemblies require reset.</p>
+        {p.repairs.map(j => <p className="muted" key={j.arm_id}>{j.rebuild ? 'REBUILD' : 'REPAIR'} · {j.arm_id} → {j.part_id} · {j.status} · tool contact {j.contactSeconds.toFixed(1)}/10 s{Number.isFinite(j.contactDistance) ? ` · socket distance ${j.contactDistance.toFixed(2)} m` : ''}</p>)}
+        <p className="muted">Solar generation: {p.solarProtection ? 'ISOLATED' : 'ACTIVE'}. Repairs require 10 continuous seconds of arm contact. Missing components are recreated at full integrity; ordinary attached repairs recover up to 95%.</p>
         <h4>NEARBY ROCKS & DEBRIS</h4>
         {!p.objects.length && <p className="muted">No local objects detected.</p>}
         {p.objects.map(o => <p className="muted" key={o.id}>{o.id} · {o.distanceM.toFixed(1)} m · closing {o.closingM_s.toFixed(1)} m/s</p>)}

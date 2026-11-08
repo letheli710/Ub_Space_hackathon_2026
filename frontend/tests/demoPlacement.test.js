@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { DEFAULT_TIME_SCALE, createVoyage, demoRenderPosition, setVoyageTimeScale, shipPose, stepVoyage } from '../src/data/voyage.js';
+import { DEFAULT_TIME_SCALE, createVoyage, demoLocalOffset, demoRenderPosition, setVoyageTimeScale, shipPose, stepVoyage } from '../src/data/voyage.js';
 import { launchDemoRock, launchDemoRockAtPointer, modelOrigin, DEMO_RENDER_SCALE } from '../src/simulation/demoPhysics.js';
 import { pickLaunchOffset } from '../src/simulation/launchPlacement.js';
 
@@ -32,7 +32,7 @@ test('screen clicks round-trip through rotated ship physics to the exact cursor,
   const rect = { left: 125, top: 80, width: 800, height: 600 };
   for (const [x, y, target_id] of [[225, 175, 'engine'], [800, 530, 'solarRight'], [526, 381, 'command']]) {
     const offset = pickLaunchOffset(x, y, rect, camera, anchor);
-    const rock = launchDemoRockAtPointer(s, offset, { target_id, mass_kg: 345, speed_m_s: 17, radius_m: .8 });
+    const rock = launchDemoRockAtPointer(s, demoLocalOffset(v, offset), { target_id, mass_kg: 345, speed_m_s: 17, radius_m: .8 });
     const rendered = demoRenderPosition(v, rock.p), ndc = rendered.clone().project(camera);
     assert.ok(Math.abs(rect.left + (ndc.x + 1) * rect.width / 2 - x) < .002);
     assert.ok(Math.abs(rect.top + (1 - ndc.y) * rect.height / 2 - y) < .002);
@@ -58,7 +58,7 @@ test('a pointer shot intercepts a translating ship without freezing it, and the 
   assert.ok(s.ship.p.distanceTo(position) > 19000);
   assert.ok(shipPose(v, new Vector3()).distanceTo(map) > 45);
   const renderedSeparation = demoRenderPosition(v, rock.p).sub(shipPose(v, new Vector3()));
-  assert.ok(renderedSeparation.distanceTo(rock.p.clone().sub(modelOrigin(s.ship)).multiplyScalar(DEMO_RENDER_SCALE)) < 1e-9);
+  assert.ok(renderedSeparation.distanceTo(rock.p.clone().sub(modelOrigin(s.ship)).multiplyScalar(DEMO_RENDER_SCALE).applyQuaternion(v.frame)) < 1e-9);
 });
 
 test('wreckage targeting does not shift the clicked spawn location, and map speed changes leave physics safe', () => {
@@ -67,7 +67,7 @@ test('wreckage targeting does not shift the clicked spawn location, and map spee
   for (let i = 0; i < 180; i++) stepVoyage(v, 1 / 60);
   assert.ok(s.fragments.find(f => f.id === 'command'));
   const offset = [3, 2, -5];
-  const rock = launchDemoRockAtPointer(s, offset, { target_id: 'command' });
+  const rock = launchDemoRockAtPointer(s, demoLocalOffset(v, offset), { target_id: 'command' });
   assert.ok(demoRenderPosition(v, rock.p).sub(shipPose(v, new Vector3())).distanceTo(new Vector3(...offset)) < .00001);
   setVoyageTimeScale(v, 2e6);
   assert.equal(s.timeScale, 1); assert.equal(v.timeScale, 2e6);

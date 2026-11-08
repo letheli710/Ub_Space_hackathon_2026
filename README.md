@@ -5,11 +5,23 @@ the existing **7.9 km/s**, and needs no WSL, Docker, Gazebo or API key. Rocks ap
 collision impulses; excessive attachment loads detach ship modules and solar wings.
 Thrust, fuel, rotation, velocity, position and drifting debris are measured in DEMO.
 
+All eight DEMO planets now move on inclined Kepler ellipses, and the Moon follows
+Earth. The spacecraft follows one moving Earth–Mars loop, with tangent transfers
+and far-side parking arcs behind both planets. **Pause demo** freezes both celestial
+and local clocks; local collisions/AI reactions keep their safe timing during
+accelerated map playback. See [dynamic celestial motion](frontend/docs/celestial-motion.md)
+for sources, controls and guided-spacecraft approximations.
+
 Normal impacts now leave **progressive, repairable component damage**, shown with
 scars, tint and integrity bars. Targets cycle through modules or can be selected.
 Disasters remain available while paused and after destruction, including wreckage.
 Four-role AI now controls DEMO through a lightweight Python gateway on **8001**:
 Main Judging approves/combines evasion burns, local arm repairs and solar isolation.
+DEMO also has [storm outages, energy shutdowns, integrity speed and reconstruction](frontend/docs/demo-system-rules.md).
+Storm hits disable one subsystem for 15 seconds; each 25% energy loss removes
+another subsystem's normal power. Engine integrity scales cruise from 7.9 km/s.
+A surviving arm must touch a missing component's socket for 10 seconds to recreate
+it; emergency power is reserved for energy repairs.
 Follow the [DEMO AI setup for Windows/macOS](frontend/docs/demo-ai.md) to enable it.
 The frontend **AI API** tab now connects its saved provider, API link, model and
 key to all four DEMO roles. Use **Save → Check saved connection**, then run a cycle
@@ -38,6 +50,28 @@ Map travel retains its playback speed through impacts. Local collision physics
 runs at **1x**, with the ship still moving. See the [DEMO physics guide](frontend/docs/demo-physics.md)
 for the model, tests, controls and approximations.
 
+### Enable AI for DEMO
+
+With Python dependencies and your key already configured:
+
+1. Start the gateway from `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_Backend`:
+   Windows PowerShell: `..\.venv-demo\Scripts\python.exe -m starship_sim.demo_api`.
+   macOS Terminal: `../.venv-demo/bin/python -m starship_sim.demo_api`.
+   If using the existing `.venv` environment, replace `.venv-demo` with `.venv`.
+   Leave this terminal open; the gateway listens on **8001**. To restart it after
+   code or `.env` changes, press Ctrl+C and rerun the command.
+2. Keep the frontend running with `npm run dev` in its own terminal.
+3. Open **AI API → Check backend connection** to use the existing backend `.env`
+   (`AI_ENABLED=true` and a valid key), or **Check saved connection** for a browser
+   connection. Wait for **Model access verified**.
+4. Click **Open spacecraft AI controls → All → Enable DEMO autopilot**. Keep the
+   simulator playing. **Run DEMO AI once** runs a single manual cycle.
+5. Autopilot watches for threats and repairable damage. For asteroid avoidance,
+   set a **60-second preset warning**, then click **Launch space rock**.
+
+See the [AI activation checklist and first-time Windows/macOS setup](frontend/docs/demo-ai.md#enable-ai-with-your-existing-setup)
+for full commands and key configuration. **Stop DEMO AI** disables autopilot.
+
 ### Optional Gazebo integration
 
 The previously implemented native backend remains available. The sections below
@@ -63,8 +97,9 @@ A separate browser physics engine powers the primary DEMO described above.
 The **Spacecraft** tab displays the live modular Gazebo ship with ten controlled arms;
 **Generator → DEMO** adds mission-day/time-scale controls, asteroids and a solar
 storm. The live ship continues to come from the backend's replaceable SDF.
-**AI API** holds browser-only settings; live DeepSeek keys remain in backend `.env`
-and **AI Logs** manages the live systems.
+**AI API** saves DEMO connection settings in the browser and sends them through
+the DEMO gateway when used; live Gazebo DeepSeek keys remain in backend `.env`.
+**AI Logs** shows controls for the selected DEMO/Gazebo mode.
 Its original animated design preview remains available separately. Robot Arms
 receives all ten IDs, module locations, measured mount/tool poses and joint limits.
 See the [ten-arm spacecraft guide](UB_Spaceship_Travel_Sim_Backend/docs/modular-spacecraft.md)

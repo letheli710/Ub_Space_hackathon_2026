@@ -91,11 +91,11 @@ export default function SolarStorm({ storm, playing, shipFrame, onReach, onDone 
   }, [storm.id]);
 
   useFrame((_, delta) => {
-    const p = progress.current;
+    const central=storm.progress;
+    const p = central ?? progress.current;
     if (!playing || p.done || !shell.current) return;
     const dt = Math.min(delta, 0.05);
-    p.age += dt;
-    p.radius += STORM_SPEED * dt;
+    if (!central) { p.age += dt; p.radius += STORM_SPEED * dt; }
 
     shell.current.scale.setScalar(p.radius);
     material.uniforms.uTime.value = p.age;
@@ -107,11 +107,11 @@ export default function SolarStorm({ storm, playing, shipFrame, onReach, onDone 
     flash.current.material.opacity = burst;
 
     const ship = shipFrame.current?.position;
-    if (!p.reached && ship && p.radius >= ship.distanceTo(SUN.position)) {
+    if (!central && !p.reached && ship && p.radius >= ship.distanceTo(SUN.position)) {
       p.reached = true;
       onReach();
     }
-    if (p.radius >= MAX_RADIUS) {
+    if (!central && p.radius >= MAX_RADIUS) {
       p.done = true;
       onDone();
     }

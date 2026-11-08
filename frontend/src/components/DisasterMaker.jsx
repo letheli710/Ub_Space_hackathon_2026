@@ -33,7 +33,7 @@ export default function DisasterMaker({
   const [pressed, setPressed] = useState(null);
   const [liveSeverity, setLiveSeverity] = useState(severity);
   const physical = live ? simulation.scene?.physics : { impact_targets: [{ id: 'cycle', label: 'Cycle through components', link_name: '' }, ...demo.physics.parts.map(p => ({ id: p.id, label: p.label, link_name: p.id }))] };
-  const detached = live ? (simulation.state?.physics?.detached_links ?? []) : demo.physics.fragments.map(f => f.id);
+  const detached = live ? (simulation.state?.physics?.detached_links ?? []) : Object.entries(demo.physics.bonds).filter(([,bond])=>bond.broken).map(([id])=>id);
   const [demoError, setDemoError] = useState('');
   const timer = useRef();
 
