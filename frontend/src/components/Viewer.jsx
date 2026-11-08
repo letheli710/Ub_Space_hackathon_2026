@@ -1,5 +1,5 @@
 import { LocateFixed, Maximize2, Minimize2, Pause, Play, RotateCcw, Satellite } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Scene from './Scene.jsx';
 
 const TITLES = {
@@ -22,39 +22,85 @@ export default function Viewer({
   fullPage,
   onTogglePlaying,
   onReset,
-  onPlace,
   onToggleFullPage,
+  voyage,
+  voyageLabel,
+  armed,
+  hazards,
+  impacts,
+  onLaunch,
+  onImpact,
+  onMiss,
+  onImpactDone,
+  blackHole,
 }) {
   const planet = tab === 'Planetary Trajectories';
   const [viewResetCount, setViewResetCount] = useState(0);
+  const mapFrame = useRef();
+  const blackHoleMarker = useRef();
+
+  // Keep the Planetary Trajectories map in step with the Black Hole Encounter button.
+  const syncMap = () =>
+    mapFrame.current?.contentWindow?.postMessage(
+      { type: 'blackhole', active: blackHole },
+      window.location.origin,
+    );
+  useEffect(syncMap);
 
   return (
     <div className="panel viewer">
       <div className="panelhead">
         <Satellite size={19} /> {TITLES[tab] ?? 'SPACECRAFT 3D VIEW'}
-        <span className="tiny">WASD / ARROWS · SWIPE TO LOOK</span>
+        {tab === 'Generator' && <span className="tiny">WASD / ARROWS · SWIPE TO LOOK</span>}
       </div>
 
-      {tab === 'AI Logs' ? (
+      {tab === 'AI Logs' && (
         <div className="biglogs">
           {logs.map((line, i) => (
             <div key={i}>{line}</div>
           ))}
         </div>
-      ) : (
+      )}
+
+      {planet && (
         <div className="scene">
+          <iframe
+            ref={mapFrame}
+            onLoad={syncMap}
+            className="trajectories-frame"
+            src="/planetary-trajectories.html"
+            title="Planetary Trajectories"
+          />
+        </div>
+      )}
+
+      {tab === 'Generator' && (
+        <div className={armed ? 'scene armed' : 'scene'}>
           <Scene
-            planet={planet}
+            voyage={voyage}
             event={event}
             playing={playing}
             fullPage={fullPage}
             viewResetCount={viewResetCount}
-            onPlace={onPlace}
+            armed={armed}
+            hazards={hazards}
+            impacts={impacts}
+            onLaunch={onLaunch}
+            onImpact={onImpact}
+            onMiss={onMiss}
+            onImpactDone={onImpactDone}
+            blackHole={blackHole}
+            blackHoleMarker={blackHoleMarker}
           />
-          <div className="scenehint">
-            {planet ? 'ORBITAL SANDBOX · CONCEPTUAL PATHS' : 'UNMANNED AI SPACECRAFT · LIVE 3D PREVIEW'}
-          </div>
+          <div className="scenehint">UNMANNED AI SPACECRAFT · {voyageLabel}</div>
           {event && <div className="warning">⚠ {event.name.toUpperCase()} DETECTED</div>}
+          {armed && <div className="armed-hint">Click to launch {armed} · Esc to cancel</div>}
+          {blackHole && (
+            <div className="bh-marker" ref={blackHoleMarker} aria-hidden="true">
+              <span className="bh-arrow" />
+              <span className="bh-label" />
+            </div>
+          )}
         </div>
       )}
 
@@ -67,7 +113,7 @@ export default function Viewer({
         </button>
         <span>SIM TIME: {formatTime(seconds)}</span>
         <div className="view-buttons">
-          {tab !== 'AI Logs' && (
+          {tab === 'Generator' && (
             <button onClick={() => setViewResetCount((n) => n + 1)}>
               <LocateFixed size={16} />
               Reset View

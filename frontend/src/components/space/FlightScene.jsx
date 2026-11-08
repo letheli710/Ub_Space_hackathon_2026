@@ -1,0 +1,163 @@
+import { useFrame, useThree } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
+import * as THREE from 'three';
+import { BLACK_HOLE_POSITION, MOON, PLANETS, SUN, shipPose } from '../../data/voyage.js';
+import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
+import Ship from '../Ship.jsx';
+import BlackHoleMarker from './BlackHoleMarker.jsx';
+import BlackHole from './BlackHole.jsx';
+import { OrbitLine, Planet, Sun } from './Bodies.jsx';
+import { getTextures } from './textures.js';
+
+const UP = new THREE.Vector3(0, 1, 0);
+const ORIGIN = new THREE.Vector3();
+const headingMatrix = new THREE.Matrix4();
+const position = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const delta = new THREE.Vector3();
+const side = new THREE.Vector3();
+const heading = new THREE.Quaternion();
+
+/** Camera start point for the flight view: behind and above the ship, looking at it. */
+export function flightHome(voyage) {
+  shipPose(voyage, position, direction);
+  side.crossVectors(direction, UP).normalize();
+  return {
+    position: position
+      .clone()
+      .addScaledVector(direction, -12)
+      .addScaledVector(UP, 4.5)
+      .addScaledVector(side, 5),
+    target: position.clone(),
+  };
+}
+
+const ATMOSPHERES = { Earth: '#5fb6ff', Mars: '#ff9a6a', Venus: '#ffd9a0', Neptune: '#7aa2ff', Uranus: '#a6f2f5' };
+
+const DUST_COUNT = 700;
+const DUST_SIZE = 160;
+
+/** Faint particles around the ship that make its speed visible. */
+function SpaceDust({ shipFrame }) {
+  const ref = useRef();
+  const geometry = useMemo(() => {
+    const positions = new Float32Array(DUST_COUNT * 3);
+    for (let i = 0; i < positions.length; i++) positions[i] = (Math.random() - 0.5) * DUST_SIZE;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return g;
+  }, []);
+
+  useFrame(() => {
+    const frame = shipFrame.current;
+    if (!frame) return;
+    const ship = frame.position;
+    const attribute = geometry.attributes.position;
+    const p = attribute.array;
+    const half = DUST_SIZE / 2;
+    for (let i = 0; i < p.length; i += 3) {
+      for (let axis = 0; axis < 3; axis++) {
+        const offset = p[i + axis] - ship.getComponent(axis);
+        if (offset > half) p[i + axis] -= DUST_SIZE;
+        else if (offset < -half) p[i + axis] += DUST_SIZE;
+      }
+    }
+    attribute.needsUpdate = true;
+  });
+
+  return (
+    <points ref={ref} geometry={geometry} frustumCulled={false}>
+      <pointsMaterial size={0.25} color="#9fc9ff" transparent opacity={0.55} depthWrite={false} />
+    </points>
+  );
+}
+
+export default function FlightScene({
+  voyage,
+  event,
+  playing,
+  hazards,
+  impacts,
+  onImpact,
+  onMiss,
+  onImpactDone,
+  shipFrame,
+  blackHole,
+  blackHoleMarker,
+}) {
+  const { camera, controls } = useThree();
+  const headingRef = useRef();
+  const lastShip = useRef(null);
+  const textures = getTextures();
+
+  useFrame(() => {
+    const frame = shipFrame.current;
+    if (!frame) return;
+    shipPose(voyage.current, position, direction);
+
+    // Follow the ship: move the camera and its target by however far the ship moved.
+    if (lastShip.current && controls) {
+      delta.subVectors(position, lastShip.current);
+      camera.position.add(delta);
+      controls.target.add(delta);
+    } else {
+      lastShip.current = new THREE.Vector3();
+    }
+    lastShip.current.copy(position);
+
+    frame.position.copy(position);
+    // The model's nose is +Z: point it along the route and keep its top facing up.
+    headingMatrix.lookAt(direction, ORIGIN, UP);
+    heading.setFromRotationMatrix(headingMatrix);
+    headingRef.current.quaternion.slerp(heading, 0.08);
+  });
+
+  return (
+    <>
+      <ambientLight intensity={0.35} />
+      {/* Sunlight from the center of the system; no falloff so outer planets stay lit. */}
+      <pointLight position={SUN.position.toArray()} intensity={3.2} decay={0} color="#fff4dd" />
+
+      <Sun position={SUN.position} radius={SUN.radius} />
+      {PLANETS.map((planet) => (
+        <group key={planet.name}>
+          <OrbitLine radius={planet.orbit} />
+          <Planet
+            position={planet.position}
+            radius={planet.radius}
+            texture={textures[planet.name]}
+            atmosphere={ATMOSPHERES[planet.name]}
+            ring={planet.name === 'Saturn' ? '#d9c79f' : undefined}
+          />
+        </group>
+      ))}
+      <Planet position={MOON.position} radius={MOON.radius} texture={textures.Moon} spin={0.004} />
+      {blackHole && <BlackHole position={BLACK_HOLE_POSITION} />}
+      {blackHole && <BlackHoleMarker element={blackHoleMarker} shipFrame={shipFrame} />}
+
+      <group ref={shipFrame}>
+        <group ref={headingRef}>
+          <Ship event={event} playing={playing} />
+        </group>
+        <pointLight position={[5, 6, 8]} intensity={80} color="#7ecbff" />
+      </group>
+
+      {/* Hazards fly in world space on fixed courses, so they do not follow the ship. */}
+      {hazards.map((hazard) => (
+        <IncomingHazard
+          key={hazard.id}
+          hazard={hazard}
+          playing={playing}
+          shipFrame={shipFrame}
+          onImpact={onImpact}
+          onMiss={onMiss}
+        />
+      ))}
+      {impacts.map((impact) => (
+        <ImpactFlash key={impact.id} impact={impact} onDone={onImpactDone} />
+      ))}
+
+      <SpaceDust shipFrame={shipFrame} />
+    </>
+  );
+}

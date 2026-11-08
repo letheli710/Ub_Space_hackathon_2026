@@ -1,6 +1,6 @@
 import { Activity } from 'lucide-react';
 
-function getMetrics(event) {
+export function getMetrics(event) {
   const damage = event ? Math.round(event.severity * 0.48) : 0;
 
   return [

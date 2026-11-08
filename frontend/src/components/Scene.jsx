@@ -1,56 +1,62 @@
-import { OrbitControls, Stars } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { useRef } from 'react';
 import CameraControls from './CameraControls.jsx';
-import PlanetarySystem from './PlanetarySystem.jsx';
-import Ship from './Ship.jsx';
-
-function HazardMarker({ event }) {
-  return (
-    <mesh position={[3, 1, -1]}>
-      <dodecahedronGeometry args={[0.7, 1]} />
-      <meshStandardMaterial
-        color={event.name === 'Black Hole Encounter' ? '#552e8e' : '#8b7771'}
-        wireframe={event.name !== 'Asteroid Collision'}
-      />
-    </mesh>
-  );
-}
-
-const SHIP_VIEW = [8, 5, 10];
-const PLANET_VIEW = [0, 12, 18];
+import LaunchPicker from './LaunchPicker.jsx';
+import { StarField } from './space/Bodies.jsx';
+import FlightScene, { flightHome } from './space/FlightScene.jsx';
 
 export default function Scene({
+  voyage,
   event,
   playing,
-  planet = false,
   fullPage = false,
   viewResetCount = 0,
-  onPlace,
+  armed = null,
+  hazards = [],
+  impacts = [],
+  onLaunch,
+  onImpact,
+  onMiss,
+  onImpactDone,
+  blackHole = false,
+  blackHoleMarker,
 }) {
-  const home = planet ? PLANET_VIEW : SHIP_VIEW;
+  const shipFrame = useRef();
 
   return (
-    <Canvas
-      camera={{ position: home, fov: 45 }}
-      onPointerMissed={onPlace}
-    >
-      <color attach="background" args={['#030a19']} />
-      <ambientLight intensity={1.5} />
-      <pointLight position={[5, 6, 8]} intensity={80} color="#7ecbff" />
-      <Stars radius={100} depth={55} count={3500} factor={4} fade />
+    <Canvas camera={{ fov: 45, near: 0.1, far: 12000, position: [0, 30, 60] }}>
+      <color attach="background" args={['#020611']} />
+      <StarField />
 
-      {planet ? (
-        <PlanetarySystem />
-      ) : (
-        <>
-          <Ship event={event} playing={playing} />
-          {event && <HazardMarker event={event} />}
-          <gridHelper args={[25, 25, '#173c5c', '#10263c']} position={[0, -4, 0]} />
-        </>
-      )}
+      <FlightScene
+        voyage={voyage}
+        event={event}
+        playing={playing}
+        hazards={hazards}
+        impacts={impacts}
+        onImpact={onImpact}
+        onMiss={onMiss}
+        onImpactDone={onImpactDone}
+        shipFrame={shipFrame}
+        blackHole={blackHole}
+        blackHoleMarker={blackHoleMarker}
+      />
+      <LaunchPicker enabled={Boolean(armed)} onLaunch={onLaunch} shipFrame={shipFrame} />
 
-      <OrbitControls makeDefault enablePan enableZoom={false} minDistance={3} maxDistance={35} />
-      <CameraControls active={fullPage} home={home} resetCount={viewResetCount} />
+      <OrbitControls
+        makeDefault
+        enablePan
+        enableZoom={false}
+        minDistance={3}
+        maxDistance={60}
+      />
+      <CameraControls
+        active={fullPage}
+        view="flight"
+        getHome={() => flightHome(voyage.current)}
+        resetCount={viewResetCount}
+      />
     </Canvas>
   );
 }

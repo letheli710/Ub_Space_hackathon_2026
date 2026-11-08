@@ -20,8 +20,6 @@ const KEY_ACTIONS = {
   ArrowRight: 'right',
 };
 
-const MIN_DISTANCE = 3;
-const MAX_DISTANCE = 35;
 const ZOOM_RATE = 1.4; // share of the distance covered per second
 const MOVE_RATE = 0.9; // share of the distance moved sideways per second
 const LOOK_PER_PIXEL = 0.0025; // radians per scrolled pixel
@@ -33,7 +31,11 @@ const side = new THREE.Vector3();
 
 function zoom(camera, controls, factor) {
   view.subVectors(camera.position, controls.target);
-  const distance = THREE.MathUtils.clamp(view.length() * factor, MIN_DISTANCE, MAX_DISTANCE);
+  const distance = THREE.MathUtils.clamp(
+    view.length() * factor,
+    controls.minDistance,
+    controls.maxDistance,
+  );
   camera.position.copy(controls.target).addScaledVector(view.normalize(), distance);
 }
 
@@ -46,9 +48,11 @@ function look(camera, controls, angle) {
   controls.target.copy(camera.position).addScaledVector(view, distance);
 }
 
-export default function CameraControls({ active, home, resetCount }) {
+export default function CameraControls({ active, view: viewName, getHome, resetCount }) {
   const { camera, controls, gl } = useThree();
   const held = useRef(new Set());
+  const home = useRef(getHome);
+  home.current = getHome;
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -116,15 +120,15 @@ export default function CameraControls({ active, home, resetCount }) {
     if (active) gl.domElement.focus({ preventScroll: true });
   }, [active, gl]);
 
-  // Reset View button: back to the starting camera position, looking at the origin.
+  // Starting view: applied on load, when switching views, and by the Reset View button.
   useEffect(() => {
-    if (!resetCount || !controls) return;
+    if (!controls) return;
     held.current.clear();
-    camera.position.set(...home);
-    controls.target.set(0, 0, 0);
+    const { position, target } = home.current();
+    camera.position.copy(position);
+    controls.target.copy(target);
     controls.update();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resetCount]);
+  }, [camera, controls, viewName, resetCount]);
 
   useFrame((_, delta) => {
     const keys = held.current;
