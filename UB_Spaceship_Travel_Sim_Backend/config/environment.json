@@ -1,12 +1,12 @@
 {
   "ship_sdf": "assets/models/starship/model.sdf",
-  "map_sdf": "assets/maps/deep_space.sdf",
+  "map_sdf": "assets/maps/solar_system.sdf",
   "ship_entity_id": "starship",
   "destination": {
-    "entity_id": "destination_planet",
-    "stop_distance_m": 70
+    "entity_id": "mars",
+    "stop_distance_m": 31
   },
-  "cruise_speed_m_s": 2,
+  "cruise_speed_m_s": 25,
   "arms": [
     {
       "id": "power",
@@ -44,5 +44,72 @@
         "elbow": "arm_navigation_elbow"
       }
     }
-  ]
+  ],
+  "ship_spawn": {
+    "entity_id": "earth",
+    "offset_m": [
+      15,
+      -40,
+      10
+    ],
+    "yaw_rad": -1.38
+  },
+  "map": {
+    "title": "Solar System",
+    "origin_entity_id": "earth",
+    "description": "Stylized compressed solar system. Distances are simulator meters, not real astronomical scale. Planet orbits run in Gazebo.",
+    "objects": {
+      "sun": {
+        "label": "Sun",
+        "kind": "star"
+      },
+      "mercury": {
+        "label": "Mercury",
+        "kind": "planet"
+      },
+      "venus": {
+        "label": "Venus",
+        "kind": "planet"
+      },
+      "earth": {
+        "label": "Earth",
+        "kind": "planet"
+      },
+      "mars": {
+        "label": "Mars",
+        "kind": "planet"
+      },
+      "jupiter": {
+        "label": "Jupiter",
+        "kind": "planet"
+      },
+      "saturn": {
+        "label": "Saturn",
+        "kind": "planet"
+      },
+      "uranus": {
+        "label": "Uranus",
+        "kind": "planet"
+      },
+      "neptune": {
+        "label": "Neptune",
+        "kind": "planet"
+      },
+      "asteroid_field": {
+        "label": "Asteroid field",
+        "kind": "hazard",
+        "description": "Static collision geometry; autonomous disaster handling is not implemented."
+      },
+      "solar_storm": {
+        "label": "Solar storm",
+        "kind": "hazard",
+        "description": "Map landmark; radiation and system damage are not implemented."
+      },
+      "black_hole": {
+        "label": "Black hole",
+        "kind": "hazard",
+        "description": "Map landmark; gravity and black-hole damage are not implemented."
+      }
+    }
+  }
 }

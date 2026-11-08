@@ -7,6 +7,19 @@ pause/resume commands. It does not run ROS or Gazebo inside the browser.
 The backend should be running before you test the controls. The website can
 open without it, but will show **OFFLINE** and disable simulation commands.
 
+Planetary Trajectories now displays the backend's solar-system SDF and measured
+planet/ship positions. It always uses the backend, independently of the
+Generator's Live Sim / Demo selector. The separate browser-only 3D demo is still
+available in Generator; it does not move the backend planets.
+
+On the map, scroll or use W/S to zoom, drag or use A/D to pan, use Fit map to
+restore the overview, and click a body or use Inspect to see its coordinates.
+Mission route shows the current ship-to-destination line. Landmarks toggles
+the backend's hazard markers. Pause/resume controls Gazebo; Orbit speed changes
+planet motion in the backend (0× stops planets while the ship/arms can continue).
+The map keeps its last positions marked stale after disconnection and disables
+backend controls. Rebuild the backend after pulling the solar-system changes.
+
 All paths below start inside **`Ub_Space_hackathon_2026`**. No machine-specific
 parent folder is required.
 
@@ -143,16 +156,17 @@ existing development session, you can use that session.
    requested position; the measured value is feedback from Gazebo.
 6. Press **Pause simulation** and confirm simulation time stops. Press
    **Resume simulation** to continue.
-7. Open **Planetary Trajectories** for the actual backend mission map.
-8. Use **Reset View** to frame the current ship/map, or **Full Page** for a
-   larger viewer. Drag to orbit; click the 3D view before using WASD/arrow keys.
+7. Open **Planetary Trajectories** for the backend map. Inspect Earth or Mars,
+   check live coordinates, and confirm the map and 3D view use the same world.
+8. Use **Reset View** in the 3D view or **Fit map** on the map. **Full Page**
+   enlarges either viewer. The map supports zoom/pan; the 3D view supports orbit.
 
 Targets sent while paused take effect after resuming. If the connection drops,
 the interface marks measurements stale, keeps the last scene visible, disables
 commands, and retries the connection automatically.
 
-Disaster injection and autonomous AI responses are not connected features in
-this version. The disaster catalog is marked as coming later.
+Disasters and AI responses in Generator's Demo mode are browser illustrations.
+Live disaster injection and API-connected AI agents are not implemented.
 
 ## 7. Stop and restart the website
 

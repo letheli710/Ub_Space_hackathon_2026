@@ -25,10 +25,12 @@ def test_ship_and_map_names_can_change_without_ui_or_controller_edits(imported):
     map_path = root / profile["map_sdf"]
     sdf = ET.parse(map_path)
     sdf.find("world").set("name", "replacement_map")
-    sdf.find("world/model[@name='destination_planet']").set("name", "new_destination")
+    old_destination = profile["destination"]["entity_id"]
+    sdf.find(f"world/model[@name='{old_destination}']").set("name", "new_destination")
     sdf.write(map_path)
     profile["ship_entity_id"] = "replacement_ship"
     profile["destination"]["entity_id"] = "new_destination"
+    profile["map"]["objects"]["new_destination"] = profile["map"]["objects"].pop(old_destination)
     result = build_environment(root, profile)
     scene = json.loads(result["config/scene.json"])
     assert scene["ship_entity_id"] == "replacement_ship"

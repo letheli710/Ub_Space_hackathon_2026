@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
-// Stylized solar system laid out like the Planetary Trajectories map
-// (public/planetary-trajectories.html): same planet order, colors, relative sizes,
+// Browser-only demo, using the original solar-system artwork's initial layout.
+// The live map comes from the backend SDF and measured state, independently of this demo.
+// Same planet order, colors, relative sizes,
 // orbit spacing and starting angles. The Sun is at the origin and orbits lie on the y = 0 plane.
 // Planets stay at their starting angles here so the Earth → Mars route keeps lining up.
 

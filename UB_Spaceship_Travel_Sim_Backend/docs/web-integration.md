@@ -25,7 +25,7 @@ prefix; otherwise a same-origin `/api` reverse proxy is used.
    `starship` transform places the ship relative to the world. A transform such
    as `starship::arm_power_upper` places that link relative to `starship`.
    Use each message's `parent_frame_id` and `child_frame_id`, not array order.
-   Static planets and asteroids retain the initial scene poses.
+   Static objects retain initial scene poses; orbiting planets use measured model poses.
 
 Coordinates are right-handed: X forward, Y left and Z up. Orientations are
 quaternions with explicitly named `x`, `y`, `z`, `w` fields. For a renderer using
@@ -70,6 +70,7 @@ Each envelope contains `type: "state"`, `schema_version: 1`, and `data`:
 | `transforms` | Last measured model/link poses, with explicit frame names. |
 | `arms` | Arm IDs, `measured_rad` and separately `requested_rad` for yaw/shoulder/elbow. |
 | `navigation` | Destination ID, measured center distance, arrival flag and nominal cruise speed. |
+| `map.orbit_speed` | Requested orbital velocity multiplier; null for maps without controllable orbits. |
 
 Before initialization, measured joint angles are null and transforms may be
 empty. After disconnection, previous measurements remain visible but `ready`
@@ -78,9 +79,32 @@ world-statistics messages continue to arrive. Never substitute requested joint
 targets for actual measured positions.
 
 `GET /healthz` reports API liveness and simulation connection status.
-`GET /readyz` returns 200 only after clock, ship pose and all arm joints have
+`GET /readyz` returns 200 only after clock, dynamic model poses and all arm joints have
 arrived and the simulator is responsive; otherwise it returns 503.
 `GET /api/v1/state` provides a single snapshot, even while disconnected.
+
+## Backend map display and orbit control
+
+`scene.map` contains a title, description, optional origin entity ID, and
+`objects` with entity IDs, labels, kinds, display radii/colors and optional
+`orbit` descriptions. Map coordinates use the same Z-up meter contract as the
+3D world. Match `entity_id` to received model transforms; use SDF initial poses
+until measurements arrive, and mark retained values stale after disconnection.
+The renderer must not advance planetary positions on its own clock.
+
+The frontend's Planetary Trajectories implements this contract directly. Its
+ship-to-destination overlay uses measured positions and navigation IDs. Zoom,
+pan, selection and landmark visibility affect that viewer only. Map pause
+controls the same simulation as the 3D view, through the existing world-control
+endpoint. The browser-only Generator demo has a separate clock.
+
+`POST /api/v1/map/control` accepts `{"orbit_speed": 0.5}` (finite range 0–5).
+The backend publishes each orbit's base angular velocity multiplied by the
+requested value. The response reports `requested_orbit_speed`; observe poses
+to verify motion. A zero multiplier stops planets, not the simulation clock,
+ship or arms. Commands affect the shared backend for all viewers. Invalid
+requests return 422, maps without orbits return 409, and unavailable bridges
+return 503. This does not implement disaster injection or astronomical gravity.
 
 ## Request an arm movement
 

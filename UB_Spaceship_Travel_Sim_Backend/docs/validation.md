@@ -1,5 +1,37 @@
 # Environment validation
 
+## Solar-system map integration
+
+Verified on Windows/Ubuntu WSL on November 7, 2026:
+
+- **36 backend tests** and **11 frontend tests** passed; the production frontend
+  build succeeded with the existing large-bundle warning.
+- The selected SDF world is `solar_system`, with 13 entities: the ship, Sun,
+  eight planets and three landmarks. Gazebo validated and loaded the world.
+- All eight planets publish measured model poses and remain on their configured
+  orbital radii. Orbits use prescribed revolute-joint motion in zero gravity.
+- The live smoke test passed through the frontend's port 5173, including orbit
+  multipliers 0×/2×, world pause/resume, physical movement of all four arms,
+  and WebSocket delivery. The test restores the orbit multiplier afterward.
+- A 30-second, 61-sample native tracking check kept the ship near Mars with
+  sampled mean stand-off distance **31.074 m**, range **30.145–32.202 m**.
+  Model poses arrive independently; relative distances are not a synchronized
+  distance-sensor measurement. Sampled arrival state remained true.
+- Windows-generated and Linux-runtime scene revisions match. A regression test
+  covers platform trigonometry rounding differences in exported orientations.
+- The browser map showed measured coordinates, Earth/Mars mission data, working
+  zoom/pan/fit/selection and landmark visibility. Orbit and pause controls reached
+  Gazebo. During a backend restart, retained positions were marked stale and
+  backend controls disabled; the client reconnected afterward.
+- Replacement/import tests include another SDF map without orbital controllers,
+  renamed world/ship/destination IDs and invalid map/spawn references.
+
+The default solar system is stylized and compressed. Black-hole gravity,
+radiation damage, AI agents and automatic repair behavior are not implemented.
+Mac hardware has not been used for this validation.
+
+## Original starter-map validation
+
 Verified locally on November 7, 2026.
 
 - Space ROS base: `osrf/space-ros:jazzy-2026.07.0`.

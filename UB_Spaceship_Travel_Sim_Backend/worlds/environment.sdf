@@ -1,158 +1,936 @@
 <?xml version="1.0"?>
 <sdf version="1.9">
-  <world name="deep_space">
+  <world name="solar_system">
     <gravity>0 0 0</gravity>
     <physics name="zero_g" type="ignored">
       <max_step_size>0.002</max_step_size>
       <real_time_factor>1</real_time_factor>
     </physics>
-    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
-    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
-    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
     <scene>
-      <ambient>0.2 0.23 0.3 1</ambient>
-      <background>0.002 0.003 0.012 1</background>
-      <shadows>true</shadows>
+      <ambient>.25 .28 .35 1</ambient>
+      <background>.002 .003 .012 1</background>
     </scene>
-    <light name="starlight" type="directional">
-      <pose>0 0 100 0 0 0</pose>
-      <direction>-0.3 0.2 -1</direction>
-      <diffuse>0.9 0.93 1 1</diffuse>
-      <specular>0.4 0.4 0.4 1</specular>
-      <cast_shadows>true</cast_shadows>
+    <light name="sunlight" type="directional">
+      <direction>-.3 .2 -1</direction>
+      <diffuse>.95 .95 1 1</diffuse>
+      <specular>.5 .5 .5 1</specular>
     </light>
-    <model name="destination_planet">
+    <model name="sun">
       <static>true</static>
-      <pose>600 0 0 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <link name="body">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
+          <mass>1000</mass>
           <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
+            <ixx>1960000.0</ixx>
+            <iyy>1960000.0</iyy>
+            <izz>1960000.0</izz>
           </inertia>
         </inertial>
         <visual name="surface">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>45</radius>
+              <radius>70</radius>
             </sphere>
           </geometry>
           <material>
-            <ambient>0.14 0.45 0.8 1</ambient>
-            <diffuse>0.14 0.45 0.8 1</diffuse>
+            <diffuse>1 .72 .2 1</diffuse>
+            <ambient>1 .72 .2 1</ambient>
           </material>
         </visual>
         <collision name="surface_collision">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>45</radius>
+              <radius>70</radius>
             </sphere>
           </geometry>
         </collision>
       </link>
     </model>
-    <model name="departure_planet">
-      <static>true</static>
-      <pose>-180 -100 -70 0 0 0</pose>
+    <model name="mercury">
+      <static>false</static>
+      <pose>-128.1829784875094 95.75554305663303 0 0 0 0</pose>
       <link name="body">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
+          <mass>1000</mass>
           <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
+            <ixx>32400.0</ixx>
+            <iyy>32400.0</iyy>
+            <izz>32400.0</izz>
           </inertia>
         </inertial>
         <visual name="surface">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>35</radius>
+              <radius>9.0</radius>
             </sphere>
           </geometry>
           <material>
-            <ambient>0.65 0.3 0.16 1</ambient>
-            <diffuse>0.65 0.3 0.16 1</diffuse>
+            <diffuse>0.6823529411764706 0.7254901960784313 0.7607843137254902 1</diffuse>
+            <ambient>0.6823529411764706 0.7254901960784313 0.7607843137254902 1</ambient>
           </material>
         </visual>
         <collision name="surface_collision">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>35</radius>
+              <radius>9.0</radius>
             </sphere>
           </geometry>
         </collision>
       </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">128.1829784875094 -95.75554305663303 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.040824829046386304</initial_velocity>
+        <topic>/map/mercury/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
     </model>
-    <model name="moon">
-      <static>true</static>
-      <pose>560 120 45 0 0 0</pose>
+    <model name="venus">
+      <static>false</static>
+      <pose>-135.31198669003305 -240.55491318615034 0 0 0 0</pose>
       <link name="body">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
+          <mass>1000</mass>
           <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
+            <ixx>99225.0</ixx>
+            <iyy>99225.0</iyy>
+            <izz>99225.0</izz>
           </inertia>
         </inertial>
         <visual name="surface">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>12</radius>
+              <radius>15.75</radius>
             </sphere>
           </geometry>
           <material>
-            <ambient>0.5 0.52 0.57 1</ambient>
-            <diffuse>0.5 0.52 0.57 1</diffuse>
+            <diffuse>0.8901960784313725 0.7176470588235294 0.49411764705882355 1</diffuse>
+            <ambient>0.8901960784313725 0.7176470588235294 0.49411764705882355 1</ambient>
           </material>
         </visual>
         <collision name="surface_collision">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>12</radius>
+              <radius>15.75</radius>
             </sphere>
           </geometry>
         </collision>
       </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">135.31198669003305 240.55491318615034 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.02550306852253353</initial_velocity>
+        <topic>/map/venus/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
     </model>
-    <model name="asteroid_1">
-      <static>true</static>
-      <pose>150 35 15 0 0 0</pose>
+    <model name="earth">
+      <static>false</static>
+      <pose>177.8096795988263 349.3532851440827 0 0 0 0</pose>
       <link name="body">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
+          <mass>1000</mass>
           <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
+            <ixx>133225.0</ixx>
+            <iyy>133225.0</iyy>
+            <izz>133225.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>18.25</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.23529411764705882 0.6627450980392157 0.9803921568627451 1</diffuse>
+            <ambient>0.23529411764705882 0.6627450980392157 0.9803921568627451 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>18.25</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">-177.8096795988263 -349.3532851440827 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.02</initial_velocity>
+        <topic>/map/earth/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="mars">
+      <static>false</static>
+      <pose>322.4239809788584 -392.56435967844146 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>67600.0</ixx>
+            <iyy>67600.0</iyy>
+            <izz>67600.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>13.0</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.8627450980392157 0.44313725490196076 0.3137254901960784 1</diffuse>
+            <ambient>0.8627450980392157 0.44313725490196076 0.3137254901960784 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>13.0</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">-322.4239809788584 392.56435967844146 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.014586499149789456</initial_velocity>
+        <topic>/map/mars/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="jupiter">
+      <static>false</static>
+      <pose>-587.9467405772426 209.0326056972848 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>562500.0</ixx>
+            <iyy>562500.0</iyy>
+            <izz>562500.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>37.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.8235294117647058 0.6666666666666666 0.5019607843137255 1</diffuse>
+            <ambient>0.8235294117647058 0.6666666666666666 0.5019607843137255 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>37.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">587.9467405772426 -209.0326056972848 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.005807479041390409</initial_velocity>
+        <topic>/map/jupiter/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="saturn">
+      <static>false</static>
+      <pose>-21.607646502953727 739.6844662507139 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>360000.0</ixx>
+            <iyy>360000.0</iyy>
+            <izz>360000.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>30.0</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.8470588235294118 0.7647058823529411 0.5843137254901961 1</diffuse>
+            <ambient>0.8470588235294118 0.7647058823529411 0.5843137254901961 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>30.0</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="ring_0">
+          <pose>49.0 0.0 0 0 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_1">
+          <pose>48.39672868916175 7.665288786971312 0 0 0 0.15707963267948966</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_2">
+          <pose>46.60176929846252 15.141832724372422 0 0 0 0.3141592653589793</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_3">
+          <pose>43.659319685230024 22.24553448723779 0 0 0 0.47123889803846897</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_4">
+          <pose>39.64183272437243 28.801477362331184 0 0 0 0.6283185307179586</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_5">
+          <pose>34.64823227814083 34.64823227814083 0 0 0 0.7853981633974483</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_6">
+          <pose>28.801477362331184 39.64183272437243 0 0 0 0.9424777960769379</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_7">
+          <pose>22.245534487237794 43.659319685230024 0 0 0 1.0995574287564276</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_8">
+          <pose>15.141832724372424 46.60176929846252 0 0 0 1.2566370614359172</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_9">
+          <pose>7.665288786971315 48.39672868916175 0 0 0 1.413716694115407</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_10">
+          <pose>3.0003846579110155e-15 49.0 0 0 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_11">
+          <pose>-7.665288786971299 48.39672868916175 0 0 0 1.727875959474386</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_12">
+          <pose>-15.141832724372419 46.60176929846253 0 0 0 1.8849555921538759</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_13">
+          <pose>-22.24553448723779 43.659319685230024 0 0 0 2.0420352248333655</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_14">
+          <pose>-28.801477362331177 39.64183272437243 0 0 0 2.199114857512855</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_15">
+          <pose>-34.648232278140824 34.64823227814083 0 0 0 2.356194490192345</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_16">
+          <pose>-39.64183272437242 28.801477362331187 0 0 0 2.5132741228718345</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_17">
+          <pose>-43.659319685230024 22.245534487237798 0 0 0 2.670353755551324</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_18">
+          <pose>-46.60176929846252 15.141832724372428 0 0 0 2.827433388230814</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_19">
+          <pose>-48.39672868916175 7.665288786971318 0 0 0 2.9845130209103035</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_20">
+          <pose>-49.0 6.000769315822031e-15 0 0 0 3.141592653589793</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_21">
+          <pose>-48.39672868916175 -7.665288786971306 0 0 0 3.2986722862692828</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_22">
+          <pose>-46.601769298462536 -15.141832724372398 0 0 0 3.455751918948772</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_23">
+          <pose>-43.659319685230024 -22.245534487237784 0 0 0 3.612831551628262</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_24">
+          <pose>-39.64183272437243 -28.801477362331177 0 0 0 3.7699111843077517</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_25">
+          <pose>-34.64823227814084 -34.648232278140824 0 0 0 3.9269908169872414</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_26">
+          <pose>-28.801477362331187 -39.64183272437242 0 0 0 4.084070449666731</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_27">
+          <pose>-22.245534487237798 -43.659319685230024 0 0 0 4.241150082346221</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_28">
+          <pose>-15.141832724372431 -46.60176929846252 0 0 0 4.39822971502571</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_29">
+          <pose>-7.66528878697132 -48.39672868916175 0 0 0 4.5553093477052</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_30">
+          <pose>-9.001153973733046e-15 -49.0 0 0 0 4.71238898038469</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_31">
+          <pose>7.665288786971303 -48.39672868916175 0 0 0 4.869468613064179</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_32">
+          <pose>15.141832724372414 -46.60176929846253 0 0 0 5.026548245743669</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_33">
+          <pose>22.245534487237784 -43.65931968523003 0 0 0 5.183627878423159</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_34">
+          <pose>28.801477362331173 -39.64183272437243 0 0 0 5.340707511102648</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_35">
+          <pose>34.64823227814082 -34.64823227814084 0 0 0 5.497787143782138</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_36">
+          <pose>39.64183272437242 -28.801477362331195 0 0 0 5.654866776461628</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_37">
+          <pose>43.659319685230024 -22.2455344872378 0 0 0 5.811946409141117</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_38">
+          <pose>46.60176929846252 -15.141832724372437 0 0 0 5.969026041820607</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+        <visual name="ring_39">
+          <pose>48.39672868916175 -7.665288786971323 0 0 0 6.126105674500097</pose>
+          <geometry>
+            <box>
+              <size>9 8 1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.75 .66 .47 .8</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">21.607646502953727 -739.6844662507139 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.0036847974867921006</initial_velocity>
+        <topic>/map/saturn/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="uranus">
+      <static>false</static>
+      <pose>-725.9736271441094 -453.5397366176704 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>202500.0</ixx>
+            <iyy>202500.0</iyy>
+            <izz>202500.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>22.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.5490196078431373 0.9058823529411765 0.9294117647058824 1</diffuse>
+            <ambient>0.5490196078431373 0.9058823529411765 0.9294117647058824 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>22.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">725.9736271441094 453.5397366176704 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.002182178902359924</initial_velocity>
+        <topic>/map/uranus/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="neptune">
+      <static>false</static>
+      <pose>811.3408268636634 -535.2663474049037 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>202500.0</ixx>
+            <iyy>202500.0</iyy>
+            <izz>202500.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>22.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>0.34509803921568627 0.5450980392156862 0.8588235294117647 1</diffuse>
+            <ambient>0.34509803921568627 0.5450980392156862 0.8588235294117647 1</ambient>
+          </material>
+        </visual>
+        <collision name="surface_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>22.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="orbit" type="revolute">
+        <pose relative_to="__model__">-811.3408268636634 535.2663474049037 0 0 0 0</pose>
+        <parent>world</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>orbit</joint_name>
+        <initial_velocity>0.0015579423821243895</initial_velocity>
+        <topic>/map/neptune/orbit/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <update_frequency>20</update_frequency>
+        <topic>/starship/poses</topic>
+      </plugin>
+    </model>
+    <model name="asteroid_field">
+      <static>true</static>
+      <pose>450 -400 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>3600.0</ixx>
+            <iyy>3600.0</iyy>
+            <izz>3600.0</izz>
           </inertia>
         </inertial>
         <visual name="surface">
@@ -163,8 +941,8 @@
             </sphere>
           </geometry>
           <material>
-            <ambient>0.38 0.3 0.22 1</ambient>
-            <diffuse>0.38 0.3 0.22 1</diffuse>
+            <diffuse>.5 .45 .4 1</diffuse>
+            <ambient>.5 .45 .4 1</ambient>
           </material>
         </visual>
         <collision name="surface_collision">
@@ -175,50 +953,403 @@
             </sphere>
           </geometry>
         </collision>
+        <visual name="asteroid_1">
+          <pose>-32.445323483814796 29.72037994425064 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_1_collision">
+          <pose>-32.445323483814796 29.72037994425064 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_2">
+          <pose>1.9249776356678208 -21.915621394388495 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_2_collision">
+          <pose>1.9249776356678208 -21.915621394388495 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_3">
+          <pose>32.24261967020953 42.06439678400509 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_3_collision">
+          <pose>32.24261967020953 42.06439678400509 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_4">
+          <pose>-30.525323529617935 -5.404130217912369 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_4_collision">
+          <pose>-30.525323529617935 -5.404130217912369 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_5">
+          <pose>52.31894544141451 -33.26752091602697 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_5_collision">
+          <pose>52.31894544141451 -33.26752091602697 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_6">
+          <pose>-10.392694248550164 38.62631106197112 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_6_collision">
+          <pose>-10.392694248550164 38.62631106197112 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_7">
+          <pose>-8.292214573404525 -15.976206604467082 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_7_collision">
+          <pose>-8.292214573404525 -15.976206604467082 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_8">
+          <pose>46.02179698814667 16.822431512174873 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_8_collision">
+          <pose>46.02179698814667 16.822431512174873 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_9">
+          <pose>-24.960737922681247 10.293763274683473 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_9_collision">
+          <pose>-24.960737922681247 10.293763274683473 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_10">
+          <pose>24.602382425545827 -52.52354499638418 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_10_collision">
+          <pose>24.602382425545827 -52.52354499638418 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_11">
+          <pose>10.760324629120978 34.35426340173709 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_11_collision">
+          <pose>10.760324629120978 34.35426340173709 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_12">
+          <pose>-12.109858359482665 -7.025050214287995 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_12_collision">
+          <pose>-12.109858359482665 -7.025050214287995 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_13">
+          <pose>43.955023537451744 -9.641364313314947 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_13_collision">
+          <pose>43.955023537451744 -9.641364313314947 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_14">
+          <pose>-13.237660998630894 18.808623854108163 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_14_collision">
+          <pose>-13.237660998630894 18.808623854108163 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_15">
+          <pose>-6.910039239879852 -53.55605808592825 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_15_collision">
+          <pose>-6.910039239879852 -53.55605808592825 -8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_16">
+          <pose>24.45663101756097 20.636695454235756 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_16_collision">
+          <pose>24.45663101756097 20.636695454235756 0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="asteroid_17">
+          <pose>-62.947816240136845 2.5636752130414857 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>.55 .5 .46 1</diffuse>
+            <ambient>.55 .5 .46 1</ambient>
+          </material>
+        </visual>
+        <collision name="asteroid_17_collision">
+          <pose>-62.947816240136845 2.5636752130414857 8 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>4</radius>
+            </sphere>
+          </geometry>
+        </collision>
       </link>
     </model>
-    <model name="asteroid_2">
+    <model name="solar_storm">
       <static>true</static>
-      <pose>280 -45 -10 0 0 0</pose>
+      <pose>590 460 0 0 0 0</pose>
       <link name="body">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
+          <mass>1000</mass>
           <inertia>
-            <ixx>1</ixx>
-            <iyy>1</iyy>
-            <izz>1</izz>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyz>0</iyz>
+            <ixx>250000.0</ixx>
+            <iyy>250000.0</iyy>
+            <izz>250000.0</izz>
           </inertia>
         </inertial>
         <visual name="surface">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>5</radius>
+              <radius>25</radius>
             </sphere>
           </geometry>
           <material>
-            <ambient>0.42 0.35 0.26 1</ambient>
-            <diffuse>0.42 0.35 0.26 1</diffuse>
+            <diffuse>1 .55 .1 .45</diffuse>
+            <ambient>1 .55 .1 .45</ambient>
           </material>
         </visual>
-        <collision name="surface_collision">
+      </link>
+    </model>
+    <model name="black_hole">
+      <static>true</static>
+      <pose>-2400 2200 0 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>160000.0</ixx>
+            <iyy>160000.0</iyy>
+            <izz>160000.0</izz>
+          </inertia>
+        </inertial>
+        <visual name="surface">
           <pose>0 0 0 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>5</radius>
+              <radius>20</radius>
             </sphere>
           </geometry>
-        </collision>
+          <material>
+            <diffuse>.01 .005 .02 1</diffuse>
+            <ambient>.01 .005 .02 1</ambient>
+          </material>
+        </visual>
       </link>
     </model>
     <model name="starship">
       <self_collide>true</self_collide>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>192.8096795988263 309.3532851440827 10.0 0 0 -1.38</pose>
       <link name="hull">
         <pose>0 0 0 0 0 0</pose>
         <inertial>
@@ -1414,5 +2545,8 @@
         <cmd_max>200</cmd_max>
       </plugin>
     </model>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
   </world>
 </sdf>

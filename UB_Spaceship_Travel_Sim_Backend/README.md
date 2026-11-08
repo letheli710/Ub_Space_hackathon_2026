@@ -2,7 +2,20 @@
 
 This backend runs the spaceship physics and exposes an HTTP/WebSocket interface
 to the frontend. The default API port is **8000**. The default ship has four
-articulated arms and travels toward a destination planet in a zero-gravity map.
+articulated arms and travels toward Mars from a spawn point near Earth.
+
+The default map is `assets/maps/solar_system.sdf`: the Sun, eight planets with
+Gazebo-controlled orbits, and asteroid/solar-storm/black-hole landmarks. Geometry
+and initial layout follow the frontend's original stylized solar system.
+This is a compressed zero-gravity simulation, not an astronomical gravity model.
+Radiation and black-hole damage are not implemented.
+
+The frontend's Planetary Trajectories renders `/api/v1/scene` and measured
+WebSocket transforms. Its pause button controls the world; its Orbit speed
+selector publishes real planetary velocity commands through
+`POST /api/v1/map/control`. See the [map import guide](docs/models-and-maps.md#solar-system-map-and-map-controls)
+for changing the map, spawn, labels and orbits. Rebuild the backend after pulling
+these map changes, using the Windows or Mac steps below.
 
 Choose your operating system:
 

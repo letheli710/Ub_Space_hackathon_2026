@@ -152,6 +152,42 @@
           }
         }
       }
+    },
+    "/api/v1/map/control": {
+      "post": {
+        "summary": "Control Map",
+        "operationId": "control_map_api_v1_map_control_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MapControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -186,6 +222,22 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "MapControl": {
+        "properties": {
+          "orbit_speed": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Orbit Speed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "orbit_speed"
+        ],
+        "title": "MapControl"
       },
       "ValidationError": {
         "properties": {

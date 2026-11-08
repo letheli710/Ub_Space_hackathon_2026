@@ -15,6 +15,8 @@ browser. The UI discovers entities, links, arms and limits from this contract.
    The lower and upper limits are read directly from those joints.
 4. Choose an existing map model as the destination and set the center stopping
    distance and nominal cruise speed in meters and seconds.
+   Update or remove `ship_spawn` and `map` annotations when replacing the solar
+   system: their entity IDs must exist in the replacement SDF.
 5. Stop and rebuild the backend using `tools/stop.ps1` and `tools/start.ps1`.
    The Docker build generates `worlds/environment.sdf`, `config/scene.json` and
    `config/bridge.yaml`. The frontend automatically reloads the new scene when
@@ -44,6 +46,69 @@ renderer or navigation controller. World names come from the map SDF. World,
 ship, arm IDs and joint command keys use letters, numbers and underscores,
 beginning with a letter or underscore. The ship model must be dynamic. Map
 entities may be static or dynamic; dynamic entities receive pose publishers.
+
+## Solar-system map and map controls
+
+`assets/maps/solar_system.sdf` is the editable source for the default map. Its
+planet colors, sizes, starting angles and orbit spacing were converted from
+the frontend artwork. The old `deep_space.sdf` remains an optional sample; it
+is no longer selected. The frontend's standalone HTML map has been retired.
+
+Each planet is a dynamic sphere with a world-anchored revolute joint. A Gazebo
+`JointController` sets its angular velocity. These are prescribed circular
+orbits in zero gravity, not an N-body simulation. Physics controls their poses;
+the browser consumes the measured transforms. The Sun and hazard landmarks
+are static. Asteroids have collision geometry; storm/black-hole markers do not
+simulate radiation, gravity or damage.
+
+The optional profile fields are:
+
+```json
+{
+  "ship_spawn": {
+    "entity_id": "earth",
+    "offset_m": [15, -40, 10],
+    "yaw_rad": -1.38
+  },
+  "map": {
+    "title": "Solar System",
+    "origin_entity_id": "earth",
+    "description": "Compressed simulator scale, measured backend positions.",
+    "objects": {
+      "earth": { "label": "Earth", "kind": "planet" },
+      "asteroid_field": { "label": "Asteroid field", "kind": "hazard" }
+    }
+  }
+}
+```
+
+`ship_spawn` overrides the ship asset's pose with a world-axis offset from the
+named map entity's initial position. It is optional; omit it to use the ship's
+own SDF pose. `map.objects` accepts `label`, `kind` and `description`. Omit map
+annotations entirely to render another imported map with generated labels.
+The frontend discovers model IDs, position, radius, color and orbit descriptions
+from the exported contract, rather than using a list of solar-system names.
+
+For controllable map orbits, use a world-parent revolute joint with local Z axis,
+an explicit model-relative joint pose, and a `gz::sim::systems::JointController`
+with a finite, nonzero `initial_velocity`. The generator exports its center,
+radius, period and velocity topic, and creates the ROS/Gazebo command bridge.
+See [Gazebo's JointController reference](https://gazebosim.org/api/sim/8/classgz_1_1sim_1_1systems_1_1JointController.html).
+Keep orbits horizontal in the Z-up world for the map's top-down projection.
+
+`POST /api/v1/map/control` accepts `{"orbit_speed": 0}` through
+`{"orbit_speed": 5}`. This multiplier changes planetary velocities, not the
+physics clock or ship's nominal cruise speed. At 0×, planets stop while the
+unpaused ship and arms can still move. The frontend's shared pause/resume button
+instead freezes/resumes the whole Gazebo world. Changes affect every connected
+viewer. Maps without orbital controllers still render and disable the speed
+selector. Fast planets can outrun the configured ship; tune cruise speed in
+the profile for a different mission.
+
+After edits, regenerate with `uv run python tools/generate_environment.py`,
+then stop and rebuild using the appropriate OS instructions in the backend
+README. Neither the frontend bundle nor its map renderer needs editing for
+replacement SDFs or renamed entities.
 
 ## Supported assets
 

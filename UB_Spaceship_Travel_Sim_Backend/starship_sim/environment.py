@@ -12,6 +12,17 @@ IDENTITY = {"position": dict(x=0., y=0., z=0.), "orientation": dict(x=0., y=0., 
 RUNTIME_PLUGINS = {"VelocityControl", "PosePublisher", "JointStatePublisher", "JointPositionController"}
 
 
+def canonical_numbers(value):
+    """Keep exported poses and revisions stable across host libm implementations."""
+    if isinstance(value, float):
+        return round(value, 12) or 0.
+    if isinstance(value, dict):
+        return {key: canonical_numbers(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [canonical_numbers(item) for item in value]
+    return value
+
+
 def numbers(text, length):
     result = [float(value) for value in text.split()]
     if len(result) != length or not all(math.isfinite(value) for value in result):
@@ -164,9 +175,51 @@ def scene_from_world(world, profile):
             links.append({"id": f'{model.get("name")}::{body.get("name")}', "pose_in_model": body_pose, "visuals": visuals})
         entities.append({"id": model.get("name"), "dynamic": model.findtext("static", "false").lower() != "true",
                          "pose_in_world": world_frames.resolve(model.get("name")), "links": links})
-    return {"schema_version": 1, "world": world.get("name"), "units": "meters", "up_axis": "Z",
+    scene = {"schema_version": 1, "world": world.get("name"), "units": "meters", "up_axis": "Z",
             "ship_entity_id": profile["ship_entity_id"], "travel_model": "compressed_scale_straight_line",
             "cruise_speed_m_s": profile.get("cruise_speed_m_s", 2), "destination": profile["destination"], "entities": entities}
+    metadata = profile.get("map", {})
+    annotations = metadata.get("objects", {})
+    ids = {entity["id"] for entity in entities}
+    if set(annotations) - ids or (metadata.get("origin_entity_id") and metadata["origin_entity_id"] not in ids):
+        raise ValueError("Map annotations and origin must reference existing entities")
+    objects = []
+    for entity, model in zip(entities, world.findall("model")):
+        if entity["id"] == profile["ship_entity_id"]:
+            continue
+        visuals = [visual for link in entity["links"] for visual in link["visuals"]]
+        visual = next((v for v in visuals if v["geometry"]["type"] == "sphere"), visuals[0] if visuals else None)
+        item = {"entity_id": entity["id"], "label": entity["id"].replace("_", " ").title(),
+                "kind": "object", "radius_m": 5., "color": visual["color"] if visual else [.6, .7, .8, 1.]}
+        if visual and visual["geometry"]["type"] == "sphere":
+            item["radius_m"] = visual["geometry"]["radius"][0]
+        annotation = annotations.get(entity["id"], {})
+        if set(annotation) - {"label", "kind", "description"}:
+            raise ValueError("Map annotations accept only label, kind and description")
+        item.update(annotation)
+        for controller in model.findall("plugin"):
+            if not controller.get("name", "").endswith("::JointController"):
+                continue
+            joint = model.find(f'joint[@name="{controller.findtext("joint_name")}"]')
+            if joint is None or joint.findtext("parent") != "world" or joint.get("type") != "revolute":
+                continue
+            axis = numbers(joint.findtext("axis/xyz", "0 0 1"), 3)
+            if axis != [0., 0., 1.]:
+                raise ValueError("Map orbits must rotate around the Z axis")
+            center = compose(entity["pose_in_world"], Frames(model, "__model__").resolve(joint.get("name")))["position"]
+            omega = float(controller.findtext("initial_velocity", "0"))
+            if not math.isfinite(omega) or omega == 0:
+                raise ValueError("Map orbit controllers need a finite nonzero initial velocity")
+            item["orbit"] = {"center": center,
+                             "radius_m": math.dist(list(center.values()), list(entity["pose_in_world"]["position"].values())),
+                             "angular_speed_rad_s": omega, "period_s": 2 * math.pi / abs(omega),
+                             "velocity_topic": controller.findtext("topic", f'/model/{entity["id"]}/joint/{joint.get("name")}/cmd_vel')}
+            break
+        objects.append(item)
+    scene["map"] = {"title": metadata.get("title", world.get("name").replace("_", " ").title()),
+                    "description": metadata.get("description", "Coordinates and geometry come from the selected backend map."),
+                    "origin_entity_id": metadata.get("origin_entity_id"), "objects": objects}
+    return scene
 
 
 def bridge_config(scene):
@@ -181,6 +234,10 @@ def bridge_config(scene):
     for arm in scene["arms"]:
         for name in arm["joints"]:
             topic = f'/arms/{arm["id"]}/{name}/target'
+            entries.append((topic, topic, "std_msgs/msg/Float64", "gz.msgs.Double", "ROS_TO_GZ"))
+    for item in scene["map"]["objects"]:
+        if "orbit" in item:
+            topic = item["orbit"]["velocity_topic"]
             entries.append((topic, topic, "std_msgs/msg/Float64", "gz.msgs.Double", "ROS_TO_GZ"))
     lines = ["# Generated from config/environment.json and imported SDF assets"]
     for gz_topic, ros_topic, ros_type, gz_type, direction in entries:
@@ -204,6 +261,18 @@ def build_environment(root, profile):
     ship.set("name", profile["ship_entity_id"])
     if ship.findtext("static", "false").lower() == "true":
         raise ValueError("The ship model must be dynamic")
+    if "ship_spawn" in profile:
+        spawn = profile["ship_spawn"]
+        reference = Frames(world, "world").resolve(spawn["entity_id"])
+        offset = numbers(" ".join(map(str, spawn["offset_m"])), 3)
+        yaw = float(spawn.get("yaw_rad", 0))
+        if not math.isfinite(yaw):
+            raise ValueError("Ship spawn yaw must be finite")
+        pose = ship.find("pose")
+        if pose is None:
+            pose = ET.SubElement(ship, "pose")
+        pose.attrib.clear()
+        pose.text = " ".join(map(str, [reference["position"][a] + offset[i] for i, a in enumerate("xyz")] + [0, 0, yaw]))
     rewrite_assets(root, world, map_path)
     rewrite_assets(root, ship, ship_path)
     for item in list(ship.findall("plugin")):
@@ -250,6 +319,7 @@ def build_environment(root, profile):
     stop, speed = scene["destination"]["stop_distance_m"], scene["cruise_speed_m_s"]
     if not all(isinstance(value, (int, float)) and math.isfinite(value) and value > 0 for value in (stop, speed)):
         raise ValueError("Stop distance and cruise speed must be positive finite numbers")
+    scene = canonical_numbers(scene)
     digest = hashlib.sha256(json.dumps(scene, sort_keys=True).encode())
     for path in sorted((root / "assets").rglob("*")):
         if path.is_file():

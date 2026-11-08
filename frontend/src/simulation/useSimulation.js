@@ -23,5 +23,6 @@ export default function useSimulation() {
   return { ...data, pending, error, ready: data.connected && Boolean(data.state?.connection?.ready),
     reconnect: () => { setError(''); client.current?.reconnect(); },
     setPaused: paused => command('/api/v1/simulation/control', { paused }),
+    setMapOrbitSpeed: orbit_speed => command('/api/v1/map/control', { orbit_speed }),
     setArmTargets: (arm, targets) => command(`/api/v1/arms/${encodeURIComponent(arm)}/target`, { targets }) };
 }

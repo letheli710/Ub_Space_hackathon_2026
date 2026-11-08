@@ -11,6 +11,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
+import BackendMap from './BackendMap.jsx';
 
 const TITLES = {
   'Planetary Trajectories': 'PLANETARY TRAJECTORIES',
@@ -48,10 +49,10 @@ export default function Viewer({
   onMiss,
   onImpactDone,
   blackHole,
+  onMapInspect,
 }) {
   const [viewResetCount, setViewResetCount] = useState(0);
   const [modelError, setModelError] = useState('');
-  const mapFrame = useRef();
   const blackHoleMarker = useRef();
   const { scene, state, ready, pending, message, error } = simulation;
   useEffect(() => setModelError(''), [scene?.revision]);
@@ -66,11 +67,6 @@ export default function Viewer({
       : livePlaying
         ? 'LIVE SIMULATION'
         : 'SIMULATION PAUSED';
-
-  // Keep the Planetary Trajectories map in step with the Black Hole Encounter button.
-  const syncMap = () =>
-    mapFrame.current?.contentWindow?.postMessage({ type: 'blackhole', active: blackHole }, window.location.origin);
-  useEffect(syncMap);
 
   return (
     <div className="panel viewer">
@@ -100,9 +96,9 @@ export default function Viewer({
         {generator && <span className="tiny">WASD / ARROWS · SWIPE TO LOOK</span>}
       </div>
 
-      {live && generator && (message || error || modelError) && (
+      {(live || planet) && (message || error || (generator && modelError)) && (
         <div className="connection-banner" role="status">
-          {modelError ? `Model asset error: ${modelError}` : error || message}
+          {generator && modelError ? `Model asset error: ${modelError}` : error || message}
         </div>
       )}
 
@@ -116,13 +112,8 @@ export default function Viewer({
 
       {planet && (
         <div className="scene">
-          <iframe
-            ref={mapFrame}
-            onLoad={syncMap}
-            className="trajectories-frame"
-            src="/planetary-trajectories.html"
-            title="Planetary Trajectories"
-          />
+          {scene ? <BackendMap simulation={simulation} onInspect={onMapInspect} /> :
+            <div className="scene-empty"><strong>Waiting for the backend map</strong><p>Start the simulator to load its map, planet positions and navigation state.</p></div>}
         </div>
       )}
 
@@ -172,7 +163,7 @@ export default function Viewer({
       )}
 
       <div className="controls">
-        {live ? (
+        {live || planet ? (
           <>
             <button
               disabled={!ready || pending}

@@ -18,7 +18,7 @@ from ros_gz_interfaces.srv import ControlWorld
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 from tf2_msgs.msg import TFMessage
-from starship_sim.geometry import world_to_local
+from starship_sim.geometry import tracking_velocity, world_to_local
 
 
 class RosBackend:
@@ -27,6 +27,9 @@ class RosBackend:
         self.ship_id = scene["ship_entity_id"]
         self.destination_position = next(e["pose_in_world"]["position"] for e in scene["entities"]
                                          if e["id"] == scene["destination"]["entity_id"])
+        self.destination_velocity = dict(x=0., y=0., z=0.)
+        self.destination_sample = None
+        self.orbit_speed = 1.
         self.lock = threading.RLock()
         self.sim_time = None
         self.paused = None
@@ -49,6 +52,9 @@ class RosBackend:
                 self.publishers[(arm["id"], name)] = self.node.create_publisher(
                     Float64, f'/arms/{arm["id"]}/{name}/target', 10)
         self.velocity = self.node.create_publisher(Twist, "/starship/cmd_vel", 10)
+        self.orbits = {item["entity_id"]: item["orbit"] for item in scene.get("map", {}).get("objects", []) if "orbit" in item}
+        self.orbit_publishers = {name: self.node.create_publisher(Float64, orbit["velocity_topic"], 10)
+                                 for name, orbit in self.orbits.items()}
         self.control = self.node.create_client(ControlWorld, f'/world/{scene["world"]}/control')
         self.subscriptions = [
             self.node.create_subscription(Clock, "/clock", self.on_clock, qos_profile_sensor_data),
@@ -96,7 +102,17 @@ class RosBackend:
                     "orientation": {"x": rotation.x, "y": rotation.y, "z": rotation.z, "w": rotation.w},
                 }
                 if frame_id == self.scene["destination"]["entity_id"]:
+                    stamp = transform.header.stamp
+                    sample_time = stamp.sec + stamp.nanosec / 1e9
+                    sample_time = sample_time if sample_time > 0 else self.sim_time
+                    if self.destination_sample is not None and sample_time is not None:
+                        previous_time, previous_position = self.destination_sample
+                        dt = sample_time - previous_time
+                        if dt > 1e-6:
+                            self.destination_velocity = {a: (self.transforms[frame_id]["position"][a] - previous_position[a]) / dt for a in "xyz"}
                     self.destination_position = dict(x=translation.x, y=translation.y, z=translation.z)
+                    if sample_time is not None:
+                        self.destination_sample = (sample_time, self.destination_position.copy())
             self.received_topic("poses")
 
     def on_joints(self, msg):
@@ -110,6 +126,7 @@ class RosBackend:
             ages = {name: round(now - stamp, 3) for name, stamp in self.received.items()}
             online = ages.get("stats", math.inf) < 3 and self.error is None
             complete = (self.sim_time is not None and self.ship_id in self.transforms and
+                        all(entity["id"] in self.transforms for entity in self.scene["entities"] if entity["dynamic"]) and
                         all(joint["joint_name"] in self.joints for arm in self.scene["arms"]
                             for joint in arm["joints"].values()))
             required = ("clock", "poses", "joints") if self.scene["arms"] else ("clock", "poses")
@@ -132,7 +149,9 @@ class RosBackend:
                         for name, joint in arm["joints"].items()},
                         "requested_rad": deepcopy(self.targets.get(arm["id"], {}))}
                         for arm in self.scene["arms"]],
-                    "navigation": {"destination": self.scene["destination"]["entity_id"], "distance_m": distance,
+                    "map": {"orbit_speed": self.orbit_speed if self.orbits else None},
+                    "navigation": {"origin": self.scene.get("map", {}).get("origin_entity_id"),
+                                   "destination": self.scene["destination"]["entity_id"], "distance_m": distance,
                                    "arrived": self.arrived, "cruise_speed_m_s": self.scene["cruise_speed_m_s"]}}
 
     def navigate(self):
@@ -143,13 +162,27 @@ class RosBackend:
             delta = tuple(self.destination_position[a] - ship["position"][a] for a in "xyz")
             distance = math.sqrt(sum(value * value for value in delta))
             stop_distance = self.scene["destination"]["stop_distance_m"]
-            self.arrived = distance <= stop_distance + 0.1
             message = Twist()
-            if not self.arrived:
-                speed = min(self.scene["cruise_speed_m_s"], max(0.0, (distance - stop_distance) * 0.5))
-                velocity = world_to_local(tuple(value / distance * speed for value in delta), ship["orientation"])
-                message.linear.x, message.linear.y, message.linear.z = velocity
+            # Match a moving destination near arrival, rather than repeatedly stopping
+            # in world space while the planet moves away. All inputs are measured poses.
+            world_velocity, self.arrived = tracking_velocity(delta, tuple(self.destination_velocity[a] for a in "xyz"),
+                self.scene["cruise_speed_m_s"], stop_distance, self.arrived)
+            velocity = world_to_local(world_velocity, ship["orientation"])
+            message.linear.x, message.linear.y, message.linear.z = velocity
             self.velocity.publish(message)
+
+    def command_map(self, orbit_speed):
+        with self.lock:
+            if not self.orbits:
+                raise ValueError("The selected map has no controllable orbits")
+            if not self.health()["ready"] or any(p.get_subscription_count() == 0 for p in self.orbit_publishers.values()):
+                raise RuntimeError("The map command bridge is unavailable or telemetry is stale")
+            for name, orbit in self.orbits.items():
+                message = Float64()
+                message.data = orbit["angular_speed_rad_s"] * orbit_speed
+                self.orbit_publishers[name].publish(message)
+            self.orbit_speed = float(orbit_speed)
+            return {"status": "accepted", "requested_orbit_speed": self.orbit_speed}
 
     def command_arm(self, arm_id, targets):
         with self.lock:

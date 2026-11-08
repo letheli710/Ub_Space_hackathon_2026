@@ -6,7 +6,16 @@ positions, and simulation time. Its controls send real arm and pause/resume
 commands to the simulator.
 
 Disaster injection, ship-health simulation and autonomous AI agents are planned
-features. The current ship and map are replaceable starter assets.
+features in the live simulator. A separate browser demo illustrates disasters.
+The current ship is a replaceable starter asset. The default backend map is now
+the solar system converted from the frontend artwork: Sun, eight orbiting
+planets, and hazard landmarks. The ship starts near Earth and navigates to Mars.
+
+**Planetary Trajectories uses the backend map**, including measured planet and
+ship positions. Scroll or use W/S to zoom, drag or use A/D to pan, and click an
+object (or use Inspect) for details. Mission route and Landmarks control map
+overlays. Pause controls the Gazebo world; Orbit speed changes the planets'
+backend motion. The map has no independent browser animation clock.
 
 ## Start here
 

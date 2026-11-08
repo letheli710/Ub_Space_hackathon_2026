@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -45,13 +46,50 @@ def main():
         eventually(lambda: request("/api/v1/state")["navigation"]["distance_m"] < start_distance - 0.2)
     print("PASS: live clock, ship movement and scene geometry")
 
+    orbiting = [item for item in scene.get("map", {}).get("objects", []) if "orbit" in item]
+    def position(snapshot, name):
+        return next(transform["position"] for transform in snapshot["transforms"] if transform["child_frame_id"] == name)
+
+    if orbiting:
+        sample = orbiting[0]
+        name, orbit = sample["entity_id"], sample["orbit"]
+        initial_speed = state["map"]["orbit_speed"]
+        try:
+            request("/api/v1/map/control", {"orbit_speed": 0})
+            eventually(lambda: request("/api/v1/state")["map"]["orbit_speed"] == 0)
+            time.sleep(.25)  # allow the command and final pose publication to arrive
+            stopped = request("/api/v1/state")
+            time.sleep(.5)
+            later = request("/api/v1/state")
+            assert later["sim_time_s"] > stopped["sim_time_s"] + .2
+            assert math.dist(list(position(stopped, name).values()), list(position(later, name).values())) < .05
+            request("/api/v1/map/control", {"orbit_speed": 2})
+            time.sleep(.25)
+            before = request("/api/v1/state")
+            time.sleep(.7)
+            after = request("/api/v1/state")
+            a, b = position(before, name), position(after, name)
+            center = orbit["center"]
+            ax, ay = a["x"] - center["x"], a["y"] - center["y"]
+            bx, by = b["x"] - center["x"], b["y"] - center["y"]
+            measured_speed = math.atan2(ax * by - ay * bx, ax * bx + ay * by) / (after["sim_time_s"] - before["sim_time_s"])
+            assert math.isclose(measured_speed, 2 * orbit["angular_speed_rad_s"], rel_tol=.25)
+            assert math.isclose(math.hypot(bx, by), orbit["radius_m"], rel_tol=.001)
+        finally:
+            request("/api/v1/map/control", {"orbit_speed": initial_speed})
+        print(f"PASS: {len(orbiting)} Gazebo orbits, measured orbital radius, and real 0x/2x map-speed control")
+
     try:
         request("/api/v1/simulation/control", {"paused": True})
         eventually(lambda: request("/api/v1/state")["paused"] is True)
         paused_time = request("/api/v1/state")["sim_time_s"]
+        paused_state = request("/api/v1/state")
         time.sleep(0.5)
         assert abs(request("/api/v1/state")["sim_time_s"] - paused_time) < 0.02
         assert request("/api/v1/state")["connection"]["ready"]
+        for item in orbiting:
+            assert math.dist(list(position(paused_state, item["entity_id"]).values()),
+                             list(position(request("/api/v1/state"), item["entity_id"]).values())) < .001
     finally:
         request("/api/v1/simulation/control", {"paused": False})
     eventually(lambda: request("/api/v1/state")["sim_time_s"] > paused_time + 0.2)

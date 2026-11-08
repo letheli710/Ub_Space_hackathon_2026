@@ -57,7 +57,7 @@ export default function App() {
   const simulation = useSimulation();
   const [tab, setTab] = useState('Home');
   const [viewMode, setViewMode] = useState('live');
-  const live = viewMode === 'live' && Boolean(simulation.scene);
+  const live = (viewMode === 'live' || tab === 'Planetary Trajectories') && Boolean(simulation.scene);
 
   const [logs, setLogs] = useState([]);
   const [fullPage, setFullPage] = useState(false);
@@ -89,10 +89,13 @@ export default function App() {
 
   // ---------- live simulator events ----------
   const previousTime = useRef(null);
+  const arrivalLogged = useRef(false);
+  useEffect(() => { arrivalLogged.current = false; }, [simulation.scene?.revision]);
   const simulationTime = simulation.state?.sim_time_s;
   useEffect(() => {
     if (Number.isFinite(simulationTime)) {
       if (previousTime.current !== null && simulationTime < previousTime.current - 0.5) {
+        arrivalLogged.current = false;
         addLog('Simulator restarted · new voyage');
       }
       previousTime.current = simulationTime;
@@ -111,7 +114,12 @@ export default function App() {
   }, [paused, addLog]);
   const arrived = simulation.state?.navigation?.arrived;
   useEffect(() => {
-    if (arrived) addLog('Destination approach complete · ship holding position');
+    // Arrival is one voyage milestone, even if proximity briefly fluctuates
+    // as independently published planet and ship poses reach the browser.
+    if (arrived && !arrivalLogged.current) {
+      arrivalLogged.current = true;
+      addLog('Destination approach complete · maintaining stand-off distance');
+    }
   }, [arrived, addLog]);
 
   // ---------- demo voyage ----------
@@ -130,14 +138,7 @@ export default function App() {
     return () => clearInterval(id);
   }, [playing, live]);
 
-  // The Planetary Trajectories map reports the planet the user clicked.
-  useEffect(() => {
-    const onMessage = (e) => {
-      if (e.origin === window.location.origin && e.data?.type === 'map-info') setMapInfo(e.data.text);
-    };
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, []);
+  useEffect(() => setMapInfo(DEFAULT_MAP_INFO), [simulation.scene?.revision]);
 
   // Disasters only run in the demo view; leaving it disarms any pending launch.
   useEffect(() => {
@@ -243,6 +244,7 @@ export default function App() {
         : 'LIVE';
   const navigation = simulation.state?.navigation;
   const planetTab = tab === 'Planetary Trajectories';
+  const mapLabel = id => simulation.scene?.map?.objects.find(item => item.entity_id === id)?.label ?? id?.replaceAll('_', ' ') ?? '—';
 
   return (
     <div className="app">
@@ -254,19 +256,20 @@ export default function App() {
         <div className={workspaceClass}>
           {planetTab ? (
             <MissionControl
-              origin={live ? '—' : origin(voyage.current)}
-              destination={live ? (navigation?.destination?.replaceAll('_', ' ') ?? '—') : destination(voyage.current)}
+              origin={mapLabel(navigation?.origin ?? simulation.scene?.map?.origin_entity_id)}
+              destination={mapLabel(navigation?.destination ?? simulation.scene?.destination.entity_id)}
               voyageLabel={
-                live
+                simulation.scene
                   ? navigation?.arrived
                     ? 'ARRIVED'
                     : Number.isFinite(navigation?.distance_m)
                       ? `EN ROUTE · ${navigation.distance_m.toFixed(0)} m`
                       : '—'
-                  : voyageLabel
+                  : 'WAITING FOR BACKEND'
               }
               mapInfo={mapInfo}
-              blackHole={blackHole}
+              map={simulation.scene?.map}
+              ready={simulation.ready}
             />
           ) : (
             <DisasterMaker
@@ -288,6 +291,7 @@ export default function App() {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               simulation={simulation}
+              onMapInspect={setMapInfo}
               logs={logs}
               fullPage={fullPage}
               onToggleFullPage={() => (fullPage ? exitFullPage() : setFullPage(true))}
@@ -340,7 +344,7 @@ export default function App() {
       <footer>
         INTERSTELLAR X⁴ / HACKATHON PROTOTYPE{' '}
         <span>
-          {live
+          {planetTab ? `BACKEND MAP · ${status}` : live
             ? 'LIVE SPACE ROS / GAZEBO ENVIRONMENT'
             : simulation.ready
               ? 'DEMO VIEW · SIMULATOR CONNECTED'

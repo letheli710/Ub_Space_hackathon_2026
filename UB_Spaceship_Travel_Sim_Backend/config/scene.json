@@ -1,22 +1,22 @@
 {
   "schema_version": 1,
-  "world": "deep_space",
+  "world": "solar_system",
   "units": "meters",
   "up_axis": "Z",
   "ship_entity_id": "starship",
   "travel_model": "compressed_scale_straight_line",
-  "cruise_speed_m_s": 2,
+  "cruise_speed_m_s": 25,
   "destination": {
-    "entity_id": "destination_planet",
-    "stop_distance_m": 70
+    "entity_id": "mars",
+    "stop_distance_m": 31
   },
   "entities": [
     {
-      "id": "destination_planet",
+      "id": "sun",
       "dynamic": false,
       "pose_in_world": {
         "position": {
-          "x": 600.0,
+          "x": 0.0,
           "y": 0.0,
           "z": 0.0
         },
@@ -29,7 +29,7 @@
       },
       "links": [
         {
-          "id": "destination_planet::body",
+          "id": "sun::body",
           "pose_in_model": {
             "position": {
               "x": 0.0,
@@ -62,13 +62,13 @@
               "geometry": {
                 "type": "sphere",
                 "radius": [
-                  45.0
+                  70.0
                 ]
               },
               "color": [
-                0.14,
-                0.45,
-                0.8,
+                1.0,
+                0.72,
+                0.2,
                 1.0
               ],
               "material_override": true
@@ -78,13 +78,13 @@
       ]
     },
     {
-      "id": "departure_planet",
-      "dynamic": false,
+      "id": "mercury",
+      "dynamic": true,
       "pose_in_world": {
         "position": {
-          "x": -180.0,
-          "y": -100.0,
-          "z": -70.0
+          "x": -128.182978487509,
+          "y": 95.755543056633,
+          "z": 0.0
         },
         "orientation": {
           "x": 0.0,
@@ -95,7 +95,7 @@
       },
       "links": [
         {
-          "id": "departure_planet::body",
+          "id": "mercury::body",
           "pose_in_model": {
             "position": {
               "x": 0.0,
@@ -128,13 +128,13 @@
               "geometry": {
                 "type": "sphere",
                 "radius": [
-                  35.0
+                  9.0
                 ]
               },
               "color": [
-                0.65,
-                0.3,
-                0.16,
+                0.682352941176,
+                0.725490196078,
+                0.760784313725,
                 1.0
               ],
               "material_override": true
@@ -144,13 +144,13 @@
       ]
     },
     {
-      "id": "moon",
-      "dynamic": false,
+      "id": "venus",
+      "dynamic": true,
       "pose_in_world": {
         "position": {
-          "x": 560.0,
-          "y": 120.0,
-          "z": 45.0
+          "x": -135.311986690033,
+          "y": -240.55491318615,
+          "z": 0.0
         },
         "orientation": {
           "x": 0.0,
@@ -161,7 +161,7 @@
       },
       "links": [
         {
-          "id": "moon::body",
+          "id": "venus::body",
           "pose_in_model": {
             "position": {
               "x": 0.0,
@@ -194,13 +194,13 @@
               "geometry": {
                 "type": "sphere",
                 "radius": [
-                  12.0
+                  15.75
                 ]
               },
               "color": [
-                0.5,
-                0.52,
-                0.57,
+                0.890196078431,
+                0.717647058824,
+                0.494117647059,
                 1.0
               ],
               "material_override": true
@@ -210,13 +210,13 @@
       ]
     },
     {
-      "id": "asteroid_1",
-      "dynamic": false,
+      "id": "earth",
+      "dynamic": true,
       "pose_in_world": {
         "position": {
-          "x": 150.0,
-          "y": 35.0,
-          "z": 15.0
+          "x": 177.809679598826,
+          "y": 349.353285144083,
+          "z": 0.0
         },
         "orientation": {
           "x": 0.0,
@@ -227,7 +227,1643 @@
       },
       "links": [
         {
-          "id": "asteroid_1::body",
+          "id": "earth::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  18.25
+                ]
+              },
+              "color": [
+                0.235294117647,
+                0.662745098039,
+                0.980392156863,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mars",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": 322.423980978858,
+          "y": -392.564359678441,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "mars::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  13.0
+                ]
+              },
+              "color": [
+                0.862745098039,
+                0.443137254902,
+                0.313725490196,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jupiter",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": -587.946740577243,
+          "y": 209.032605697285,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "jupiter::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  37.5
+                ]
+              },
+              "color": [
+                0.823529411765,
+                0.666666666667,
+                0.501960784314,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "saturn",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": -21.607646502954,
+          "y": 739.684466250714,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "saturn::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  30.0
+                ]
+              },
+              "color": [
+                0.847058823529,
+                0.764705882353,
+                0.58431372549,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_0",
+              "pose": {
+                "position": {
+                  "x": 49.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_1",
+              "pose": {
+                "position": {
+                  "x": 48.396728689162,
+                  "y": 7.665288786971,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.078459095728,
+                  "w": 0.996917333733
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_2",
+              "pose": {
+                "position": {
+                  "x": 46.601769298463,
+                  "y": 15.141832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.15643446504,
+                  "w": 0.987688340595
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_3",
+              "pose": {
+                "position": {
+                  "x": 43.65931968523,
+                  "y": 22.245534487238,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.233445363856,
+                  "w": 0.972369920398
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_4",
+              "pose": {
+                "position": {
+                  "x": 39.641832724372,
+                  "y": 28.801477362331,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.309016994375,
+                  "w": 0.951056516295
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_5",
+              "pose": {
+                "position": {
+                  "x": 34.648232278141,
+                  "y": 34.648232278141,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.382683432365,
+                  "w": 0.923879532511
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_6",
+              "pose": {
+                "position": {
+                  "x": 28.801477362331,
+                  "y": 39.641832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.45399049974,
+                  "w": 0.891006524188
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_7",
+              "pose": {
+                "position": {
+                  "x": 22.245534487238,
+                  "y": 43.65931968523,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.522498564716,
+                  "w": 0.852640164354
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_8",
+              "pose": {
+                "position": {
+                  "x": 15.141832724372,
+                  "y": 46.601769298463,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.587785252292,
+                  "w": 0.809016994375
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_9",
+              "pose": {
+                "position": {
+                  "x": 7.665288786971,
+                  "y": 48.396728689162,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.64944804833,
+                  "w": 0.7604059656
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_10",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 49.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.707106781187,
+                  "w": 0.707106781187
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_11",
+              "pose": {
+                "position": {
+                  "x": -7.665288786971,
+                  "y": 48.396728689162,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.7604059656,
+                  "w": 0.64944804833
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_12",
+              "pose": {
+                "position": {
+                  "x": -15.141832724372,
+                  "y": 46.601769298463,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.809016994375,
+                  "w": 0.587785252292
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_13",
+              "pose": {
+                "position": {
+                  "x": -22.245534487238,
+                  "y": 43.65931968523,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.852640164354,
+                  "w": 0.522498564716
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_14",
+              "pose": {
+                "position": {
+                  "x": -28.801477362331,
+                  "y": 39.641832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.891006524188,
+                  "w": 0.45399049974
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_15",
+              "pose": {
+                "position": {
+                  "x": -34.648232278141,
+                  "y": 34.648232278141,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.923879532511,
+                  "w": 0.382683432365
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_16",
+              "pose": {
+                "position": {
+                  "x": -39.641832724372,
+                  "y": 28.801477362331,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.951056516295,
+                  "w": 0.309016994375
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_17",
+              "pose": {
+                "position": {
+                  "x": -43.65931968523,
+                  "y": 22.245534487238,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.972369920398,
+                  "w": 0.233445363856
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_18",
+              "pose": {
+                "position": {
+                  "x": -46.601769298463,
+                  "y": 15.141832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.987688340595,
+                  "w": 0.15643446504
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_19",
+              "pose": {
+                "position": {
+                  "x": -48.396728689162,
+                  "y": 7.665288786971,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.996917333733,
+                  "w": 0.078459095728
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_20",
+              "pose": {
+                "position": {
+                  "x": -49.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0,
+                  "w": 0.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_21",
+              "pose": {
+                "position": {
+                  "x": -48.396728689162,
+                  "y": -7.665288786971,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.996917333733,
+                  "w": -0.078459095728
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_22",
+              "pose": {
+                "position": {
+                  "x": -46.601769298463,
+                  "y": -15.141832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.987688340595,
+                  "w": -0.15643446504
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_23",
+              "pose": {
+                "position": {
+                  "x": -43.65931968523,
+                  "y": -22.245534487238,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.972369920398,
+                  "w": -0.233445363856
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_24",
+              "pose": {
+                "position": {
+                  "x": -39.641832724372,
+                  "y": -28.801477362331,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.951056516295,
+                  "w": -0.309016994375
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_25",
+              "pose": {
+                "position": {
+                  "x": -34.648232278141,
+                  "y": -34.648232278141,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.923879532511,
+                  "w": -0.382683432365
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_26",
+              "pose": {
+                "position": {
+                  "x": -28.801477362331,
+                  "y": -39.641832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.891006524188,
+                  "w": -0.45399049974
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_27",
+              "pose": {
+                "position": {
+                  "x": -22.245534487238,
+                  "y": -43.65931968523,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.852640164354,
+                  "w": -0.522498564716
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_28",
+              "pose": {
+                "position": {
+                  "x": -15.141832724372,
+                  "y": -46.601769298463,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.809016994375,
+                  "w": -0.587785252292
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_29",
+              "pose": {
+                "position": {
+                  "x": -7.665288786971,
+                  "y": -48.396728689162,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.7604059656,
+                  "w": -0.64944804833
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_30",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": -49.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.707106781187,
+                  "w": -0.707106781187
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_31",
+              "pose": {
+                "position": {
+                  "x": 7.665288786971,
+                  "y": -48.396728689162,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.64944804833,
+                  "w": -0.7604059656
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_32",
+              "pose": {
+                "position": {
+                  "x": 15.141832724372,
+                  "y": -46.601769298463,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.587785252292,
+                  "w": -0.809016994375
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_33",
+              "pose": {
+                "position": {
+                  "x": 22.245534487238,
+                  "y": -43.65931968523,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.522498564716,
+                  "w": -0.852640164354
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_34",
+              "pose": {
+                "position": {
+                  "x": 28.801477362331,
+                  "y": -39.641832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.45399049974,
+                  "w": -0.891006524188
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_35",
+              "pose": {
+                "position": {
+                  "x": 34.648232278141,
+                  "y": -34.648232278141,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.382683432365,
+                  "w": -0.923879532511
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_36",
+              "pose": {
+                "position": {
+                  "x": 39.641832724372,
+                  "y": -28.801477362331,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.309016994375,
+                  "w": -0.951056516295
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_37",
+              "pose": {
+                "position": {
+                  "x": 43.65931968523,
+                  "y": -22.245534487238,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.233445363856,
+                  "w": -0.972369920398
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_38",
+              "pose": {
+                "position": {
+                  "x": 46.601769298463,
+                  "y": -15.141832724372,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.15643446504,
+                  "w": -0.987688340595
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            },
+            {
+              "id": "ring_39",
+              "pose": {
+                "position": {
+                  "x": 48.396728689162,
+                  "y": -7.665288786971,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.078459095728,
+                  "w": -0.996917333733
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  9.0,
+                  8.0,
+                  1.0
+                ]
+              },
+              "color": [
+                0.75,
+                0.66,
+                0.47,
+                0.8
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uranus",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": -725.973627144109,
+          "y": -453.53973661767,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "uranus::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  22.5
+                ]
+              },
+              "color": [
+                0.549019607843,
+                0.905882352941,
+                0.929411764706,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neptune",
+      "dynamic": true,
+      "pose_in_world": {
+        "position": {
+          "x": 811.340826863663,
+          "y": -535.266347404904,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "neptune::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  22.5
+                ]
+              },
+              "color": [
+                0.345098039216,
+                0.545098039216,
+                0.858823529412,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asteroid_field",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": 450.0,
+          "y": -400.0,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "asteroid_field::body",
           "pose_in_model": {
             "position": {
               "x": 0.0,
@@ -264,9 +1900,502 @@
                 ]
               },
               "color": [
-                0.38,
-                0.3,
-                0.22,
+                0.5,
+                0.45,
+                0.4,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_1",
+              "pose": {
+                "position": {
+                  "x": -32.445323483815,
+                  "y": 29.720379944251,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_2",
+              "pose": {
+                "position": {
+                  "x": 1.924977635668,
+                  "y": -21.915621394388,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_3",
+              "pose": {
+                "position": {
+                  "x": 32.24261967021,
+                  "y": 42.064396784005,
+                  "z": -8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  2.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_4",
+              "pose": {
+                "position": {
+                  "x": -30.525323529618,
+                  "y": -5.404130217912,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_5",
+              "pose": {
+                "position": {
+                  "x": 52.318945441415,
+                  "y": -33.267520916027,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_6",
+              "pose": {
+                "position": {
+                  "x": -10.39269424855,
+                  "y": 38.626311061971,
+                  "z": -8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  2.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_7",
+              "pose": {
+                "position": {
+                  "x": -8.292214573405,
+                  "y": -15.976206604467,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_8",
+              "pose": {
+                "position": {
+                  "x": 46.021796988147,
+                  "y": 16.822431512175,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_9",
+              "pose": {
+                "position": {
+                  "x": -24.960737922681,
+                  "y": 10.293763274683,
+                  "z": -8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  2.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_10",
+              "pose": {
+                "position": {
+                  "x": 24.602382425546,
+                  "y": -52.523544996384,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_11",
+              "pose": {
+                "position": {
+                  "x": 10.760324629121,
+                  "y": 34.354263401737,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_12",
+              "pose": {
+                "position": {
+                  "x": -12.109858359483,
+                  "y": -7.025050214288,
+                  "z": -8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  2.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_13",
+              "pose": {
+                "position": {
+                  "x": 43.955023537452,
+                  "y": -9.641364313315,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_14",
+              "pose": {
+                "position": {
+                  "x": -13.237660998631,
+                  "y": 18.808623854108,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_15",
+              "pose": {
+                "position": {
+                  "x": -6.91003923988,
+                  "y": -53.556058085928,
+                  "z": -8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  2.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_16",
+              "pose": {
+                "position": {
+                  "x": 24.456631017561,
+                  "y": 20.636695454236,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  3.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
+                1.0
+              ],
+              "material_override": true
+            },
+            {
+              "id": "asteroid_17",
+              "pose": {
+                "position": {
+                  "x": -62.947816240137,
+                  "y": 2.563675213041,
+                  "z": 8.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  4.0
+                ]
+              },
+              "color": [
+                0.55,
+                0.5,
+                0.46,
                 1.0
               ],
               "material_override": true
@@ -276,13 +2405,13 @@
       ]
     },
     {
-      "id": "asteroid_2",
+      "id": "solar_storm",
       "dynamic": false,
       "pose_in_world": {
         "position": {
-          "x": 280.0,
-          "y": -45.0,
-          "z": -10.0
+          "x": 590.0,
+          "y": 460.0,
+          "z": 0.0
         },
         "orientation": {
           "x": 0.0,
@@ -293,7 +2422,7 @@
       },
       "links": [
         {
-          "id": "asteroid_2::body",
+          "id": "solar_storm::body",
           "pose_in_model": {
             "position": {
               "x": 0.0,
@@ -326,13 +2455,79 @@
               "geometry": {
                 "type": "sphere",
                 "radius": [
-                  5.0
+                  25.0
                 ]
               },
               "color": [
-                0.42,
-                0.35,
-                0.26,
+                1.0,
+                0.55,
+                0.1,
+                0.45
+              ],
+              "material_override": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "black_hole",
+      "dynamic": false,
+      "pose_in_world": {
+        "position": {
+          "x": -2400.0,
+          "y": 2200.0,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "links": [
+        {
+          "id": "black_hole::body",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "surface",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "sphere",
+                "radius": [
+                  20.0
+                ]
+              },
+              "color": [
+                0.01,
+                0.005,
+                0.02,
                 1.0
               ],
               "material_override": true
@@ -346,15 +2541,15 @@
       "dynamic": true,
       "pose_in_world": {
         "position": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
+          "x": 192.809679598826,
+          "y": 309.353285144083,
+          "z": 10.0
         },
         "orientation": {
           "x": 0.0,
           "y": 0.0,
-          "z": 0.0,
-          "w": 1.0
+          "z": -0.636537182222,
+          "w": 0.771246014997
         }
       },
       "links": [
@@ -699,8 +2894,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -749,8 +2944,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -796,8 +2991,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -805,7 +3000,7 @@
               "id": "upper",
               "pose": {
                 "position": {
-                  "x": 0.5000000000000009,
+                  "x": 0.5,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -845,8 +3040,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -854,7 +3049,7 @@
               "id": "forearm",
               "pose": {
                 "position": {
-                  "x": 0.39999999999999947,
+                  "x": 0.4,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -885,7 +3080,7 @@
               "id": "tool_tip",
               "pose": {
                 "position": {
-                  "x": 0.8500000000000001,
+                  "x": 0.85,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -923,8 +3118,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -973,8 +3168,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1020,8 +3215,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1069,8 +3264,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": 0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": 0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1078,8 +3273,8 @@
               "id": "forearm",
               "pose": {
                 "position": {
-                  "x": 0.3999999999999997,
-                  "y": -8.881784197001252e-16,
+                  "x": 0.4,
+                  "y": 0.0,
                   "z": 0.0
                 },
                 "orientation": {
@@ -1109,7 +3304,7 @@
               "id": "tool_tip",
               "pose": {
                 "position": {
-                  "x": 0.8499999999999999,
+                  "x": 0.85,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -1147,8 +3342,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1197,8 +3392,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1244,8 +3439,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1253,7 +3448,7 @@
               "id": "upper",
               "pose": {
                 "position": {
-                  "x": 0.5000000000000009,
+                  "x": 0.5,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -1293,8 +3488,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1302,7 +3497,7 @@
               "id": "forearm",
               "pose": {
                 "position": {
-                  "x": 0.39999999999999947,
+                  "x": 0.4,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -1333,7 +3528,7 @@
               "id": "tool_tip",
               "pose": {
                 "position": {
-                  "x": 0.8500000000000001,
+                  "x": 0.85,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -1371,8 +3566,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1421,8 +3616,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1468,8 +3663,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1517,8 +3712,8 @@
             "orientation": {
               "x": 0.0,
               "y": 0.0,
-              "z": -0.7071067823197227,
-              "w": 0.7071067800533724
+              "z": -0.70710678232,
+              "w": 0.707106780053
             }
           },
           "visuals": [
@@ -1526,8 +3721,8 @@
               "id": "forearm",
               "pose": {
                 "position": {
-                  "x": 0.3999999999999997,
-                  "y": 8.881784197001252e-16,
+                  "x": 0.4,
+                  "y": 0.0,
                   "z": 0.0
                 },
                 "orientation": {
@@ -1557,7 +3752,7 @@
               "id": "tool_tip",
               "pose": {
                 "position": {
-                  "x": 0.8499999999999999,
+                  "x": 0.85,
                   "y": 0.0,
                   "z": 0.0
                 },
@@ -1587,6 +3782,248 @@
       ]
     }
   ],
+  "map": {
+    "title": "Solar System",
+    "description": "Stylized compressed solar system. Distances are simulator meters, not real astronomical scale. Planet orbits run in Gazebo.",
+    "origin_entity_id": "earth",
+    "objects": [
+      {
+        "entity_id": "sun",
+        "label": "Sun",
+        "kind": "star",
+        "radius_m": 70.0,
+        "color": [
+          1.0,
+          0.72,
+          0.2,
+          1.0
+        ]
+      },
+      {
+        "entity_id": "mercury",
+        "label": "Mercury",
+        "kind": "planet",
+        "radius_m": 9.0,
+        "color": [
+          0.682352941176,
+          0.725490196078,
+          0.760784313725,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 160.0,
+          "angular_speed_rad_s": 0.040824829046,
+          "period_s": 153.905979619424,
+          "velocity_topic": "/map/mercury/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "venus",
+        "label": "Venus",
+        "kind": "planet",
+        "radius_m": 15.75,
+        "color": [
+          0.890196078431,
+          0.717647058824,
+          0.494117647059,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 276.0,
+          "angular_speed_rad_s": 0.025503068523,
+          "period_s": 246.369777096744,
+          "velocity_topic": "/map/venus/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "earth",
+        "label": "Earth",
+        "kind": "planet",
+        "radius_m": 18.25,
+        "color": [
+          0.235294117647,
+          0.662745098039,
+          0.980392156863,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 392.0,
+          "angular_speed_rad_s": 0.02,
+          "period_s": 314.159265358979,
+          "velocity_topic": "/map/earth/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "mars",
+        "label": "Mars",
+        "kind": "planet",
+        "radius_m": 13.0,
+        "color": [
+          0.862745098039,
+          0.443137254902,
+          0.313725490196,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 508.0,
+          "angular_speed_rad_s": 0.01458649915,
+          "period_s": 430.75348256338,
+          "velocity_topic": "/map/mars/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "jupiter",
+        "label": "Jupiter",
+        "kind": "planet",
+        "radius_m": 37.5,
+        "color": [
+          0.823529411765,
+          0.666666666667,
+          0.501960784314,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 624.0,
+          "angular_speed_rad_s": 0.005807479041,
+          "period_s": 1081.912696093912,
+          "velocity_topic": "/map/jupiter/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "saturn",
+        "label": "Saturn",
+        "kind": "planet",
+        "radius_m": 30.0,
+        "color": [
+          0.847058823529,
+          0.764705882353,
+          0.58431372549,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 740.0,
+          "angular_speed_rad_s": 0.003684797487,
+          "period_s": 1705.164348841755,
+          "velocity_topic": "/map/saturn/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "uranus",
+        "label": "Uranus",
+        "kind": "planet",
+        "radius_m": 22.5,
+        "color": [
+          0.549019607843,
+          0.905882352941,
+          0.929411764706,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 856.0,
+          "angular_speed_rad_s": 0.002182178902,
+          "period_s": 2879.317227558481,
+          "velocity_topic": "/map/uranus/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "neptune",
+        "label": "Neptune",
+        "kind": "planet",
+        "radius_m": 22.5,
+        "color": [
+          0.345098039216,
+          0.545098039216,
+          0.858823529412,
+          1.0
+        ],
+        "orbit": {
+          "center": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "radius_m": 972.0,
+          "angular_speed_rad_s": 0.001557942382,
+          "period_s": 4033.002362136088,
+          "velocity_topic": "/map/neptune/orbit/cmd_vel"
+        }
+      },
+      {
+        "entity_id": "asteroid_field",
+        "label": "Asteroid field",
+        "kind": "hazard",
+        "radius_m": 3.0,
+        "color": [
+          0.5,
+          0.45,
+          0.4,
+          1.0
+        ],
+        "description": "Static collision geometry; autonomous disaster handling is not implemented."
+      },
+      {
+        "entity_id": "solar_storm",
+        "label": "Solar storm",
+        "kind": "hazard",
+        "radius_m": 25.0,
+        "color": [
+          1.0,
+          0.55,
+          0.1,
+          0.45
+        ],
+        "description": "Map landmark; radiation and system damage are not implemented."
+      },
+      {
+        "entity_id": "black_hole",
+        "label": "Black hole",
+        "kind": "hazard",
+        "radius_m": 20.0,
+        "color": [
+          0.01,
+          0.005,
+          0.02,
+          1.0
+        ],
+        "description": "Map landmark; gravity and black-hole damage are not implemented."
+      }
+    ]
+  },
   "arms": [
     {
       "id": "power",
@@ -1673,5 +4110,5 @@
       }
     }
   ],
-  "revision": "791162b3e555e60a60ce"
+  "revision": "30102d4a02ac2c90b2b5"
 }

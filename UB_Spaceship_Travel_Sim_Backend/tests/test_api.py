@@ -33,6 +33,12 @@ class ContractBackend:
         self.calls.append(("paused", paused))
         return {"status": "accepted", "requested_paused": paused}
 
+    def command_map(self, orbit_speed):
+        if not self.available:
+            raise RuntimeError("Gazebo map-control bridge is unavailable")
+        self.calls.append(("orbit_speed", orbit_speed))
+        return {"status": "accepted", "requested_orbit_speed": orbit_speed}
+
     def close(self):
         self.closed = True
 
@@ -96,6 +102,32 @@ def test_pause_resume_contract(connected):
         assert response.status_code == 200
         assert response.json()["requested_paused"] is paused
     assert backend.calls == [("paused", True), ("paused", False)]
+
+
+def test_map_controls_publish_validated_requests_without_faking_poses(connected):
+    client, backend = connected
+    before = client.get("/api/v1/state").json()
+    for speed in (0, .5, 1, 5):
+        result = client.post("/api/v1/map/control", json={"orbit_speed": speed})
+        assert result.status_code == 200
+        assert result.json()["requested_orbit_speed"] == speed
+    assert backend.calls == [("orbit_speed", value) for value in (0, .5, 1, 5)]
+    assert client.get("/api/v1/state").json() == before
+    backend.available = False
+    assert client.post("/api/v1/map/control", json={"orbit_speed": 1}).status_code == 503
+
+
+@pytest.mark.parametrize("body", [{"orbit_speed": -1}, {"orbit_speed": 5.1}, {}, {"orbit_speed": 1, "spawn": "anything"}])
+def test_invalid_map_commands_publish_nothing(connected, body):
+    client, backend = connected
+    assert client.post("/api/v1/map/control", json=body).status_code == 422
+    assert not backend.calls
+
+
+def test_nonfinite_map_speed_is_rejected(connected):
+    client, backend = connected
+    assert client.post("/api/v1/map/control", content='{"orbit_speed":1e999}', headers={"Content-Type": "application/json"}).status_code == 422
+    assert not backend.calls
 
 
 def test_browser_cors_is_limited_to_configured_origins(connected):

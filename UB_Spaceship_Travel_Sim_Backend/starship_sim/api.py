@@ -26,6 +26,11 @@ class WorldControl(BaseModel):
     paused: bool
 
 
+class MapControl(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    orbit_speed: FiniteFloat = Field(ge=0, le=5)
+
+
 def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
     scene = json.loads(Path(scene_path or ROOT / "config/scene.json").read_text(encoding="utf-8"))
     allowed_origins = origins if origins is not None else [
@@ -103,6 +108,15 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
             return await app.state.backend.control_world(command.paused)
         except RuntimeError as exc:
             raise HTTPException(503, str(exc)) from exc
+
+    @app.post("/api/v1/map/control")
+    def control_map(command: MapControl):
+        try:
+            return app.state.backend.command_map(command.orbit_speed)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.websocket("/api/v1/telemetry")
     async def telemetry(socket: WebSocket):
