@@ -1,20 +1,13 @@
-import { Orbit, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import logo from '../assets/interstellar-x4-logo.webp';
 
-const TABS = ['Introduction', 'Generator', 'Planetary Trajectories', 'AI Logs'];
+const TABS = ['Home', 'Generator', 'Planetary Trajectories', 'AI Logs'];
 
 export default function Header({ tab, onTabChange, status }) {
   return (
     <header>
       <div className="brand">
-        <div className="brandicon">
-          <Orbit size={26} />
-        </div>
-        <div>
-          <b>
-            INTERSTELLAR <span>X⁴</span>
-          </b>
-          <small>SPACE DISASTER SIMULATION LAB</small>
-        </div>
+        <img src={logo} alt="Interstellar X⁴" />
       </div>
 
       <nav>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interstellar X⁴ — Planetary Trajectories</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,Arial,sans-serif}*{box-sizing:border-box}body{margin:0;background:#020713;color:#e8f7ff}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 25px;border-bottom:1px solid #164f70;background:#041022;gap:15px;flex-wrap:wrap}
+h1{margin:0;font-size:20px;letter-spacing:.3px}h1 b{color:#51e7ff}.sub{font-size:12px;color:#8faebf;margin-top:5px}
+.controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}button,select{background:#09213b;color:#d9f7ff;border:1px solid #287da4;border-radius:8px;padding:9px 12px;cursor:pointer}button:hover{border-color:#3feaff;background:#0b3450}button.active{background:#075d7b;border-color:#37eaff}
+main{position:relative;width:100%;height:calc(100vh - 79px);min-height:540px;overflow:hidden}canvas{display:block;width:100%;height:100%;cursor:grab}
+.panel{position:absolute;left:20px;bottom:20px;width:min(345px,calc(100% - 40px));background:#04172bdc;border:1px solid #14769c;border-radius:12px;padding:15px;box-shadow:0 0 24px #007cc422;backdrop-filter:blur(8px);pointer-events:none}
+.panel h2{font-size:14px;margin:0 0 10px;color:#5deeff}.panel p{font-size:12px;color:#a8c7d9;line-height:1.55;margin:6px 0}.stat{color:#e6faff;font-size:13px}.stat strong{color:#4bf5d9}
+.legend{position:absolute;right:20px;bottom:20px;background:#04172bdc;border:1px solid #145674;padding:11px 13px;border-radius:9px;font-size:12px;color:#aacfe0;line-height:1.8}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+/* Embedded in the simulator: fill the frame exactly, no page scrolling, no duplicate title */
+html.embedded,html.embedded body{height:100%;overflow:hidden}html.embedded body{display:flex;flex-direction:column}html.embedded header{padding:10px 14px}html.embedded header>div:first-child{display:none}html.embedded main{flex:1;height:auto;min-height:0}
+@media(max-width:680px){main{height:calc(100vh - 125px)}header{padding:12px}.legend{display:none}.panel{bottom:10px;left:10px;width:calc(100% - 20px)}}
+</style></head><body>
+<header><div><h1>✦ Interstellar <b>X⁴</b> <span style="font-weight:400;color:#8bdcf3">/ Planetary Trajectories</span></h1><div class="sub">Interactive solar system · Route planning & disaster placement</div></div>
+<div class="controls"><button id="toggle">⏸ Pause</button><button id="route" class="active">✓ Mission Route</button><button id="hazards" class="active">✓ Hazards</button><button id="zoomIn" title="Zoom in">＋</button><button id="zoomOut" title="Zoom out">−</button><button id="fit" title="Back to the full view">Fit</button><button id="reset">↻ Reset</button><label style="font-size:12px;color:#8db6c8">Speed <input id="speed" type="range" min="0" max="5" step=".1" value="1" style="vertical-align:middle;width:90px"></label></div></header>
+<main><canvas id="space"></canvas><div class="panel"><h2>◈ MISSION CONTROL</h2><div class="stat">Origin: <strong>Earth</strong> &nbsp;→&nbsp; Destination: <strong>Mars</strong></div><p id="info">Scroll or W/S to zoom, drag or A/D to move. Click a planet to inspect it. The Sun stays at the center while planets orbit at different speeds. Cyan lines show a conceptual mission route.</p><p>⚠ Simulated hazards: asteroid field, black hole encounter, and solar storm. Illustrative, not to physical scale.</p></div><div class="legend"><div><span class="dot" style="background:#29eaff"></span>Mission trajectory</div><div><span class="dot" style="background:#f4556b"></span>Asteroid hazard</div><div><span class="dot" style="background:#a76aff"></span>Black hole</div><div><span class="dot" style="background:#ffb62c"></span>Solar storm</div></div></main>
+<script>
+// Inside the simulator, Mission Control lives in the simulator's left column, so hide this copy.
+const embedded=window.self!==window.top;if(embedded){document.documentElement.classList.add('embedded');document.querySelector('.panel').style.display='none'}
+// The simulator tells this map when the Black Hole Encounter button is on.
+addEventListener('message',e=>{if(e.origin===location.origin&&e.data&&e.data.type==='blackhole')blackHoleOn=!!e.data.active});
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+const view={zoom:1,x:0,y:0};let dragged=false;
+let W=0,H=0,DPR=1,playing=true,routeOn=true,hazardsOn=true,blackHoleOn=false,sim=0,last=performance.now(),hover=-1;
+const names=['Mercury','Venus','Earth','Mars','Jupiter','Saturn','Uranus','Neptune'];
+const colors=['#aeb9c2','#e3b77e','#3ca9fa','#dc7150','#d2aa80','#d8c395','#8ce7ed','#588bdb'];
+const sizes=[3.6,6.3,7.3,5.2,15,12,9,9];
+const periods=[.24,.615,1,1.88,11.86,29.46,84,164.8];
+const phases=[2.5,4.2,1.1,5.4,2.8,1.6,3.7,5.7];
+const stars=Array.from({length:420},(_,i)=>({x:((i*127.7+Math.sin(i*13)*193)%1000+1000)%1000/1000,y:((i*317.3+Math.cos(i*7)*131)%1000+1000)%1000/1000,r:.3+(i%5)*.22,a:.25+(i%7)*.09}));
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}addEventListener('resize',resize);new ResizeObserver(resize).observe(canvas);resize();
+function point(cx,cy,r,a){return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*.64}}
+function label(t,x,y,color='#d6eefe'){ctx.font='12px Arial';const w=ctx.measureText(t).width+16;ctx.fillStyle='#04152be8';ctx.strokeStyle=color+'99';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-w/2,y-21,w,22,6);ctx.fill();ctx.stroke();ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(t,x,y-6)}
+// Black hole far outside the planets, lower left. Distance uses Earth's orbit as 1 AU (map scale).
+const BH={x:-2.4,y:2.2},BH_AU=(Math.hypot(BH.x,BH.y)/.392).toFixed(1);let bhScreen=null,bhArrow=null;
+// When the black hole is off screen, point at it from the edge with its distance.
+function edgeArrow(x,y){const m=34;if(x>m&&x<W-m&&y>m&&y<H-m){bhArrow=null;return}const ox=W*.5,oy=H*.5,dx=x-ox,dy=y-oy,s=Math.min(dx?Math.abs((W/2-m)/dx):1e9,dy?Math.abs((H/2-m)/dy):1e9),ax=ox+dx*s,ay=oy+dy*s,a=Math.atan2(dy,dx);ctx.save();ctx.translate(ax,ay);ctx.rotate(a);ctx.fillStyle='#b884ff';ctx.shadowColor='#a040ff';ctx.shadowBlur=16;ctx.beginPath();ctx.moveTo(15,0);ctx.lineTo(-10,-11);ctx.lineTo(-4,0);ctx.lineTo(-10,11);ctx.closePath();ctx.fill();ctx.restore();const lx=Math.min(W-95,Math.max(95,ax-Math.cos(a)*70)),ly=Math.min(H-12,Math.max(32,ay-Math.sin(a)*36));label(`⚠ BLACK HOLE · ${BH_AU} AU`,lx,ly,'#c79aff');bhArrow={x:ax,y:ay,lx,ly}}
+// Black hole drawn like the 3D one: lensed light over the top, black shadow, photon ring,
+// and a nearly edge-on accretion disk whose front half crosses in front of the shadow.
+const BH_R=16,BH_TILT=-.22,BH_COLORS=[[0,'255,238,205'],[.15,'255,178,80'],[.42,'240,95,25'],[.75,'150,35,20'],[1,'120,50,170']];
+function bhColor(k){for(let i=1;i<BH_COLORS.length;i++)if(k<=BH_COLORS[i][0])return BH_COLORS[i-1][1];return BH_COLORS[BH_COLORS.length-1][1]}
+function bhDisk(front,t){const n=40;for(let i=0;i<n;i++){const k=i/(n-1),rr=BH_R*1.5+k*BH_R*3.7,flick=.55+.45*Math.sin(i*12.99+t*.9),a=Math.pow(1-k,1.3)*flick*(front?.95:.7);if(a<.02)continue;const g=ctx.createLinearGradient(-rr,0,rr,0),c=bhColor(k);g.addColorStop(0,`rgba(${c},${a})`);g.addColorStop(.5,`rgba(${c},${a*.75})`);g.addColorStop(1,`rgba(${c},${a*.35})`);ctx.strokeStyle=g;ctx.lineWidth=1+(1-k)*2.2;ctx.setLineDash([6+((i*7)%11),3+((i*5)%7)]);ctx.lineDashOffset=-t*(26/(.4+k*1.6))-i*13;ctx.beginPath();ctx.ellipse(0,0,rr,rr*.2,0,front?0:Math.PI,front?Math.PI:Math.PI*2);ctx.stroke()}ctx.setLineDash([])}
+function drawBlackHole(x,y,t){ctx.save();glow(x,y,BH_R*7,'#4b1fa040');glow(x,y,BH_R*3.2,'#ff8a3a30');ctx.translate(x,y);ctx.rotate(BH_TILT);ctx.globalCompositeOperation='lighter';
+bhDisk(false,t);
+// lensed far side of the disk: wide over the top, thin under the bottom
+for(let i=0;i<14;i++){const k=i/13,rr=BH_R*(1.12+k*1.05),a=(1-k)*.42*(.6+.4*Math.sin(i*3.1+t*.7));ctx.strokeStyle=`rgba(${bhColor(k*.8)},${a})`;ctx.lineWidth=1.6;ctx.setLineDash([10+i%5,4]);ctx.lineDashOffset=t*14+i*9;ctx.beginPath();ctx.arc(0,0,rr,Math.PI*1.04,Math.PI*1.96);ctx.stroke()}
+for(let i=0;i<4;i++){const rr=BH_R*(1.1+i*.08);ctx.strokeStyle=`rgba(255,190,110,${.35-i*.07})`;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,rr,Math.PI*.08,Math.PI*.92);ctx.stroke()}
+ctx.setLineDash([]);ctx.globalCompositeOperation='source-over';
+ctx.fillStyle='#000';ctx.beginPath();ctx.arc(0,0,BH_R,0,7);ctx.fill();
+ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba(255,240,220,.9)';ctx.lineWidth=1.3;ctx.shadowColor='#ffd9a0';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,BH_R*1.04,0,7);ctx.stroke();ctx.shadowBlur=0;
+bhDisk(true,t);ctx.restore()}
+function orb(cx,cy,r){ctx.beginPath();ctx.ellipse(cx,cy,r,r*.64,0,0,Math.PI*2);ctx.strokeStyle='#17649c80';ctx.lineWidth=1;ctx.stroke()}
+function glow(x,y,r,col){let g=ctx.createRadialGradient(x,y,1,x,y,r);g.addColorStop(0,col);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
+function draw(now){bhScreen=null;const dt=Math.min((now-last)/1000,.05);last=now;if(playing)sim+=dt*Number(document.querySelector('#speed').value);ctx.fillStyle='#020713';ctx.fillRect(0,0,W,H);
+const cx=W*.50+view.x,cy=H*.48+view.y,maxR=Math.min(W*.46,H*.67)*view.zoom,radii=names.map((_,i)=>maxR*(.16+i*.116));
+for(const s of stars){ctx.fillStyle=`rgba(178,217,255,${s.a})`;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,7);ctx.fill()}
+glow(cx,cy,maxR*.8,'#10205222');
+for(let i=0;i<8;i++)orb(cx,cy,radii[i]);
+glow(cx,cy,65,'#ff8b153a');glow(cx,cy,39,'#ff9e3b77');
+let sg=ctx.createRadialGradient(cx-9,cy-9,2,cx,cy,28);sg.addColorStop(0,'#fffce1');sg.addColorStop(.34,'#ffe475');sg.addColorStop(.75,'#ff9219');sg.addColorStop(1,'#d94307');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(cx,cy,27,0,7);ctx.fill();label('SUN',cx,cy-39,'#ffcf68');
+const positions=[];
+for(let i=0;i<8;i++){const angle=phases[i]+sim*.28/Math.sqrt(periods[i]);const p=point(cx,cy,radii[i],angle);positions.push(p)}
+if(routeOn){let e=positions[2],m=positions[3];ctx.save();ctx.setLineDash([9,7]);ctx.lineWidth=3;ctx.strokeStyle='#28eaff';ctx.shadowBlur=13;ctx.shadowColor='#17dfff';ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.quadraticCurveTo(cx,cy-maxR*.78,m.x,m.y);ctx.stroke();ctx.restore();for(let i=1;i<=3;i++){let t=i/4,x=(1-t)*(1-t)*e.x+2*(1-t)*t*cx+t*t*m.x,y=(1-t)*(1-t)*e.y+2*(1-t)*t*(cy-maxR*.78)+t*t*m.y;glow(x,y,10,'#22eaff55');ctx.fillStyle='#6ffaff';ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();label('WP-'+i,x,y-12,'#5bf9d4')}}
+if(hazardsOn){let ax=cx+maxR*.45,ay=cy-maxR*.40;ctx.strokeStyle='#ff4c6b';ctx.setLineDash([8,6]);ctx.beginPath();ctx.ellipse(ax,ay,66,36,-.2,0,7);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<18;i++){let a=i*2.4+sim*.12,rr=13+(i*31)%53;ctx.fillStyle=i%2?'#8996b4':'#d0d3df';ctx.beginPath();ctx.arc(ax+Math.cos(a)*rr,ay+Math.sin(a)*rr*.55,2+i%3,0,7);ctx.fill()}label('⚠ ASTEROID FIELD',ax,ay-57,'#ff7384');
+if(blackHoleOn){let bx=cx+BH.x*maxR,by=cy+BH.y*.64*maxR;bhScreen={x:bx,y:by};drawBlackHole(bx,by,sim);label('⚠ BLACK HOLE',bx,by-62,'#c79aff');}
+let sx=cx+maxR*.59,sy=cy+maxR*.46;glow(sx,sy,67,'#ff821c44');for(let i=0;i<7;i++){let a=i*.92+sim*.6;ctx.strokeStyle='#ffb32b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,25+i*5,a,a+1.3);ctx.stroke()}label('⚠ SOLAR STORM',sx,sy-63,'#ffd18a')}
+positions.forEach((p,i)=>{let r=sizes[i];glow(p.x,p.y,r*2.8,colors[i]+'33');let g=ctx.createRadialGradient(p.x-r*.4,p.y-r*.5,1,p.x,p.y,r);g.addColorStop(0,'#f0f4ff');g.addColorStop(.25,colors[i]);g.addColorStop(1,'#14233c');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.fill();if(i===5){ctx.strokeStyle='#e4cdaa';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(p.x,p.y,r*1.8,r*.65,-.3,0,7);ctx.stroke()}if(i===hover){ctx.strokeStyle='#72efff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,r+7,0,7);ctx.stroke()}label(names[i],p.x,p.y-r-9,i===2?'#59edff':'#c1e3f5')});
+if(bhScreen)edgeArrow(bhScreen.x,bhScreen.y);else bhArrow=null;canvas._positions=positions;requestAnimationFrame(draw)}requestAnimationFrame(draw);
+canvas.addEventListener('click',e=>{if(dragged){dragged=false;return}const b=canvas.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;if(bhArrow&&bhScreen&&(Math.hypot(x-bhArrow.x,y-bhArrow.y)<30||Math.hypot(x-bhArrow.lx,y-bhArrow.ly)<45)){view.x+=W*.5-bhScreen.x;view.y+=H*.48-bhScreen.y;return}let nearest=-1,d=999;canvas._positions?.forEach((p,i)=>{let v=Math.hypot(p.x-x,p.y-y);if(v<d){d=v;nearest=i}});if(d<38){hover=nearest;const msg=`${names[nearest]} selected. Orbital period: ${periods[nearest]} Earth years (illustrative animation, not to scale). Click another planet to inspect it.`;document.querySelector('#info').textContent=msg;if(embedded)parent.postMessage({type:'map-info',text:msg},location.origin)}});
+document.querySelector('#toggle').onclick=e=>{playing=!playing;e.target.textContent=playing?'⏸ Pause':'▶ Play'};
+document.querySelector('#route').onclick=e=>{routeOn=!routeOn;e.target.classList.toggle('active',routeOn);e.target.textContent=(routeOn?'✓':'○')+' Mission Route'};
+document.querySelector('#hazards').onclick=e=>{hazardsOn=!hazardsOn;e.target.classList.toggle('active',hazardsOn);e.target.textContent=(hazardsOn?'✓':'○')+' Hazards'};
+document.querySelector('#reset').onclick=()=>{sim=0;hover=-1;document.querySelector('#speed').value=1;fitView()};
+// Zoom and pan. Orbits, the route and hazards scale with the zoom; planets and labels keep their size.
+const MIN_ZOOM=.3,MAX_ZOOM=6;
+function zoomAt(factor,px,py){const z=Math.min(MAX_ZOOM,Math.max(MIN_ZOOM,view.zoom*factor)),f=z/view.zoom;if(f===1)return;const cx=W*.5+view.x,cy=H*.48+view.y;view.x=px-(px-cx)*f-W*.5;view.y=py-(py-cy)*f-H*.48;view.zoom=z}
+function fitView(){view.zoom=1;view.x=0;view.y=0}
+canvas.addEventListener('wheel',e=>{e.preventDefault();const b=canvas.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)),e.clientX-b.left,e.clientY-b.top)},{passive:false});
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};dragged=false;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!dragged&&Math.hypot(dx,dy)<5)return;dragged=true;canvas.style.cursor='grabbing';view.x=drag.vx+dx;view.y=drag.vy+dy});
+const endDrag=()=>{drag=null;canvas.style.cursor=''};canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+document.querySelector('#zoomIn').onclick=()=>zoomAt(1.4,W*.5,H*.48);
+document.querySelector('#zoomOut').onclick=()=>zoomAt(1/1.4,W*.5,H*.48);
+document.querySelector('#fit').onclick=fitView;
+const held=new Set(),KEYS={KeyW:'in',ArrowUp:'in',KeyS:'out',ArrowDown:'out',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
+addEventListener('keydown',e=>{const k=KEYS[e.code];if(!k||e.metaKey||e.ctrlKey||e.altKey||e.target.tagName==='INPUT')return;e.preventDefault();held.add(k)});
+addEventListener('keyup',e=>held.delete(KEYS[e.code]));addEventListener('blur',()=>held.clear());
+(function keyLoop(){if(held.has('in'))zoomAt(1.025,W*.5,H*.48);if(held.has('out'))zoomAt(1/1.025,W*.5,H*.48);if(held.has('left'))view.x+=8;if(held.has('right'))view.x-=8;requestAnimationFrame(keyLoop)})();;
+</script></body></html>
