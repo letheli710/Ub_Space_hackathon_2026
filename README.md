@@ -5,8 +5,11 @@ backend. The browser displays the backend's ship and mission map, measured arm
 positions, and simulation time. Its controls send real arm and pause/resume
 commands to the simulator.
 
-Disaster injection, ship-health simulation and autonomous AI agents are planned
-features in the live simulator. A separate browser demo illustrates disasters.
+Four DeepSeek-connected AI roles now support proposals, risk analysis and
+Main Judging's combined approvals. AI is off by default until you configure a
+key. Live health, scenario events, nearby-object sensing and approved arm
+maintenance are now implemented in the shared backend game model.
+A separate browser demo illustrates disasters.
 The current ship is a replaceable starter asset. The default backend map is now
 the solar system converted from the frontend artwork: Sun, eight orbiting
 planets, and hazard landmarks. The ship starts near Earth and navigates to Mars.
@@ -18,6 +21,12 @@ overlays. Pause controls the Gazebo world; Orbit speed changes the planets'
 backend motion. The map has no independent browser animation clock.
 
 ## Start here
+
+To make AI act, use **AI Logs → Run one cycle** or **Start loop**. **Analyze only**
+is a preview; **Execute approved plan** dispatches its fresh judgement. Watch the
+ship in **Generator → LIVE SIM**. The five Demo Telemetry health fields now have
+live counterparts shared with AI. See [live status and behavior](UB_Spaceship_Travel_Sim_Backend/docs/ship-state-and-sensing.md)
+for rebuild steps and a scenario walkthrough.
 
 The project folder is **`Ub_Space_hackathon_2026`**. All instructions use paths
 inside this folder, so they work wherever you keep the project.
@@ -210,6 +219,9 @@ install packages on the Mac itself so native dependencies match its OS and CPU.
 
 ## Check that everything works
 
+These manual checks use the default `AI_ENABLED=false`. If you enabled AI,
+use **AI Logs** to request approved actions instead of sending manual targets.
+
 1. Open the Generator tab. The backend spaceship and four arms should appear.
 2. Change a joint target and press **Send arm target**.
 3. Watch the measured joint readings change as the arm moves.
@@ -275,6 +287,8 @@ See [model and map import instructions](UB_Spaceship_Travel_Sim_Backend/docs/mod
 for formats, joint mappings and import limitations.
 
 ## More help
+
+- [Enable AI on Windows or Mac, role prompts and model API ports](UB_Spaceship_Travel_Sim_Backend/docs/ai-management.md)
 
 - [Backend setup, configuration, logs and troubleshooting](UB_Spaceship_Travel_Sim_Backend/README.md)
 - [Frontend setup, configuration, builds and troubleshooting](frontend/README.md)

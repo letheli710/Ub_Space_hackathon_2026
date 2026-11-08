@@ -70,6 +70,42 @@
         }
       }
     },
+    "/api/v1/disasters": {
+      "post": {
+        "summary": "Inject Disaster",
+        "operationId": "inject_disaster_api_v1_disasters_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisasterCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/arms/{arm_id}/target": {
       "post": {
         "summary": "Command Arm",
@@ -91,6 +127,53 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ArmCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/solar-panels/{panel_id}/target": {
+      "post": {
+        "summary": "Command Solar Panel",
+        "operationId": "command_solar_panel_api_v1_solar_panels__panel_id__target_post",
+        "parameters": [
+          {
+            "name": "panel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Panel Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolarPanelCommand"
               }
             }
           }
@@ -188,6 +271,317 @@
           }
         }
       }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Ai Status",
+        "operationId": "ai_status_api_v1_ai_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/systems": {
+      "get": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Systems",
+        "operationId": "systems_api_v1_ai_systems_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/systems/{system_id}": {
+      "get": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "System Description",
+        "operationId": "system_description_api_v1_ai_systems__system_id__get",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SystemId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/systems/{system_id}/invoke": {
+      "post": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Invoke",
+        "operationId": "invoke_api_v1_ai_systems__system_id__invoke_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SystemId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/cycles": {
+      "get": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Cycles",
+        "operationId": "cycles_api_v1_ai_cycles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Start Cycle",
+        "operationId": "start_cycle_api_v1_ai_cycles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CycleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/cycles/{cycle_id}": {
+      "get": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Get Cycle",
+        "operationId": "get_cycle_api_v1_ai_cycles__cycle_id__get",
+        "parameters": [
+          {
+            "name": "cycle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cycle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/cycles/{cycle_id}/execute": {
+      "post": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Execute Cycle",
+        "operationId": "execute_cycle_api_v1_ai_cycles__cycle_id__execute_post",
+        "parameters": [
+          {
+            "name": "cycle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cycle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/control": {
+      "post": {
+        "tags": [
+          "Spacecraft AI"
+        ],
+        "summary": "Control",
+        "operationId": "control_api_v1_ai_control_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoopRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -210,6 +604,45 @@
         ],
         "title": "ArmCommand"
       },
+      "CycleRequest": {
+        "properties": {
+          "execute": {
+            "type": "boolean",
+            "title": "Execute",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CycleRequest"
+      },
+      "DisasterCommand": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "severity": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Severity",
+            "default": 65
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "DisasterCommand"
+      },
+      "EmptyRequest": {
+        "properties": {},
+        "additionalProperties": false,
+        "type": "object",
+        "title": "EmptyRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -222,6 +655,20 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "LoopRequest": {
+        "properties": {
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "running"
+        ],
+        "title": "LoopRequest"
       },
       "MapControl": {
         "properties": {
@@ -238,6 +685,30 @@
           "orbit_speed"
         ],
         "title": "MapControl"
+      },
+      "SolarPanelCommand": {
+        "properties": {
+          "target_rad": {
+            "type": "number",
+            "title": "Target Rad"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_rad"
+        ],
+        "title": "SolarPanelCommand"
+      },
+      "SystemId": {
+        "type": "string",
+        "enum": [
+          "main_judging",
+          "energy",
+          "propelling",
+          "robot_arms"
+        ],
+        "title": "SystemId"
       },
       "ValidationError": {
         "properties": {

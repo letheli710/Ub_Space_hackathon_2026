@@ -12,6 +12,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, FiniteFloat, Field
+from starship_sim.ai.coordinator import AICoordinator
+from starship_sim.ai.routes import install_ai_routes
+from starship_sim.ai.settings import load_settings
+from starship_sim.spacecraft import DISASTERS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,8 +35,20 @@ class MapControl(BaseModel):
     orbit_speed: FiniteFloat = Field(ge=0, le=5)
 
 
-def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
+class SolarPanelCommand(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    target_rad: FiniteFloat
+
+
+class DisasterCommand(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    kind: str
+    severity: FiniteFloat = Field(default=65, ge=1, le=100)
+
+
+def create_app(backend=None, origins=None, scene_path=None, assets_dir=None, ai_settings=None, ai_client=None):
     scene = json.loads(Path(scene_path or ROOT / "config/scene.json").read_text(encoding="utf-8"))
+    settings = ai_settings or load_settings()
     allowed_origins = origins if origins is not None else [
         value.strip() for value in os.getenv(
             "WEB_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
@@ -44,11 +60,14 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
         nonlocal backend
         if backend is None:
             from starship_sim.ros_backend import RosBackend
-            backend = RosBackend(scene)
+            backend = RosBackend(scene, ai_managed=settings.enabled)
         app.state.backend = backend
         try:
+            app.state.ai = AICoordinator(scene, backend, settings, ai_client)
             yield
         finally:
+            if hasattr(app.state, 'ai'):
+                await app.state.ai.close()
             backend.close()
 
     app = FastAPI(title="Starship Environment API", version="0.1.0", lifespan=lifespan,
@@ -85,8 +104,19 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
     def get_state():
         return app.state.backend.snapshot()
 
+    @app.post('/api/v1/disasters', status_code=202)
+    def inject_disaster(command: DisasterCommand):
+        if command.kind not in DISASTERS:
+            raise HTTPException(422, 'Unknown disaster kind')
+        try:
+            return app.state.backend.inject_disaster(command.kind, command.severity)
+        except RuntimeError as exc:
+            raise HTTPException(503, str(exc)) from exc
+
     @app.post("/api/v1/arms/{arm_id}/target", status_code=202)
     def command_arm(arm_id: str, command: ArmCommand):
+        if settings.enabled:
+            raise HTTPException(403, 'Manual actuator commands are disabled in AI-managed mode; use Main Judging')
         if arm_id not in arms:
             raise HTTPException(404, "Unknown arm")
         joints = arms[arm_id]["joints"]
@@ -99,6 +129,20 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
                 raise HTTPException(422, f"{name} is outside the joint limits")
         try:
             return app.state.backend.command_arm(arm_id, command.targets)
+        except RuntimeError as exc:
+            raise HTTPException(503, str(exc)) from exc
+
+    @app.post('/api/v1/solar-panels/{panel_id}/target', status_code=202)
+    def command_solar_panel(panel_id: str, command: SolarPanelCommand):
+        if settings.enabled:
+            raise HTTPException(403, 'Manual actuator commands are disabled in AI-managed mode; use Main Judging')
+        panel = next((panel for panel in scene.get('solar_panels', []) if panel['id'] == panel_id), None)
+        if not panel:
+            raise HTTPException(404, 'Unknown solar panel')
+        if not panel['lower_rad'] <= command.target_rad <= panel['upper_rad']:
+            raise HTTPException(422, 'Solar-panel target is outside its limits')
+        try:
+            return app.state.backend.command_solar_panel(panel_id, command.target_rad)
         except RuntimeError as exc:
             raise HTTPException(503, str(exc)) from exc
 
@@ -136,4 +180,5 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None):
         except (WebSocketDisconnect, asyncio.TimeoutError, OSError):
             pass
 
+    install_ai_routes(app, scene)
     return app

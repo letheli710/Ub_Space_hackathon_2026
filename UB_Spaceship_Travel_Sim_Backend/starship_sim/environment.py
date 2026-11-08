@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
+from starship_sim.spacecraft import COMPONENTS, SimulationConfig
 
 IDENTITY = {"position": dict(x=0., y=0., z=0.), "orientation": dict(x=0., y=0., z=0., w=1.)}
 RUNTIME_PLUGINS = {"VelocityControl", "PosePublisher", "JointStatePublisher", "JointPositionController"}
@@ -235,6 +236,9 @@ def bridge_config(scene):
         for name in arm["joints"]:
             topic = f'/arms/{arm["id"]}/{name}/target'
             entries.append((topic, topic, "std_msgs/msg/Float64", "gz.msgs.Double", "ROS_TO_GZ"))
+    for panel in scene.get("solar_panels", []):
+        topic = f'/solar_panels/{panel["id"]}/target'
+        entries.append((topic, topic, "std_msgs/msg/Float64", "gz.msgs.Double", "ROS_TO_GZ"))
     for item in scene["map"]["objects"]:
         if "orbit" in item:
             topic = item["orbit"]["velocity_topic"]
@@ -310,9 +314,43 @@ def build_environment(root, profile):
             metadata["joints"][name] = {"joint_name": joint_name, "lower_rad": lower, "upper_rad": upper}
             values(plugin(ship, "joint-position-controller", "JointPositionController"), joint_name=joint_name,
                    topic=f'/arms/{arm["id"]}/{name}/target', p_gain=80, d_gain=12, i_gain=0, cmd_min=-200, cmd_max=200)
+        if 'maintenance' in arm:
+            service = arm['maintenance']
+            if set(service) - {'components', 'targets_rad', 'tolerance_rad'}:
+                raise ValueError('Unknown arm maintenance configuration')
+            components, targets = service['components'], service['targets_rad']
+            tolerance = float(service.get('tolerance_rad', .12))
+            if not components or len(set(components)) != len(components) or set(components) - set(COMPONENTS) or not targets or not math.isfinite(tolerance) or not 0 < tolerance <= .3:
+                raise ValueError('Invalid maintenance components, joint targets or tolerance')
+            for key, target in targets.items():
+                limits = metadata['joints'].get(key)
+                if not limits or not math.isfinite(target) or not limits['lower_rad'] <= target <= limits['upper_rad']:
+                    raise ValueError('Maintenance pose must use mapped joints within their limits')
+            metadata['maintenance'] = {'components': components, 'targets_rad': targets, 'tolerance_rad': tolerance}
         arms.append(metadata)
+    panels = []
+    for panel in profile.get("solar_panels", []):
+        identifier, joint_name = panel["id"], panel["joint_name"]
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", identifier) or any(item["id"] == identifier for item in panels) or joint_name in configured_joints:
+            raise ValueError("Solar panel IDs must be unique and their joints cannot overlap arm joints")
+        joint = ship.find(f'joint[@name="{joint_name}"]')
+        if joint is None or joint.get("type") != "revolute":
+            raise ValueError("Solar panel joint must exist and be revolute")
+        lower, upper = float(joint.findtext("axis/limit/lower", "nan")), float(joint.findtext("axis/limit/upper", "nan"))
+        if not math.isfinite(lower) or not math.isfinite(upper) or lower >= upper:
+            raise ValueError("Solar panel joints need finite lower/upper limits")
+        configured_joints.add(joint_name)
+        normal, axis = panel.get('normal_body_at_zero', [0, 0, 1]), panel.get('hinge_axis_body', [1, 0, 0])
+        if any(len(v) != 3 or not all(math.isfinite(n) for n in v) or not math.isclose(sum(n*n for n in v), 1., abs_tol=1e-6) for v in (normal, axis)) or abs(sum(normal[i]*axis[i] for i in range(3))) > 1e-6:
+            raise ValueError('Panel normal and hinge axis must be perpendicular unit vectors in the ship body frame')
+        panels.append({"id": identifier, "joint_name": joint_name, "lower_rad": lower, "upper_rad": upper,
+                       'normal_body_at_zero': normal, 'hinge_axis_body': axis})
+        values(plugin(ship, "joint-position-controller", "JointPositionController"), joint_name=joint_name,
+               topic=f'/solar_panels/{identifier}/target', p_gain=120, d_gain=180, i_gain=0, cmd_min=-400, cmd_max=400)
     scene = scene_from_world(world, profile)
     scene["arms"] = arms
+    scene["solar_panels"] = panels
+    scene['simulation'] = SimulationConfig.model_validate(profile.get('simulation', {})).model_dump()
     ids = [entity["id"] for entity in scene["entities"]]
     if len(set(ids)) != len(ids) or scene["destination"]["entity_id"] not in ids:
         raise ValueError("Entity IDs must be unique and the destination must exist in the map")

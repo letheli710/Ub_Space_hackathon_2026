@@ -1,4 +1,5 @@
 import { Activity } from 'lucide-react';
+import { healthReadings } from '../simulation/shipTelemetry.js';
 
 /** Demo readings derived from the active disaster (used by the demo view and the Home page). */
 export function getMetrics(event) {
@@ -20,12 +21,23 @@ const reading = (value, suffix = '', digits = 2) =>
 function LiveTelemetry({ simulation }) {
   const { scene, state, ready } = simulation;
   const navigation = state?.navigation;
+  const status = state?.ship_status;
   return (
     <div className="panel">
       <div className="panelhead">
         <Activity size={18} />
         SHIP TELEMETRY<span className={`live ${ready ? '' : 'stale'}`}>{ready ? '● LIVE' : '● STALE'}</span>
       </div>
+      <p className="muted telemetry-note">Modeled health · Gazebo motion · shared with AI</p>
+      {healthReadings(status).map(({ label, key, value }) => <div className="metric" key={key}>
+        <div><span>{label}</span><b>{reading(value, '%', 1)}</b></div>
+        <div className="track"><div style={{ width: `${value ?? 0}%`, background: value < 75 ? '#f6a15c' : '#00d9e9' }} /></div>
+      </div>)}
+      <div className="metric"><div><span>Measured velocity</span><b>{reading(status?.speed_m_s, ' m/s')}</b></div></div>
+      <div className="metric"><div><span>Attitude</span><b>{status?.attitude?.label ?? '—'}</b></div></div>
+      <div className="metric"><div><span>Battery balance</span><b>{reading(status?.power?.balance_pct_s, '%/s', 3)}</b></div></div>
+      {(status?.active_faults ?? []).map(fault => <p className="telemetry-fault" key={fault.kind}>{fault.kind} · severity {fault.severity.toFixed(0)}%</p>)}
+      {(status?.maintenance ?? []).map(job => <p className="muted telemetry-note" key={job.arm_id}>{job.arm_id} → {job.component.replaceAll('_', ' ')} · {job.status.replaceAll('_', ' ')} · recovered {job.recovered_pct.toFixed(1)}%</p>)}
       <div className="metric">
         <div>
           <span>Destination</span>
@@ -57,6 +69,17 @@ function LiveTelemetry({ simulation }) {
         </div>
       </div>
       <div className="joint-readings">
+        <h4>NEARBY OBJECTS · {state?.sensors?.range_m ?? '—'} m RANGE</h4>
+        {!ready ? <p className="muted">Detections are stale.</p> : !state?.sensors?.ready ? <p className="muted">Waiting for sensor samples.</p> :
+          state.sensors.objects.length === 0 ? <p className="muted">No objects detected within range.</p> :
+            state.sensors.objects.slice(0, 6).map(object => <div className="arm-reading" key={object.entity_id}>
+              <strong>{object.label}{object.proximity_warning ? ' · PROXIMITY' : ''}</strong>
+              <div><span>Distance</span><output>{reading(object.distance_m, ' m', 1)}</output></div>
+              <div><span>Closing speed</span><output>{reading(object.closing_speed_m_s, ' m/s', 1)}</output></div>
+            </div>)}
+        <h4>PROPULSION & SOLAR PANELS</h4>
+        <p>{state?.propulsion?.control_mode?.replaceAll('_', ' ') ?? '—'}</p>
+        {(state?.solar_panels ?? []).map(panel => <div className="arm-reading" key={panel.id}><strong>{panel.id}</strong><output>{reading(panel.measured_rad, ' rad', 3)}</output></div>)}
         <h4>MEASURED ARM POSITIONS</h4>
         {(scene?.arms ?? []).map((arm) => {
           const measurement = state?.arms.find((item) => item.id === arm.id);
@@ -74,7 +97,7 @@ function LiveTelemetry({ simulation }) {
         })}
       </div>
       <p className="muted telemetry-note">
-        System health and AI action readings will appear when those systems are available.
+        Sensor warnings use approximate geometry. Health, charge rates and maintenance are game mechanics; they do not measure material damage or electrical watts.
       </p>
     </div>
   );

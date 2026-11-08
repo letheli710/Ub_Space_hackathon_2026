@@ -15,6 +15,18 @@
         "yaw": "arm_power_yaw",
         "shoulder": "arm_power_shoulder",
         "elbow": "arm_power_elbow"
+      },
+      "maintenance": {
+        "components": [
+          "solar_panels",
+          "electronics"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -24,6 +36,17 @@
         "yaw": "arm_life_support_yaw",
         "shoulder": "arm_life_support_shoulder",
         "elbow": "arm_life_support_elbow"
+      },
+      "maintenance": {
+        "components": [
+          "life_support"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -33,6 +56,18 @@
         "yaw": "arm_thermal_yaw",
         "shoulder": "arm_thermal_shoulder",
         "elbow": "arm_thermal_elbow"
+      },
+      "maintenance": {
+        "components": [
+          "hull",
+          "robot_arms"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -42,6 +77,17 @@
         "yaw": "arm_navigation_yaw",
         "shoulder": "arm_navigation_shoulder",
         "elbow": "arm_navigation_elbow"
+      },
+      "maintenance": {
+        "components": [
+          "thrusters"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     }
   ],
@@ -111,5 +157,23 @@
         "description": "Map landmark; gravity and black-hole damage are not implemented."
       }
     }
+  },
+  "solar_panels": [
+    {
+      "id": "port",
+      "joint_name": "solar_port_tilt"
+    },
+    {
+      "id": "starboard",
+      "joint_name": "solar_starboard_tilt"
+    }
+  ],
+  "simulation": {
+    "sensor_range_m": 1000,
+    "initial_battery_pct": 100,
+    "solar_charge_pct_s": 1.2,
+    "idle_drain_pct_s": 0.08,
+    "thrust_drain_pct_s": 0.6,
+    "maintenance_rate_pct_s": 2
   }
 }

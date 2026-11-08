@@ -1,5 +1,65 @@
 # Environment validation
 
+## Live ship state and AI behavior — latest validation
+
+Verified November 7, 2026, on Windows/Ubuntu WSL 2.
+
+- **84 backend tests** and **12 frontend tests** passed; the production build
+  passed with its existing bundle-size advisory. A regression test first failed
+  because AI observations omitted the five live health metrics; it now passes.
+- State tests check measured relative motion, detection range, missing dynamic
+  objects, charging, efficiency/battery thrust limits, simulation-clock faults,
+  read-only snapshots, service-pose/power gates and action ownership.
+- The isolated real-Gazebo test passed: preview published nothing; approved
+  navigation, panels and arm service reached actuators; propulsion expired;
+  measured service joints gated modeled hull recovery. All fixture-model
+  observations contained health and nearby detections.
+- One executing cycle used the user's configured **real DeepSeek connections**
+  through the browser. After a 65%-severity asteroid scenario, Main Judging
+  combined thermal-arm hull service, both panel targets at 1.4 radians, and a
+  bounded zero-velocity hold. It rejected navigation during maintenance.
+- Live telemetry showed modeled hull integrity rise from **68.8% to 88.3%**,
+  measured service-pose completion, panel rotation and charging that subsequently
+  filled the battery to 100%. The browser rendered the actuated model and the
+  same status/detections supplied to AI. No loop was started.
+
+Health, power balance and maintenance are game mechanics. This does not validate
+material repair, contact sensing, electrical watts, camera/LiDAR perception or
+real-world flight. Earlier records below describe earlier implementation stages.
+
+## Initial AI model interfaces and approval authority
+
+Verified locally on November 7, 2026, on Windows/Ubuntu WSL 2.
+
+- Backend suite: **77 tests passed**. Coverage includes DeepSeek JSON requests
+  and sanitized errors, role ownership, actuator limits, full/partial/combined
+  approvals, conflicting/invented commands, stale plans, cancellation, replay
+  prevention, missing keys and blocked manual actuators in AI mode.
+- Frontend suite: **11 tests passed**; production build passed. Vite reports the
+  existing large JavaScript bundle advisory.
+- Actual Gazebo manual-mode checks passed through the API: eight planetary
+  orbits and 0x/2x controls, clock pause/resume, four measured arm movements,
+  both measured solar-panel hinge movements and WebSocket telemetry.
+- A disposable container, ROS domain 78 and Gazebo partition
+  `starship_ai_validation` exercised `tools/smoke_ai.py` with injected model
+  responses. AI hold and direct-command rejection worked; preview published no
+  commands; Main Judging's combined selection moved the real ship, panel and
+  arm. The bounded propulsion grant expired back to hold.
+- The browser showed four `deepseek-flash` role connections, disabled AI and
+  missing-key notices, disabled model-run controls, and the ship's two panels
+  rendered from backend SDF links. No private key was entered.
+- World/scene/bridge and OpenAPI exports were regenerated and checked.
+
+**No real DeepSeek inference was performed.** The user chose to configure the
+backend key later. Provider tests use an HTTP mock transport; the physical AI
+test injects fixtures and has no runtime fallback setting. The normal container
+remains AI-disabled with no provider key. Mac hardware and live model decision
+quality have not been verified.
+
+Hull integrity, electrical generation, battery, fuel, disaster damage and repair
+outcomes remain unavailable. This feature supplies model connections and a
+guarded command pipeline. Earlier environment-only validation follows below.
+
 ## Solar-system map integration
 
 Verified on Windows/Ubuntu WSL on November 7, 2026:

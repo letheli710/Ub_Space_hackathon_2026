@@ -6,6 +6,9 @@ import sys
 import xml.etree.ElementTree as ET
 
 import yaml
+import pytest
+from copy import deepcopy
+from starship_sim.environment import build_environment
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,7 +28,7 @@ def test_world_scene_and_command_bridge_agree():
     assert ship.findtext("static", "false") == "false"
     assert all(j.findtext("parent") != "world" for j in ship.findall("joint"))
     controllers = ship.findall("plugin[@name='gz::sim::systems::JointPositionController']")
-    assert len(controllers) == 12
+    assert len(controllers) == 12 + len(scene.get("solar_panels", []))
     for arm in scene["arms"]:
         for name, limits in arm["joints"].items():
             joint = ship.find(f"joint[@name='{limits['joint_name']}']")
@@ -49,6 +52,35 @@ def test_scene_exports_all_visual_geometry_and_initial_frames():
             for visual in body["visuals"]:
                 assert visual["geometry"]["type"] in {"box", "sphere", "cylinder"}
                 assert len(visual["color"]) == 4
+
+
+def test_solar_panel_scene_limits_controllers_and_bridge_agree():
+    profile = json.loads((ROOT / 'config/environment.json').read_text())
+    generated = build_environment(ROOT, profile)
+    scene = json.loads(generated['config/scene.json'])
+    ship = ET.fromstring(generated['worlds/environment.sdf']).find("world/model[@name='starship']")
+    bridge = yaml.safe_load(generated['config/bridge.yaml'])
+    assert len(scene['solar_panels']) == 2
+    for panel in scene['solar_panels']:
+        joint = ship.find(f"joint[@name='{panel['joint_name']}']")
+        assert float(joint.findtext('axis/limit/lower')) == panel['lower_rad']
+        topic = f'/solar_panels/{panel["id"]}/target'
+        assert ship.find(f"plugin[topic='{topic}']") is not None
+        assert any(item['ros_topic_name'] == topic and item['direction'] == 'ROS_TO_GZ' for item in bridge)
+    without_panels = deepcopy(profile)
+    without_panels.pop('solar_panels')
+    assert json.loads(build_environment(ROOT, without_panels)['config/scene.json'])['solar_panels'] == []
+
+
+@pytest.mark.parametrize('mapping', [
+    [{'id': 'bad/name', 'joint_name': 'solar_port_tilt'}],
+    [{'id': 'panel', 'joint_name': 'missing'}],
+    [{'id': 'panel', 'joint_name': 'solar_port_tilt'}, {'id': 'panel', 'joint_name': 'solar_starboard_tilt'}],
+])
+def test_invalid_solar_mappings_fail_before_startup(mapping):
+    profile = json.loads((ROOT / 'config/environment.json').read_text())
+    profile['solar_panels'] = mapping
+    with pytest.raises(ValueError): build_environment(ROOT, profile)
 
 
 def test_each_arm_is_mounted_within_reach_of_its_equipment():

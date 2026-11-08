@@ -2425,6 +2425,98 @@
           </dynamics>
         </axis>
       </joint>
+      <link name="solar_port">
+        <pose>0 7.3 .9 0 0 0</pose>
+        <inertial>
+          <mass>35</mass>
+          <inertia>
+            <ixx>105.05</ixx>
+            <iyy>186.71</iyy>
+            <izz>291.67</izz>
+          </inertia>
+        </inertial>
+        <visual name="solar_port_visual">
+          <geometry>
+            <box>
+              <size>8 6 .12</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.05 .22 .65 1</diffuse>
+            <ambient>.05 .18 .5 1</ambient>
+          </material>
+        </visual>
+        <collision name="solar_port_collision">
+          <geometry>
+            <box>
+              <size>8 6 .12</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="solar_port_tilt" type="revolute">
+        <pose>0 -3 0 0 0 0</pose>
+        <parent>hull</parent>
+        <child>solar_port</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1.4</lower>
+            <upper>1.4</upper>
+            <effort>400</effort>
+            <velocity>0.5</velocity>
+          </limit>
+          <dynamics>
+            <damping>2</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name="solar_starboard">
+        <pose>0 -7.3 .9 0 0 0</pose>
+        <inertial>
+          <mass>35</mass>
+          <inertia>
+            <ixx>105.05</ixx>
+            <iyy>186.71</iyy>
+            <izz>291.67</izz>
+          </inertia>
+        </inertial>
+        <visual name="solar_starboard_visual">
+          <geometry>
+            <box>
+              <size>8 6 .12</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.05 .22 .65 1</diffuse>
+            <ambient>.05 .18 .5 1</ambient>
+          </material>
+        </visual>
+        <collision name="solar_starboard_collision">
+          <geometry>
+            <box>
+              <size>8 6 .12</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="solar_starboard_tilt" type="revolute">
+        <pose>0 3 0 0 0 0</pose>
+        <parent>hull</parent>
+        <child>solar_starboard</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1.4</lower>
+            <upper>1.4</upper>
+            <effort>400</effort>
+            <velocity>0.5</velocity>
+          </limit>
+          <dynamics>
+            <damping>2</damping>
+          </dynamics>
+        </axis>
+      </joint>
       <plugin filename="gz-sim-velocity-control-system" name="gz::sim::systems::VelocityControl" />
       <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
@@ -2543,6 +2635,24 @@
         <i_gain>0</i_gain>
         <cmd_min>-200</cmd_min>
         <cmd_max>200</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>solar_port_tilt</joint_name>
+        <topic>/solar_panels/port/target</topic>
+        <p_gain>120</p_gain>
+        <d_gain>180</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-400</cmd_min>
+        <cmd_max>400</cmd_max>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+        <joint_name>solar_starboard_tilt</joint_name>
+        <topic>/solar_panels/starboard/target</topic>
+        <p_gain>120</p_gain>
+        <d_gain>180</d_gain>
+        <i_gain>0</i_gain>
+        <cmd_min>-400</cmd_min>
+        <cmd_max>400</cmd_max>
       </plugin>
     </model>
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />

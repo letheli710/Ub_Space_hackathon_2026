@@ -65,12 +65,18 @@ Each envelope contains `type: "state"`, `schema_version: 1`, and `data`:
 | `sim_time_s` | Gazebo simulation clock; initially null. It stops while paused. |
 | `scene_revision` | Active scene/asset revision, matching `GET /api/v1/scene`. |
 | `sequence` | Monotonic callback counter within one backend process. |
+| `run_id`, `control_epoch` | Backend run identity and command-generation counter used to invalidate AI plans. |
+| `ai_managed` | Whether manual actuator commands/autopilot are replaced by the Main Judging gate. |
 | `paused` | Measured world status; initially null. |
 | `connection` | `backend`, `online`, `ready`, topic ages in wall seconds, and any executor error. |
 | `transforms` | Last measured model/link poses, with explicit frame names. |
 | `arms` | Arm IDs, `measured_rad` and separately `requested_rad` for yaw/shoulder/elbow. |
+| `solar_panels` | Panel IDs, measured hinge angles and separately requested targets in radians. |
+| `propulsion` | Control mode, optional requested ship-frame velocity, and simulation-time grant expiration. |
 | `navigation` | Destination ID, measured center distance, arrival flag and nominal cruise speed. |
 | `map.orbit_speed` | Requested orbital velocity multiplier; null for maps without controllable orbits. |
+| `ship_status` | Shared modeled health, battery balance, measured speed/attitude, faults and maintenance results. |
+| `sensors` | Nearby detections, relative position/velocity, closing speed and approximate closest approach. |
 
 Before initialization, measured joint angles are null and transforms may be
 empty. After disconnection, previous measurements remain visible but `ready`
@@ -130,7 +136,37 @@ published target for a joint replaces its previous target.
 202 means the command was published to the ROS/Gazebo bridge. It does not mean
 that the arm reached the target. Inspect `measured_rad` and the link transforms.
 While paused, targets may be accepted but take effect only after resuming.
-There are no direct damage/repair endpoints or AI model connections yet.
+In AI-managed mode this endpoint returns 403; request an AI cycle instead.
+Human scenario control is `POST /api/v1/disasters` with
+`{"kind":"Oxygen Leak","severity":65}`. AI cannot set health or inject disasters.
+Robot Arms may propose `arm_service` for configured capabilities, subject to
+Main Judging approval. See [shared state and sensing](ship-state-and-sensing.md)
+for fields, scenario semantics and measured-pose maintenance gating.
+
+## Solar panels and AI management
+
+`scene.solar_panels` declares optional panel IDs, joint names and angle limits.
+In manual mode, `POST /api/v1/solar-panels/{id}/target` accepts
+`{"target_rad": 0.2}` and returns 202 after publishing. Unknown IDs return 404;
+invalid angles return 422 and unavailable bridges return 503. In AI-managed mode
+it returns 403. Observe `state.solar_panels[].measured_rad` for movement.
+
+Four server-side DeepSeek model connections share port 8000 under `/api/v1/ai`.
+`GET /status` reports models/configuration without secrets. `GET /systems/{id}`
+returns the prompt, current actuator capabilities and output schema.
+`POST /systems/{id}/invoke` with `{}` is analysis only, never execution.
+
+To manage the ship, `POST /cycles` with `{"execute": true}` returns 202 and an
+ID; poll `GET /cycles/{id}`. Energy, Propelling and Robot Arms propose; Main
+Judging selects compatible submitted action IDs after assessing risks. Only the
+validated selection is dispatched. Use `execute:false` for a preview and
+`POST /control` with `{"running":true}` / `false` for loop start/stop.
+Polling never invokes a model. No frontend key is needed or accepted.
+
+See [AI management](ai-management.md) for setup on both operating systems,
+the complete contract, partial/combined approvals, plan expiry, stop semantics
+and unsupported damage/power/repair telemetry. The frontend's AI Logs implements
+this interface independently of its scripted browser Demo.
 
 ## Pause and resume
 

@@ -24,5 +24,6 @@ export default function useSimulation() {
     reconnect: () => { setError(''); client.current?.reconnect(); },
     setPaused: paused => command('/api/v1/simulation/control', { paused }),
     setMapOrbitSpeed: orbit_speed => command('/api/v1/map/control', { orbit_speed }),
-    setArmTargets: (arm, targets) => command(`/api/v1/arms/${encodeURIComponent(arm)}/target`, { targets }) };
+    setArmTargets: (arm, targets) => command(`/api/v1/arms/${encodeURIComponent(arm)}/target`, { targets }),
+    injectDisaster: (kind, severity) => command('/api/v1/disasters', { kind, severity }) };
 }

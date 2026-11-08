@@ -24,7 +24,7 @@ import useSimulation from './simulation/useSimulation.js';
 // Two ways to run the 3D view:
 //  - Live: the ROS/Gazebo simulator is connected; ship, map, telemetry and arms come from it.
 //  - Demo: no simulator needed; the ship flies Earth ⇄ Mars in the browser and the
-//    Disaster Maker can launch hazards. Disasters only run here until the backend supports them.
+//    Disaster Maker can launch illustrative hazards. Live scenario events affect backend health.
 
 /** Moves the demo ship along its Earth ⇄ Mars route while the demo is playing. */
 function useVoyage(playing, onLegEvent) {
@@ -57,7 +57,7 @@ export default function App() {
   const simulation = useSimulation();
   const [tab, setTab] = useState('Home');
   const [viewMode, setViewMode] = useState('live');
-  const live = (viewMode === 'live' || tab === 'Planetary Trajectories') && Boolean(simulation.scene);
+  const live = (viewMode === 'live' || tab === 'Planetary Trajectories' || tab === 'AI Logs') && Boolean(simulation.scene);
 
   const [logs, setLogs] = useState([]);
   const [fullPage, setFullPage] = useState(false);
@@ -290,6 +290,7 @@ export default function App() {
               live={live}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onShowLiveShip={() => { setViewMode('live'); setTab('Generator'); }}
               simulation={simulation}
               onMapInspect={setMapInfo}
               logs={logs}
@@ -314,7 +315,7 @@ export default function App() {
           </main>
 
           <aside className="right">
-            <Telemetry live={live} simulation={simulation} event={event} />
+            <Telemetry live={live || tab === 'AI Logs'} simulation={simulation} event={event} />
             <Timeline logs={logs} />
           </aside>
 

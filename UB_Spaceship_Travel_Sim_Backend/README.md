@@ -2,13 +2,28 @@
 
 This backend runs the spaceship physics and exposes an HTTP/WebSocket interface
 to the frontend. The default API port is **8000**. The default ship has four
-articulated arms and travels toward Mars from a spawn point near Earth.
+articulated arms, two hinged solar panels and travels toward Mars from a spawn
+point near Earth when AI mode is off.
+
+Four LLM roles are available: **Main Judging, Energy, Propelling and Robot Arms**.
+Subsystems propose actions; Main Judging analyzes risk and selects or combines
+their actions before the backend executes them. The default is `deepseek-flash`
+with AI disabled and no API key. Follow the [AI setup guide](docs/ai-management.md)
+for the Windows/macOS steps, prompts, role API ports and current simulation limits.
+You can configure the key later and run the normal simulator now.
+
+AI can read the five Demo Telemetry health equivalents and nearby-object
+detections, then affect thrust, charging and arm maintenance through approved
+actions. Health and recovery use an explicit game model; motion and service-joint
+feedback come from Gazebo. See [live behavior and sensing](docs/ship-state-and-sensing.md)
+for Windows/macOS rebuild steps, scenario controls and observation fields.
 
 The default map is `assets/maps/solar_system.sdf`: the Sun, eight planets with
 Gazebo-controlled orbits, and asteroid/solar-storm/black-hole landmarks. Geometry
 and initial layout follow the frontend's original stylized solar system.
 This is a compressed zero-gravity simulation, not an astronomical gravity model.
-Radiation and black-hole damage are not implemented.
+Radiation and black-hole physics are not implemented; live scenario events
+apply their abstract health effects separately.
 
 The frontend's Planetary Trajectories renders `/api/v1/scene` and measured
 WebSocket transforms. Its pause button controls the world; its Orbit speed
@@ -601,7 +616,8 @@ To exercise HTTP/WebSocket traffic through a running frontend as well:
 uv run python tools/smoke_test.py --base-url http://127.0.0.1:5173
 ```
 
-The smoke test sends real simulated arm targets and briefly pauses/resumes the
+Run this manual smoke test with `AI_ENABLED=false`. It sends real simulated arm
+and solar-panel targets and briefly pauses/resumes the
 simulation. It verifies time, ship movement, measured joint movement and live
 WebSocket delivery.
 

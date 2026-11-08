@@ -3778,6 +3778,104 @@
               "material_override": true
             }
           ]
+        },
+        {
+          "id": "starship::solar_port",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": 7.3,
+              "z": 0.9
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "solar_port_visual",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  8.0,
+                  6.0,
+                  0.12
+                ]
+              },
+              "color": [
+                0.05,
+                0.22,
+                0.65,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
+        },
+        {
+          "id": "starship::solar_starboard",
+          "pose_in_model": {
+            "position": {
+              "x": 0.0,
+              "y": -7.3,
+              "z": 0.9
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "visuals": [
+            {
+              "id": "solar_starboard_visual",
+              "pose": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "orientation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "geometry": {
+                "type": "box",
+                "size": [
+                  8.0,
+                  6.0,
+                  0.12
+                ]
+              },
+              "color": [
+                0.05,
+                0.22,
+                0.65,
+                1.0
+              ],
+              "material_override": true
+            }
+          ]
         }
       ]
     }
@@ -4044,6 +4142,18 @@
           "lower_rad": -1.5,
           "upper_rad": 1.5
         }
+      },
+      "maintenance": {
+        "components": [
+          "solar_panels",
+          "electronics"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -4065,6 +4175,17 @@
           "lower_rad": -1.5,
           "upper_rad": 1.5
         }
+      },
+      "maintenance": {
+        "components": [
+          "life_support"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -4086,6 +4207,18 @@
           "lower_rad": -1.5,
           "upper_rad": 1.5
         }
+      },
+      "maintenance": {
+        "components": [
+          "hull",
+          "robot_arms"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     },
     {
@@ -4107,8 +4240,61 @@
           "lower_rad": -1.5,
           "upper_rad": 1.5
         }
+      },
+      "maintenance": {
+        "components": [
+          "thrusters"
+        ],
+        "targets_rad": {
+          "yaw": 0,
+          "shoulder": 0.25,
+          "elbow": -0.3
+        },
+        "tolerance_rad": 0.12
       }
     }
   ],
-  "revision": "30102d4a02ac2c90b2b5"
+  "solar_panels": [
+    {
+      "id": "port",
+      "joint_name": "solar_port_tilt",
+      "lower_rad": -1.4,
+      "upper_rad": 1.4,
+      "normal_body_at_zero": [
+        0,
+        0,
+        1
+      ],
+      "hinge_axis_body": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "starboard",
+      "joint_name": "solar_starboard_tilt",
+      "lower_rad": -1.4,
+      "upper_rad": 1.4,
+      "normal_body_at_zero": [
+        0,
+        0,
+        1
+      ],
+      "hinge_axis_body": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "simulation": {
+    "sensor_range_m": 1000.0,
+    "initial_battery_pct": 100.0,
+    "solar_charge_pct_s": 1.2,
+    "idle_drain_pct_s": 0.08,
+    "thrust_drain_pct_s": 0.6,
+    "maintenance_rate_pct_s": 2.0
+  },
+  "revision": "ff2227fb73afd4e7c1cb"
 }

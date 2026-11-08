@@ -376,13 +376,13 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "uvicorn" },
     { name = "websockets" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "pytest" },
     { name = "pyyaml" },
 ]
@@ -390,13 +390,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.120,<1" },
+    { name = "httpx", specifier = ">=0.28,<1" },
     { name = "uvicorn", specifier = ">=0.38,<1" },
     { name = "websockets", specifier = ">=15,<17" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28,<1" },
     { name = "pytest", specifier = ">=8.3,<10" },
     { name = "pyyaml", specifier = ">=6,<7" },
 ]

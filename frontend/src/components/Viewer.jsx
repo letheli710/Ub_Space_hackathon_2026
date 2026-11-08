@@ -12,10 +12,11 @@ import { useEffect, useRef, useState } from 'react';
 import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
 import BackendMap from './BackendMap.jsx';
+import AIControlPanel from './AIControlPanel.jsx';
 
 const TITLES = {
   'Planetary Trajectories': 'PLANETARY TRAJECTORIES',
-  'AI Logs': 'SIMULATION EVENT LOG',
+  'AI Logs': 'AI MANAGEMENT & EVENT LOG',
 };
 
 function formatTime(seconds) {
@@ -29,6 +30,7 @@ export default function Viewer({
   live,
   viewMode,
   onViewModeChange,
+  onShowLiveShip,
   simulation,
   logs,
   fullPage,
@@ -103,10 +105,11 @@ export default function Viewer({
       )}
 
       {tab === 'AI Logs' && (
-        <div className="biglogs">
-          {logs.map((item) => (
-            <div key={item.id}>{item.text}</div>
-          ))}
+        <div className="ai-log-view">
+          <AIControlPanel simulation={simulation} onShowLiveShip={onShowLiveShip} />
+          <details className="biglogs"><summary>Simulation and demo events</summary>
+            {logs.map((item) => <div key={item.id}>{item.text}</div>)}
+          </details>
         </div>
       )}
 

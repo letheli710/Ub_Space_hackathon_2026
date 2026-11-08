@@ -7,7 +7,7 @@ const PRESS_FLASH_MS = 450;
 
 const BLACK_HOLE = 'Black Hole Encounter';
 
-// Left column of the Generator tab: disasters (demo view) and robotic arm control (live simulator).
+// Demo projectiles and live backend scenario faults share this human control panel.
 export default function DisasterMaker({
   live,
   simulation,
@@ -21,12 +21,18 @@ export default function DisasterMaker({
   const { severity, speed, angle } = DISASTER_PARAMETERS;
   // Inner buttons are momentary: they fire once and spring back, with a short flash.
   const [pressed, setPressed] = useState(null);
+  const [liveSeverity, setLiveSeverity] = useState(severity);
   const timer = useRef();
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  function fire(name) {
-    onTrigger(name);
+  async function fire(name) {
+    if (live) {
+      try {
+        await simulation.injectDisaster(name, liveSeverity);
+        onLog(`LIVE SCENARIO · ${name} · severity ${liveSeverity}% · backend status updated`);
+      } catch { return; }
+    } else onTrigger(name);
     clearTimeout(timer.current);
     setPressed((p) => ({ name, count: (p?.count ?? 0) + 1 }));
     timer.current = setTimeout(() => setPressed(null), PRESS_FLASH_MS);
@@ -39,7 +45,7 @@ export default function DisasterMaker({
       </div>
       <p className="muted">
         {live
-          ? 'The live simulator has no disaster support yet. Switch the 3D view to Demo to launch hazards.'
+          ? 'Apply a live scenario fault to the backend ship. The AI sees the changed status on its next cycle.'
           : 'Launch hazards at your autonomous spacecraft or trigger failures inside it.'}
       </p>
 
@@ -48,11 +54,11 @@ export default function DisasterMaker({
         {OUTER_DISASTERS.map((name) => (
           <button
             key={name}
-            className={(name === BLACK_HOLE ? blackHole : armed === name) ? 'selected' : ''}
-            aria-pressed={name === BLACK_HOLE ? blackHole : armed === name}
-            disabled={live}
+            className={(live ? pressed?.name === name : name === BLACK_HOLE ? blackHole : armed === name) ? 'selected' : ''}
+            aria-pressed={live ? pressed?.name === name : name === BLACK_HOLE ? blackHole : armed === name}
+            disabled={live && (!simulation.ready || simulation.pending || simulation.state?.paused)}
             onClick={() =>
-              name === BLACK_HOLE ? onToggleBlackHole() : onArm(armed === name ? null : name)
+              live ? fire(name) : name === BLACK_HOLE ? onToggleBlackHole() : onArm(armed === name ? null : name)
             }
           >
             {name}
@@ -68,7 +74,7 @@ export default function DisasterMaker({
             <button
               key={isPressed ? `${name}-${pressed.count}` : name}
               className={isPressed ? 'momentary fired' : 'momentary'}
-              disabled={live}
+              disabled={live && (!simulation.ready || simulation.pending || simulation.state?.paused)}
               onClick={() => fire(name)}
             >
               {name}
@@ -81,7 +87,7 @@ export default function DisasterMaker({
       <dl className="params">
         <div>
           <dt>Severity</dt>
-          <dd>{severity}%</dd>
+          <dd>{live ? liveSeverity : severity}%</dd>
         </div>
         <div>
           <dt>Relative Speed</dt>
@@ -92,6 +98,11 @@ export default function DisasterMaker({
           <dd>{angle}°</dd>
         </div>
       </dl>
+      {live && <>
+        <label className="muted" htmlFor="live-severity">Scenario severity</label>
+        <input id="live-severity" type="range" min="1" max="100" step="1" value={liveSeverity} onChange={event => setLiveSeverity(Number(event.target.value))} />
+        <p className="muted">Live events apply modeled damage/faults immediately. They do not spawn physical projectiles or gravity fields. Resume first if paused. New events invalidate pending AI plans.</p>
+      </>}
 
       {!live && (
         <div className="tip">

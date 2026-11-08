@@ -39,6 +39,7 @@ def main():
     assert scene["ship_entity_id"] in {entity["id"] for entity in scene["entities"]}
     state = request("/api/v1/state")
     assert state["connection"]["backend"] == "space_ros_gazebo"
+    assert not state.get('ai_managed'), 'Manual smoke test requires AI_ENABLED=false'
     t0 = state["sim_time_s"]
     eventually(lambda: request("/api/v1/state")["sim_time_s"] > t0 + 0.5)
     start_distance = state["navigation"]["distance_m"]
@@ -104,6 +105,16 @@ def main():
     eventually(lambda: all(abs(arm["measured_rad"][targets[arm["id"]][0]] - targets[arm["id"]][1]) < 0.08
                            for arm in request("/api/v1/state")["arms"]))
     print(f'PASS: {len(scene["arms"])} arms physically approach their requested joint targets')
+
+    panel_targets = {}
+    for panel in scene.get('solar_panels', []):
+        target = max(panel['lower_rad'], min(.3, panel['upper_rad']))
+        panel_targets[panel['id']] = target
+        request(f'/api/v1/solar-panels/{panel["id"]}/target', {'target_rad': target})
+    if panel_targets:
+        eventually(lambda: all(abs(panel['measured_rad'] - panel_targets[panel['id']]) < .04
+                              for panel in request('/api/v1/state')['solar_panels']))
+        print(f'PASS: {len(panel_targets)} solar-panel hinges physically approach their requested targets')
 
     websocket_url = base.replace("https://", "wss://").replace("http://", "ws://") + "/api/v1/telemetry"
     with connect(websocket_url, open_timeout=5) as socket:

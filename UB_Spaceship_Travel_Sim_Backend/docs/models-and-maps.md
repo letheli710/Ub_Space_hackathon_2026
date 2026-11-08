@@ -112,6 +112,31 @@ replacement SDFs or renamed entities.
 
 ## Supported assets
 
+### Solar panels and AI capabilities
+
+Optionally map solar-panel hinges in `config/environment.json`:
+
+```json
+"solar_panels": [
+  { "id": "port", "joint_name": "solar_port_tilt" },
+  { "id": "starboard", "joint_name": "solar_starboard_tilt" }
+]
+```
+
+Each mapping must identify a distinct revolute joint in the selected ship SDF,
+with finite ordered lower/upper limits. It cannot reuse an arm joint. The
+generator adds position controllers, ROS/Gazebo bridge topics, scene metadata
+and measured telemetry. The browser renders panel links like other imported
+links. Omit the list or use `[]` for a ship without movable panels; Energy then
+has no panel action available and must propose no unsupported action.
+
+AI prompts discover these panels, arms, map objects and speed limits from the
+generated scene. Replacing a ship/map does not require editing role prompts or
+React geometry. Panel health and incidence-based charge rates now use an abstract
+game model, rather than electrical watts or material physics. Arms may declare
+maintenance capabilities and a service pose. See [status configuration](ship-state-and-sensing.md#replacement-models-and-tuning)
+for those fields and panel mounting vectors.
+
 - The ship file contains `<sdf><model>…</model></sdf>` with links, collisions,
   inertias and joints. The map file contains `<sdf><world>…</world></sdf>` with
   top-level models. The map does not contain the ship itself.

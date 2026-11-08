@@ -147,6 +147,9 @@ existing development session, you can use that session.
 
 ## 6. Verify the live connection
 
+These manual checks assume the default `AI_ENABLED=false`. With AI enabled,
+use **AI Logs** for Main Judging approval; manual arm commands are disabled.
+
 1. Wait for the header to show **LIVE**. **PAUSED** also means it is connected,
    with simulation time currently stopped.
 2. In **Generator**, confirm the backend ship and four arms are visible.
@@ -166,7 +169,45 @@ the interface marks measurements stale, keeps the last scene visible, disables
 commands, and retries the connection automatically.
 
 Disasters and AI responses in Generator's Demo mode are browser illustrations.
-Live disaster injection and API-connected AI agents are not implemented.
+Live scenario events now affect backend health. In LIVE SIM, use Disaster Maker
+to apply one; these are modeled faults, rather than physical projectiles. The
+five Demo Telemetry health readings have live counterparts shared with AI.
+API-connected AI management is available in **AI Logs**; follow the setup below.
+
+## Enable the four AI systems (Windows and macOS)
+
+1. Follow the backend [AI setup guide](../UB_Spaceship_Travel_Sim_Backend/docs/ai-management.md#configure-later-or-enable-now)
+   to create/edit backend `.env`, set `DEEPSEEK_API_KEY` and `AI_ENABLED=true`, and
+   rebuild/recreate the backend using the commands for your operating system.
+   You may do this later; no key is required for the default environment.
+2. Start the frontend normally with `npm run dev`. There is no frontend model
+   key or additional server to start. The four roles use the existing API proxy.
+3. Open **AI Logs**. Check Main Judging, Energy, Propelling and Robot Arms show
+   their model and configured state. Configured means a key exists; the first
+   cycle verifies the connection. Missing keys and disabled AI are shown clearly.
+4. Choose **Analyze only** for proposals plus judgement without actuation, then
+   **Execute approved plan** to dispatch the fresh plan once, or
+   **Run one cycle** to execute Main Judging's approved combination. **Start loop**
+   repeats cycles and makes paid API calls until **Stop AI** is selected.
+5. Inspect each proposal, risk review, combination rationale and dispatch result.
+   Compare against measured arm/panel positions and propulsion state in telemetry.
+   Dispatch confirms publication, not successful repair.
+
+In AI-managed mode, manual arm sliders are disabled and the ship holds zero
+commanded velocity until Main Judging approves Propelling's request. Stop AI
+revokes propulsion and cancels analysis/maintenance; previous joint targets may continue.
+Pause the simulation to freeze motion. The **LIVE SPACECRAFT AI** panel controls
+the backend even when Generator's separate Demo mode is selected.
+
+Hull/panel health, battery, oxygen, efficiency, charge balance and maintenance
+now evolve in the backend game model. Detections and measured velocity come from
+Gazebo poses. Fuel and material/electrical repair physics are not modeled.
+Scripted disaster responses in Demo remain illustrations and never
+authorize the backend. See the [AI integration routes](../UB_Spaceship_Travel_Sim_Backend/docs/ai-management.md#model-connection-ports)
+for connecting a different web interface.
+
+See [live status and sensing](../UB_Spaceship_Travel_Sim_Backend/docs/ship-state-and-sensing.md)
+for a scenario and execution walkthrough on Windows and Mac.
 
 ## 7. Stop and restart the website
 

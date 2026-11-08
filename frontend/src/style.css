@@ -847,6 +847,31 @@ footer {
 }
 
 /* Robotic arm section under the Disaster Maker */
+.ai-log-view { flex: 1; min-height: 0; overflow: auto; }
+.ai-management { padding: 18px; color: #bfd3e4; font-size: 12px; line-height: 1.6; }
+.ai-heading { display: flex; justify-content: space-between; gap: 12px; color: #70eef1; letter-spacing: 1px; }
+.ai-heading span { font-size: 10px; }
+.ai-systems { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+.ai-systems > div { display: flex; flex-direction: column; border: 1px solid #234763; border-radius: 6px; padding: 10px; background: #071b2d; overflow-wrap: anywhere; }
+.ai-systems strong, .ai-cycle h3 { color: #dbf9ff; }
+.ai-systems small { color: #97b6c9; }
+.ai-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.ai-buttons button { font-size: 11px; padding: 8px 10px; }
+.ai-management .ai-notice { color: #ffd090; }
+.ai-cycle { margin-top: 18px; border-top: 1px solid #234763; }
+.ai-live-state { margin-top: 16px; padding: 12px; border: 1px solid #234763; border-radius: 6px; }
+.ai-live-state h3 { color: #8df8ff; font-size: 12px; }
+.ai-status-readings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ai-status-readings > div { display: flex; flex-direction: column; }
+.ai-status-readings strong { color: #8df8ff; }
+.ai-status-readings small { color: #90adbf; font-size: 10px; }
+.telemetry-fault { color: #ffd090; margin: 8px 14px; font-size: 11px; }
+.ai-proposal { border: 1px solid #234763; padding: 10px; border-radius: 6px; margin: 10px 0; }
+.ai-proposal summary, .ai-audit summary, .biglogs summary { cursor: pointer; color: #93e7ee; }
+.ai-proposal p { margin: 6px 0; }
+.ai-audit { margin-top: 16px; }
+.ai-audit p { border-top: 1px solid #142e43; padding-top: 5px; }
+.ai-log-view .biglogs { height: auto; min-height: 0; padding: 18px; border-top: 1px solid #234763; }
 .backend-map { display: flex; flex-direction: column; background: #020713; }
 .map-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; border-bottom: 1px solid #234763; }
 .map-toolbar button { padding: 6px 8px; font-size: 11px; }

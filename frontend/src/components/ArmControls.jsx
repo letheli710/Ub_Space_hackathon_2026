@@ -26,10 +26,11 @@ export default function ArmControls({ simulation, onLog }) {
       {Object.entries(arm.joints).map(([name, bounds]) => <div className="joint-control" key={name}>
         <label htmlFor={`joint-${name}`}>{name}<output>{Number(targets[name] ?? 0).toFixed(2)} rad</output></label>
         <input id={`joint-${name}`} aria-label={`${name} target`} type="range" min={bounds.lower_rad} max={bounds.upper_rad} step="0.01"
-          value={targets[name] ?? 0} disabled={!ready || pending} onChange={event => setTargets(previous => ({ ...previous, [name]: Number(event.target.value) }))} />
+          value={targets[name] ?? 0} disabled={!ready || pending || state?.ai_managed} onChange={event => setTargets(previous => ({ ...previous, [name]: Number(event.target.value) }))} />
         <small>Measured: {Number.isFinite(measured?.measured_rad[name]) ? measured.measured_rad[name].toFixed(3) : '—'} rad</small>
       </div>)}
-      <button className="primary arm-submit" disabled={!ready || pending || Object.keys(targets).length === 0} type="submit">{pending ? 'Sending…' : 'Send arm target'}</button>
+      <button className="primary arm-submit" disabled={!ready || pending || state?.ai_managed || Object.keys(targets).length === 0} type="submit">{pending ? 'Sending…' : 'Send arm target'}</button>
+      {state?.ai_managed && <p className="muted">AI manages these arms. Use AI Logs to request a cycle with Main Judging approval.</p>}
       <p className="muted">Targets are requested positions. Follow the measured readings to see the arm move.{state?.paused ? ' Resume the simulation to apply movement.' : ''}</p>
     </form>
   );
