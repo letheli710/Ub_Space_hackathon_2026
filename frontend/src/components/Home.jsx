@@ -61,7 +61,12 @@ function Meter({ value }) {
 
 export default function Home({ event, onNavigate, demoStatus }) {
   const metrics = Object.fromEntries(getMetrics(event));
-  const systems = [
+  const physics = demoStatus?.physics;
+  const systems = physics ? [
+    ['Fuel', Math.round(physics.fuelKg / 40)],
+    ['Solar', 100 - 50 * physics.detached.filter(id => ['solarLeft', 'solarRight'].includes(id)).length],
+    ['Structure', Number(physics.integrity.toFixed(1))],
+  ] : [
     ['Power', metrics['Battery Level']],
     ['Solar', metrics['Solar Panel Health']],
     ['Hull', metrics['Hull Integrity']],
@@ -112,7 +117,7 @@ export default function Home({ event, onNavigate, demoStatus }) {
             <span className="home-card-label">
               <CircleCheck size={15} /> MISSION STATUS
             </span>
-            <strong className={event ? 'alert' : ''}>{event ? 'HAZARD ACTIVE' : 'NOMINAL'}</strong>
+            <strong className={event || physics?.detached.length ? 'alert' : ''}>{physics?.detached.length ? 'STRUCTURAL DAMAGE' : event ? 'HAZARD ACTIVE' : 'NOMINAL'}</strong>
           </div>
 
           <div className="home-card card-velocity">
@@ -124,11 +129,11 @@ export default function Home({ event, onNavigate, demoStatus }) {
 
           <div className="home-card card-ai">
             <span className="home-card-label">
-              <BrainCircuit size={15} /> AI DECISION
+              <BrainCircuit size={15} /> DEMO PHYSICS
             </span>
             <span className="home-ai-state">
               <i className={event ? 'alert' : ''} />
-              {event ? `Responding · ${event.name}` : 'Monitoring · Stable'}
+              {physics?.mode === 'burn' ? 'Thrust applied' : 'Inertial coasting'}
             </span>
           </div>
 

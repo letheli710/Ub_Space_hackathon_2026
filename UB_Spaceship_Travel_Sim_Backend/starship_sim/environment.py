@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from starship_sim.spacecraft import COMPONENTS, SimulationConfig
 
 IDENTITY = {"position": dict(x=0., y=0., z=0.), "orientation": dict(x=0., y=0., z=0., w=1.)}
-RUNTIME_PLUGINS = {"VelocityControl", "PosePublisher", "JointStatePublisher", "JointPositionController"}
+RUNTIME_PLUGINS = {"VelocityControl", "PosePublisher", "JointStatePublisher", "JointPositionController", "Physics"}
 
 
 def canonical_numbers(value):
@@ -229,9 +229,14 @@ def bridge_config(scene):
         (f"/world/{world}/clock", "/clock", "rosgraph_msgs/msg/Clock", "gz.msgs.Clock", "GZ_TO_ROS"),
         (f"/world/{world}/stats", "/simulation/stats", "ros_gz_interfaces/msg/WorldStatistics", "gz.msgs.WorldStatistics", "GZ_TO_ROS"),
         ("/starship/poses", "/starship/poses", "tf2_msgs/msg/TFMessage", "gz.msgs.Pose_V", "GZ_TO_ROS"),
-        ("/starship/joint_states", "/starship/joint_states", "sensor_msgs/msg/JointState", "gz.msgs.Model", "GZ_TO_ROS"),
-        (f"/model/{ship}/cmd_vel", "/starship/cmd_vel", "geometry_msgs/msg/Twist", "gz.msgs.Twist", "ROS_TO_GZ"),
     ]
+    if scene.get('physics'):
+        for name, direction in [('command', 'ROS_TO_GZ'), ('impact', 'ROS_TO_GZ'), ('state', 'GZ_TO_ROS')]:
+            topic = f'/starship/physics/{name}'
+            entries.append((topic, topic, 'std_msgs/msg/String', 'gz.msgs.StringMsg', direction))
+    else:
+        entries.append(('/starship/joint_states', '/starship/joint_states', 'sensor_msgs/msg/JointState', 'gz.msgs.Model', 'GZ_TO_ROS'))
+        entries.append((f'/model/{ship}/cmd_vel', '/starship/cmd_vel', 'geometry_msgs/msg/Twist', 'gz.msgs.Twist', 'ROS_TO_GZ'))
     for arm in scene["arms"]:
         for name in arm["joints"]:
             topic = f'/arms/{arm["id"]}/{name}/target'
@@ -288,32 +293,80 @@ def build_environment(root, profile):
     for slug, name in (("physics", "Physics"), ("user-commands", "UserCommands"), ("scene-broadcaster", "SceneBroadcaster")):
         if not any(item.get("name", "").endswith("::" + name) for item in world.findall("plugin")):
             plugin(world, slug, name)
-    plugin(ship, "velocity-control", "VelocityControl")
+    if not profile.get('physics'): plugin(ship, "velocity-control", "VelocityControl")
     pose_publisher(ship)
-    values(plugin(ship, "joint-state-publisher", "JointStatePublisher"), topic="/starship/joint_states")
+    if not profile.get('physics'):
+        values(plugin(ship, "joint-state-publisher", "JointStatePublisher"), topic="/starship/joint_states")
     for model in world.findall("model"):
         if model is not ship and model.findtext("static", "false").lower() != "true":
             pose_publisher(model)
     arms, configured_joints = [], set()
     if len({arm["id"] for arm in profile["arms"]}) != len(profile["arms"]):
         raise ValueError("Arm IDs must be unique")
+    frames = Frames(ship, '__model__')
+    module_ids = set()
+    modules = []
+    for module in profile.get('ship_modules', []):
+        if module['id'] in module_ids or ship.find(f'link[@name="{module["link_name"]}"]') is None:
+            raise ValueError('Ship modules need unique IDs and existing links')
+        module_ids.add(module['id'])
+        modules.append({**module, 'pose_in_body': frames.resolve(module['link_name'])})
     for arm in profile["arms"]:
-        metadata = {"id": arm["id"], "system": arm.get("system", arm["id"]), "joints": {}}
+        metadata = {"id": arm["id"], "label": arm.get('label', arm['id'].replace('_', ' ').title()),
+                    "system": arm.get("system", arm["id"]), 'owner_system': 'robot_arms', "joints": {}}
         if not arm["joints"]:
             raise ValueError(f'Arm {arm["id"]} must map at least one joint')
-        for name, joint_name in arm["joints"].items():
-            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) or joint_name in configured_joints:
+        for name, specification in arm["joints"].items():
+            specification = {'joint_name': specification} if isinstance(specification, str) else specification
+            joint_name = specification['joint_name']
+            names = [joint_name, *specification.get('coupled_joint_names', [])]
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) or len(set(names)) != len(names) or set(names) & configured_joints:
                 raise ValueError("Joint command names must be valid; assign each joint once")
-            configured_joints.add(joint_name)
-            item = next((joint for joint in ship.findall("joint") if joint.get("name") == joint_name), None)
-            if item is None or item.get("type") != "revolute":
-                raise ValueError(f"Arm joint must exist and be revolute: {joint_name}")
+            configured_joints.update(names)
+            item = ship.find(f'joint[@name="{joint_name}"]')
+            if item is None or item.get('type') not in {'revolute', 'prismatic'}:
+                raise ValueError(f'Arm joint must exist and be revolute or prismatic: {joint_name}')
             lower, upper = float(item.findtext("axis/limit/lower", "nan")), float(item.findtext("axis/limit/upper", "nan"))
             if not math.isfinite(lower) or not math.isfinite(upper) or lower >= upper:
                 raise ValueError(f"Arm joint needs finite lower/upper limits: {joint_name}")
-            metadata["joints"][name] = {"joint_name": joint_name, "lower_rad": lower, "upper_rad": upper}
-            values(plugin(ship, "joint-position-controller", "JointPositionController"), joint_name=joint_name,
-                   topic=f'/arms/{arm["id"]}/{name}/target', p_gain=80, d_gain=12, i_gain=0, cmd_min=-200, cmd_max=200)
+            for coupled_name in names[1:]:
+                coupled = ship.find(f'joint[@name="{coupled_name}"]')
+                if coupled is None or coupled.get('type') != item.get('type') or any(
+                    not math.isclose(float(coupled.findtext(f'axis/limit/{tag}', 'nan')), value, abs_tol=1e-9)
+                    for tag, value in [('lower', lower), ('upper', upper)]):
+                    raise ValueError('Coupled gripper joints must have identical types and limits')
+            scale, offset = float(specification.get('scale', 1.)), float(specification.get('offset', 0.))
+            unit = specification.get('unit', 'rad' if item.get('type') == 'revolute' else 'm')
+            if not math.isfinite(scale) or scale <= 0 or not math.isfinite(offset) or unit not in ({'rad'} if item.get('type') == 'revolute' else {'m', 'fraction'}):
+                raise ValueError('Invalid joint conversion or command unit')
+            command_lower, command_upper = (lower-offset)/scale, (upper-offset)/scale
+            joint = {'joint_name': joint_name, 'coupled_joint_names': names[1:], 'joint_type': item.get('type'),
+                     'lower_limit': command_lower, 'upper_limit': command_upper, 'unit': unit,
+                     'scale': scale, 'offset': offset, 'initial_value': -offset/scale}
+            if unit == 'rad': joint.update(lower_rad=command_lower, upper_rad=command_upper)
+            metadata['joints'][name] = joint
+            # Gazebo's multi-joint controller measures only its first joint.
+            # Separate feedback loops on one topic let either finger recover
+            # independently after contact, without adding public command aliases.
+            for controlled_name in names:
+                controller = plugin(ship, 'joint-position-controller', 'JointPositionController')
+                values(controller, joint_name=controlled_name, topic=f'/arms/{arm["id"]}/{name}/target',
+                       p_gain=80, d_gain=12, i_gain=0, cmd_min=-200, cmd_max=200, initial_position=0)
+                if 'max_speed' in specification:
+                    speed = float(specification['max_speed'])
+                    if not math.isfinite(speed) or speed <= 0: raise ValueError('Joint speed must be finite and positive')
+                    controller.find('cmd_max').text = str(speed)
+                    controller.find('cmd_min').text = str(-speed)
+                    values(controller, use_velocity_commands='true')
+        if 'location' in arm:
+            location = arm['location']
+            if location['module_id'] not in module_ids:
+                raise ValueError('Arm location must reference a configured module')
+            for key in ('base_link', 'tool_link', 'parent_link'):
+                if ship.find(f'link[@name="{location[key]}"]') is None: raise ValueError('Arm location references an unknown link')
+            reach = float(location['reach_m'])
+            if not math.isfinite(reach) or reach <= 0: raise ValueError('Arm reach must be positive and finite')
+            metadata['location'] = {**location, 'nominal_pose_in_body': frames.resolve(location['base_link']), 'reach_m': reach}
         if 'maintenance' in arm:
             service = arm['maintenance']
             if set(service) - {'components', 'targets_rad', 'tolerance_rad'}:
@@ -324,7 +377,7 @@ def build_environment(root, profile):
                 raise ValueError('Invalid maintenance components, joint targets or tolerance')
             for key, target in targets.items():
                 limits = metadata['joints'].get(key)
-                if not limits or not math.isfinite(target) or not limits['lower_rad'] <= target <= limits['upper_rad']:
+                if not limits or not math.isfinite(target) or not (limits.get('lower_limit', limits.get('lower_rad')) <= target <= limits.get('upper_limit', limits.get('upper_rad'))):
                     raise ValueError('Maintenance pose must use mapped joints within their limits')
             metadata['maintenance'] = {'components': components, 'targets_rad': targets, 'tolerance_rad': tolerance}
         arms.append(metadata)
@@ -343,13 +396,32 @@ def build_environment(root, profile):
         normal, axis = panel.get('normal_body_at_zero', [0, 0, 1]), panel.get('hinge_axis_body', [1, 0, 0])
         if any(len(v) != 3 or not all(math.isfinite(n) for n in v) or not math.isclose(sum(n*n for n in v), 1., abs_tol=1e-6) for v in (normal, axis)) or abs(sum(normal[i]*axis[i] for i in range(3))) > 1e-6:
             raise ValueError('Panel normal and hinge axis must be perpendicular unit vectors in the ship body frame')
-        panels.append({"id": identifier, "joint_name": joint_name, "lower_rad": lower, "upper_rad": upper,
+        panels.append({"id": identifier, "joint_name": joint_name, 'link_name': joint.findtext('child'), "lower_rad": lower, "upper_rad": upper,
                        'normal_body_at_zero': normal, 'hinge_axis_body': axis})
         values(plugin(ship, "joint-position-controller", "JointPositionController"), joint_name=joint_name,
                topic=f'/solar_panels/{identifier}/target', p_gain=120, d_gain=180, i_gain=0, cmd_min=-400, cmd_max=400)
+    physics = None
+    if profile.get('physics'):
+        from starship_sim.physics import compile_physics
+        physics = canonical_numbers(compile_physics(ship, profile, frames))
+        native = ET.SubElement(ship, 'plugin', filename='starship-physics', name='starship::Physics')
+        values(native, configuration=json.dumps(physics, separators=(',', ':')))
+        # Resolve contacts at 1 ms. At the API limit 150 m/s a rock travels 0.15 m per step.
+        settings = world.find('physics')
+        if settings is None: settings = ET.SubElement(world, 'physics', name='physics', type='ignored')
+        step = settings.find('max_step_size')
+        if step is None: step = ET.SubElement(settings, 'max_step_size')
+        step.text = '0.001'
     scene = scene_from_world(world, profile)
+    if physics: scene['physics'] = physics
+    if 'ship_bounds_body_m' in profile:
+        bounds = profile['ship_bounds_body_m']
+        lower, upper = numbers(' '.join(map(str, bounds['min'])), 3), numbers(' '.join(map(str, bounds['max'])), 3)
+        if any(lower[i] >= upper[i] for i in range(3)): raise ValueError('Ship bounds must be ordered')
+        next(entity for entity in scene['entities'] if entity['id'] == scene['ship_entity_id'])['bounds_body_m'] = {'min': lower, 'max': upper}
     scene["arms"] = arms
     scene["solar_panels"] = panels
+    scene['ship_layout'] = {'frame': 'ship_body', 'axes': {'x': 'forward', 'y': 'port/left', 'z': 'up'}, 'modules': modules}
     scene['simulation'] = SimulationConfig.model_validate(profile.get('simulation', {})).model_dump()
     ids = [entity["id"] for entity in scene["entities"]]
     if len(set(ids)) != len(ids) or scene["destination"]["entity_id"] not in ids:

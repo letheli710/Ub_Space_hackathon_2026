@@ -42,6 +42,10 @@ class ContractBackend:
     def close(self):
         self.closed = True
 
+    def inject_impact(self, request):
+        self.calls.append(('impact', request))
+        return {'status': 'accepted', **request}
+
 
 @pytest.fixture
 def connected():
@@ -54,16 +58,25 @@ def connected():
 def test_scene_and_state_are_available_for_web_clients(connected):
     client, _ = connected
     assert client.get("/readyz").status_code == 200
-    assert len(client.get("/api/v1/scene").json()["arms"]) == 4
+    assert len(client.get("/api/v1/scene").json()["arms"]) == 10
     assert client.get("/api/v1/state").json()["sim_time_s"] == 12.5
     assert "/api/v1/arms/{arm_id}/target" in client.get("/openapi.json").json()["paths"]
 
 
+def test_physical_impact_boundary(connected):
+    client, backend = connected
+    assert client.post('/api/v1/impacts', json={'target_id':'command','speed_m_s':150.1}).status_code == 422
+    assert client.post('/api/v1/impacts', json={'target_id':'missing'}).status_code == 422
+    assert backend.calls == []
+    assert client.post('/api/v1/impacts', json={'target_id':'command','mass_kg':20,'speed_m_s':5}).status_code == 202
+    assert backend.calls[0][1]['mass_kg'] == 20
+
+
 def test_arm_command_does_not_fabricate_measured_positions(connected):
     client, backend = connected
-    response = client.post("/api/v1/arms/power/target", json={"targets": {"yaw": 0.4, "elbow": -0.3}})
+    response = client.post("/api/v1/arms/command/target", json={"targets": {"yaw": 0.4, "elbow": -0.3}})
     assert response.status_code == 202
-    assert backend.calls == [("power", {"yaw": 0.4, "elbow": -0.3})]
+    assert backend.calls == [("command", {"yaw": 0.4, "elbow": -0.3})]
     assert client.get("/api/v1/state").json()["arms"][0]["measured_rad"]["yaw"] == 0
 
 
@@ -74,14 +87,14 @@ def test_arm_command_does_not_fabricate_measured_positions(connected):
 ])
 def test_invalid_commands_publish_nothing(connected, payload):
     client, backend = connected
-    assert client.post("/api/v1/arms/power/target", json=payload).status_code == 422
+    assert client.post("/api/v1/arms/command/target", json=payload).status_code == 422
     assert backend.calls == []
 
 
 def test_unknown_arm_and_nonfinite_angles_are_rejected(connected):
     client, backend = connected
     assert client.post("/api/v1/arms/unknown/target", json={"targets": {"yaw": 0}}).status_code == 404
-    assert client.post("/api/v1/arms/power/target", content='{"targets":{"yaw":1e999}}',
+    assert client.post("/api/v1/arms/command/target", content='{"targets":{"yaw":1e999}}',
                        headers={"Content-Type": "application/json"}).status_code == 422
     assert backend.calls == []
 
@@ -91,7 +104,7 @@ def test_disconnected_simulator_is_not_reported_ready(connected):
     backend.available = False
     assert client.get("/healthz").status_code == 200
     assert client.get("/readyz").status_code == 503
-    assert client.post("/api/v1/arms/power/target", json={"targets": {"yaw": 0}}).status_code == 503
+    assert client.post("/api/v1/arms/command/target", json={"targets": {"yaw": 0}}).status_code == 503
     assert client.post("/api/v1/simulation/control", json={"paused": True}).status_code == 503
 
 

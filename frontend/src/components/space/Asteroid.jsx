@@ -202,15 +202,23 @@ function rimMaterial() {
 
 let shared = null;
 function getShared() {
-  if (!shared) shared = { geometry: buildGeometry(), rock: rockMaterial(), rim: rimMaterial() };
+  if (!shared) {
+    const geometry = buildGeometry();
+    const position = geometry.attributes.position;
+    let extent = 0;
+    for (let i = 0; i < position.count; i++) {
+      extent = Math.max(extent, Math.hypot(position.getX(i), position.getY(i), position.getZ(i)));
+    }
+    shared = { geometry, extent, rock: rockMaterial(), rim: rimMaterial() };
+  }
   return shared;
 }
 
-/** The asteroid model, about 2.8 units long at size 1. */
-export default function Asteroid({ size = 1 }) {
-  const { geometry, rock, rim } = useMemo(getShared, []);
+/** Original model scale, or fit the solid rock inside a rendered collision radius. */
+export default function Asteroid({ size = 1, radius }) {
+  const { geometry, extent, rock, rim } = useMemo(getShared, []);
   return (
-    <group scale={size}>
+    <group scale={radius == null ? size : radius / extent} dispose={null}>
       <mesh geometry={geometry} material={rock} />
       <mesh geometry={geometry} material={rim} scale={1.04} />
     </group>

@@ -14,9 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def imported(tmp_path):
-    shutil.copytree(ROOT / "assets", tmp_path / "assets")
-    profile = json.loads((ROOT / "config/environment.json").read_text())
+def imported(tmp_path_factory):
+    tmp_path = tmp_path_factory.mktemp("imp")
+    shutil.copytree(ROOT / "assets/maps", tmp_path / "assets/maps")
+    shutil.copytree(ROOT / "assets/models/starship", tmp_path / "assets/models/starship")
+    profile = json.loads((ROOT / "config/profiles/starter.json").read_text())
     return tmp_path, profile
 
 

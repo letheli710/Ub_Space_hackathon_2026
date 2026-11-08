@@ -1,21 +1,68 @@
 # Interstellar X⁴
 
+**DEMO is the main simulator.** It runs physics directly in the browser, starts at
+the existing **7.9 km/s**, and needs no WSL, Docker, Gazebo or API key. Rocks apply
+collision impulses; excessive attachment loads detach ship modules and solar wings.
+Thrust, fuel, rotation, velocity, position and drifting debris are measured in DEMO.
+
+Normal impacts now leave **progressive, repairable component damage**, shown with
+scars, tint and integrity bars. Targets cycle through modules or can be selected.
+Disasters remain available while paused and after destruction, including wreckage.
+Four-role AI now controls DEMO through a lightweight Python gateway on **8001**:
+Main Judging approves/combines evasion burns, local arm repairs and solar isolation.
+Follow the [DEMO AI setup for Windows/macOS](frontend/docs/demo-ai.md) to enable it.
+
+### Launch DEMO on Windows or macOS
+
+1. Install Node.js 24 with npm. Check `node --version` and `npm --version`.
+2. Open PowerShell (Windows) or Terminal (Mac) in `Ub_Space_hackathon_2026`.
+3. Run `cd frontend`, then `npm ci` on first setup or after the lockfile changes.
+   Stop any running frontend with Ctrl+C before `npm ci`.
+4. Run `npm run dev`. Keep that terminal open and open the localhost URL it prints
+   (normally `http://127.0.0.1:5173`).
+5. Open **Generator → DEMO**. Select **Asteroid Collision** and click the 3D view
+   to place rocks at the pointer. It stays highlighted until clicked again or Esc.
+   **Physical space rock → Launch space rock** is a separate preset shot.
+   You can also use **DEMO propulsion test controls**. Watch **DEMO TELEMETRY**.
+6. Use **Pause demo** to inspect an impact and **Reset demo** to restore the ship.
+   Ctrl+C in the terminal stops the frontend.
+
+Map travel retains its playback speed through impacts. Local collision physics
+runs at **1x**, with the ship still moving. See the [DEMO physics guide](frontend/docs/demo-physics.md)
+for the model, tests, controls and approximations.
+
+### Optional Gazebo integration
+
+The previously implemented native backend remains available. The sections below
+describe that separate integration. Its **25 m/s** speed, AI execution and health
+readings belong to Gazebo. In DEMO mode, **AI Logs** now uses the separate DEMO
+gateway; selecting Gazebo switches back to the original native AI controls.
+
 A spaceship simulation with a React/Three.js frontend and a Space ROS/Gazebo
 backend. The browser displays the backend's ship and mission map, measured arm
 positions, and simulation time. Its controls send real arm and pause/resume
 commands to the simulator.
 
+The default ship now uses force-based propulsion at the same **25 m/s** nominal
+cruise speed. Physical space-rock collisions change motion and can detach modules,
+wings and arms. See [physics and damage](UB_Spaceship_Travel_Sim_Backend/docs/physics-and-damage.md)
+for Windows/macOS rebuild steps and the material model's scope.
+
 Four DeepSeek-connected AI roles now support proposals, risk analysis and
 Main Judging's combined approvals. AI is off by default until you configure a
 key. Live health, scenario events, nearby-object sensing and approved arm
 maintenance are now implemented in the shared backend game model.
-A separate browser demo illustrates disasters.
-The new **Spacecraft** tab offers a modular model preview with ten visual arms;
+A separate browser physics engine powers the primary DEMO described above.
+The **Spacecraft** tab displays the live modular Gazebo ship with ten controlled arms;
 **Generator → DEMO** adds mission-day/time-scale controls, asteroids and a solar
 storm. The live ship continues to come from the backend's replaceable SDF.
 **AI API** holds browser-only settings; live DeepSeek keys remain in backend `.env`
 and **AI Logs** manages the live systems.
-The current ship is a replaceable starter asset. The default backend map is now
+Its original animated design preview remains available separately. Robot Arms
+receives all ten IDs, module locations, measured mount/tool poses and joint limits.
+See the [ten-arm spacecraft guide](UB_Spaceship_Travel_Sim_Backend/docs/modular-spacecraft.md)
+for Windows/macOS rebuild steps, arm locations and control details.
+The current ship remains replaceable. The default backend map is now
 the solar system converted from the frontend artwork: Sun, eight orbiting
 planets, and hazard landmarks. The ship starts near Earth and navigates to Mars.
 
@@ -225,7 +272,7 @@ install packages on the Mac itself so native dependencies match its OS and CPU.
 These manual checks use the default `AI_ENABLED=false`. If you enabled AI,
 use **AI Logs** to request approved actions instead of sending manual targets.
 
-1. Open the Generator tab. The backend spaceship and four arms should appear.
+1. Open Spacecraft or Generator → LIVE SIM. The modular backend ship and ten arms should appear.
 2. Change a joint target and press **Send arm target**.
 3. Watch the measured joint readings change as the arm moves.
 4. Press **Pause simulation**. Simulation time should stop.

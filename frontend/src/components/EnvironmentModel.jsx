@@ -57,14 +57,21 @@ class ModelError extends Component {
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-export default function EnvironmentModel({ scene, state, rootRef, onError }) {
+export default function EnvironmentModel({ scene, state, rootRef, onError, selectedArm }) {
   const entities = useMemo(() => resolveScene(scene, state), [scene, state]);
+  const selected = scene.arms?.find(arm => arm.id === selectedArm);
   return (
     <group ref={rootRef} rotation={[-Math.PI / 2, 0, 0]}>
+      {(state?.physics?.projectiles ?? []).map(rock => <mesh key={rock.id} name={rock.id} position={rock.position}>
+        <icosahedronGeometry args={[rock.radius_m, 2]} /><meshStandardMaterial color="#9e8872" roughness={1} />
+      </mesh>)}
       {entities.map(entity => (
         <group key={`${scene.revision}:${entity.id}`} name={entity.id} {...poseProps(entity.pose)}>
           {entity.links.map(link => (
             <group key={link.id} name={link.id} {...poseProps(link.pose)}>
+              {selected?.location?.base_link === link.id.split('::').at(-1) && <>
+                <mesh renderOrder={1000}><sphereGeometry args={[0.35, 16, 12]} /><meshBasicMaterial color="#ffdf6c" depthTest={false} depthWrite={false} /></mesh>
+              </>}
               {link.visuals.map(visual => (
                 <ModelError key={`${scene.revision}:${visual.id}`} onError={onError}>
                   <Suspense fallback={null}><Visual visual={visual} /></Suspense>

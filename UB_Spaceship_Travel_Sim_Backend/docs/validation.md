@@ -1,5 +1,73 @@
 # Environment validation
 
+Current force/contact behavior supersedes historical velocity-hold and
+no-fuel/contact limitations below. See [physics and damage](physics-and-damage.md)
+and `tools/smoke_physics.py` for the current model and reproducible checks.
+
+## Force propulsion and fracture — November 8, 2026
+
+- Backend suite: 112 passing checks. Frontend: 17 passing checks and production
+  build. The existing bundle-size advisory remains.
+- Native flight test: finite acceleration toward the unchanged 25 m/s goal,
+  measured fuel use, zero-force coasting with preserved velocity after approval
+  expiry, and RCS torque changing rotation without instant velocity redirection.
+- Native contact test: a 1 kg, 5 m/s rock survives below attachment capacity;
+  duplicate delivery creates one rock. A 1,000 kg, 80 m/s contact releases the
+  command module and its arm, changes ship velocity/rotation, and preserves total
+  ship/debris/rock linear momentum within the test's 2% numerical tolerance.
+- The test checks measured fragment displacement, not just a damage flag, and
+  rejects a newly approved command to the detached arm. Model calls use injected
+  fixtures; no paid provider calls are needed for these checks.
+- The ten-arm native regression also passes: home stability, every articulated
+  joint and both gripper fingers, both circular rails, both solar panels,
+  measured mount movement, sustained targets and one-time approval enforcement.
+- Native AI-maintenance regression passes with fixture proposals: combined
+  propulsion/panel/service actions, measured-pose-gated hull recovery and coasting
+  after grant expiry. Browser verification confirmed real fragment separation,
+  updated telemetry, disabled detached controls and Live/Demo switching with no
+  console errors. Local screenshot: `.runtime/physics-collision-verified.png`.
+- Fixed two integration issues found by native testing: a one-shot rock velocity
+  command must be removed after launch, and Gazebo's cached all-joint publisher
+  cannot retain deleted structural joint entities. Native joint feedback now
+  publishes at 20 Hz and remains available after breakage.
+
+## Modular spacecraft and ten-arm control — November 8, 2026
+
+- Converted the eight-module preview into the active SDF/OBJ model with ten
+  stable arm IDs, 52 canonical arm channels, 62 physical arm joints and two
+  solar hinges. Checked source preview IDs, mounting geometry, units, offsets,
+  gripper bounds, role ownership, frame composition and compact AI observations.
+- **98 backend tests**, **17 frontend tests** and the Vite production build
+  passed. The existing bundle-size advisory remains. Generated world, bridge
+  and scene drift checks passed; the starter profile/import workflow remains covered.
+- `tools/smoke_modular_ship.py` passed against Gazebo Harmonic in an isolated
+  ROS domain/partition using injected model fixtures, with no DeepSeek calls.
+  All ten arms and twenty fingers held their home positions for 20 simulation
+  seconds. A preview published nothing. Main Judging combined 13 approved
+  actions; every joint, both rail carriages and both solar hinges reached their
+  targets. Tool poses and moving mount coordinates reflected real feedback;
+  targets held afterward, propulsion expired and replay was rejected.
+- `tools/smoke_ai.py` also passed with the new ship: measured arm service pose
+  gated modeled hull recovery while approved panel/navigation actions ran.
+- Fixed clearance above Earth's moving orbit for the larger ship. Independent
+  controllers on one gripper topic give each finger its own position feedback;
+  [Gazebo's multi-joint controller](https://github.com/gazebosim/gz-sim/blob/gz-sim8/src/systems/joint_position_controller/JointPositionController.cc)
+  otherwise uses only its first joint's error.
+  The running main simulation retained home poses beyond 160 simulation seconds.
+- Browser verification selected every arm and checked module/location readings,
+  canonical units, read-only controls in AI mode, rail-only slide, mount marker,
+  the live Generator telemetry and separate animated preview. The final fresh
+  browser session had no console errors. Camera fitting uses declared ship
+  bounds so asynchronous mesh loading cannot leave it inside the first mesh.
+- Backend rebuilt and restarted locally; AI loop left off. Local `.env` values
+  were preserved, temporary frontend server stopped, and nothing was pushed.
+
+Conversion preserves dimensional layout and main visual structure; procedural
+textures/VFX are simplified. Ring carriages move, while the habitat ring itself
+is fixed. Collision geometry is simplified and self-collision disabled. This
+does not validate collision-free planning, grasp contact, real motor torques,
+physical material repair, or a new paid-provider decision cycle.
+
 ## Frontend merge validation — November 8, 2026
 
 Merged incoming frontend commit `901ec70` with the local AI work at `523216d`.

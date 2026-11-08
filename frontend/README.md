@@ -1,16 +1,76 @@
 # Frontend — Interstellar X⁴
 
-This is the React/Vite/Three.js website for the simulator. It loads the ship and
-mission map from the backend, displays measured telemetry, and sends arm and
-pause/resume commands. It does not run ROS or Gazebo inside the browser.
+This React/Vite/Three.js app runs the main **DEMO simulation in the browser**.
+DEMO has rigid-body propulsion, rock impacts, breakable module/wing attachments,
+drifting debris and measured telemetry. Initial cruise remains **7.9 km/s**.
 
-The backend should be running before you test the controls. The website can
-open without it, but will show **OFFLINE** and disable simulation commands.
+Damage is now progressive: normal hits scar and weaken individual components;
+repeated/severe hits can detach them. Each component has an integrity bar, and
+Main Judging-approved local-arm repairs recover attached damage up to 95%.
+Disaster controls remain usable while paused and after destruction. The default
+rock is 200 kg at 40 m/s; targets cycle through components or can be selected.
 
-The **Spacecraft** tab previews the modular frontend ship: eight modules, ten
-visual robotic arms, an exploded view, ring animation and joint controls. Those
-controls operate the preview. **Generator → LIVE SIM** still renders the selected
-backend SDF and its measured joints. The preview has not replaced the Gazebo ship.
+## Run DEMO — Windows and macOS
+
+1. Install Node.js 24 and npm. In PowerShell on Windows or Terminal on a Mac,
+   run `node --version` and `npm --version` to check installation.
+2. Open that terminal in `Ub_Space_hackathon_2026` and run:
+
+   ```text
+   cd frontend
+   npm ci
+   npm run dev
+   ```
+
+   Run `npm ci` only for first setup or dependency/lockfile updates, with all
+   frontend servers stopped first. Keep `npm run dev` running in this terminal.
+3. Open the URL printed by Vite, normally `http://127.0.0.1:5173`.
+4. Choose **Generator → DEMO** (the default). No backend, WSL, Docker or model key
+   is required. **Physical space rock** selects target, mass, radius and speed;
+   select **Asteroid Collision**, then click the 3D view to launch from the pointer.
+   It stays highlighted for repeated placement; click it again or press Esc to cancel.
+   **Launch space rock** sends a separate preset projectile. **DEMO propulsion test
+   controls** apply finite burns and rotation torques.
+5. Read **DEMO TELEMETRY** for velocity, position, spin, fuel, attachment loads,
+   nearby objects and lost arm mounts. **Pause demo** freezes physics;
+   **Reset demo** restores the ship and its initial speed. Ctrl+C stops Vite.
+
+Map travel keeps its playback speed during placement and impacts; local collision
+physics runs at 1x with the ship still moving. Only **Pause demo** pauses it. See the
+[DEMO physics guide](docs/demo-physics.md) for details and current approximations.
+
+## Enable real AI in DEMO
+
+Follow the detailed [Windows/macOS DEMO AI launch guide](docs/demo-ai.md). Start
+the Python gateway with `python -m starship_sim.demo_api` from the backend folder,
+using the Python environment created by that guide. It loads your existing local
+backend `.env`, listens on **8001**, and needs no ROS, Gazebo, Docker or WSL.
+Keep the gateway and frontend terminals open. Restart Vite for the new proxy route.
+
+In **Generator → DEMO → DEMO AI MANAGEMENT**, check the connection, then run a
+cycle or enable autopilot. Subsystems only propose; Main Judging approves and
+combines actions. For avoidance tests use **60 s warning**: physics continues
+while the API responds. AI Logs also shows the DEMO controls when DEMO is selected.
+Paid requests occur only when you run a cycle or enable autopilot.
+
+## Optional backend features
+
+The longer platform setup below also covers the optional Gazebo integration.
+Skip its Gazebo-start steps when using DEMO. **Planetary Trajectories** and the
+optional Gazebo ship controls still use that backend. AI Logs follows the selected
+DEMO/Gazebo mode; the DEMO gateway is independent of the Gazebo process.
+
+The **Spacecraft** tab opens the design preview, with an optional live modular Gazebo ship: eight modules and
+ten controlled robotic arms. Its selector identifies each arm, module, mount,
+reach and measured body coordinates; a yellow marker highlights the chosen mount.
+Angular joints use radians and gripper openness uses a 0–1 fraction. In AI mode,
+use **AI Logs** for Main Judging approval. **Generator → LIVE SIM** renders the
+same backend SDF and measured joints. **Open design preview** retains the original
+exploded view, ring animation and independent illustrative controls.
+
+Rebuild the backend after pulling this change. Follow the
+[ten-arm spacecraft guide](../UB_Spaceship_Travel_Sim_Backend/docs/modular-spacecraft.md)
+for Windows/macOS launch steps, arm locations, AI control and model replacement.
 
 **Generator → DEMO** includes the modular ship, mission days, adjustable time
 acceleration, detailed asteroids, a solar-storm wave and persistent inner-failure
@@ -83,7 +143,7 @@ Test-Path .\UB_Spaceship_Travel_Sim_Backend\compose.yaml
 
 Both should print `True`.
 
-## 3. Start the backend first
+## 3. Optional: start the backend (skip for DEMO)
 
 For a machine that has already completed the WSL/Docker setup and a full backend
 build, run this from the project-root PowerShell window:
@@ -166,8 +226,8 @@ use **AI Logs** for Main Judging approval; manual arm commands are disabled.
 
 1. Wait for the header to show **LIVE**. **PAUSED** also means it is connected,
    with simulation time currently stopped.
-2. In **Generator**, confirm the backend ship and four arms are visible.
-3. Select a ship system in **Ship system**.
+2. In **Spacecraft** or **Generator → LIVE SIM**, confirm the modular ship and ten arms are visible.
+3. Select an ID in **Robot Arms · select arm**.
 4. Move one or more joint sliders and press **Send arm target**.
 5. Watch the arm and its **measured** joint readings change. A target is a
    requested position; the measured value is feedback from Gazebo.
@@ -184,7 +244,10 @@ commands, and retries the connection automatically.
 
 Disasters and AI responses in Generator's Demo mode are browser illustrations.
 Live scenario events now affect backend health. In LIVE SIM, use Disaster Maker
-to apply one; these are modeled faults, rather than physical projectiles. The
+to apply one. Asteroid Collision launches a physical rock using the component,
+mass, speed and radius controls; other events apply modeled faults. See
+[physics and damage](../UB_Spaceship_Travel_Sim_Backend/docs/physics-and-damage.md)
+for Windows/macOS rebuild steps and examples. The
 five Demo Telemetry health readings have live counterparts shared with AI.
 API-connected AI management is available in **AI Logs**; follow the setup below.
 
@@ -207,15 +270,16 @@ API-connected AI management is available in **AI Logs**; follow the setup below.
    Compare against measured arm/panel positions and propulsion state in telemetry.
    Dispatch confirms publication, not successful repair.
 
-In AI-managed mode, manual arm sliders are disabled and the ship holds zero
-commanded velocity until Main Judging approves Propelling's request. Stop AI
+In AI-managed mode, manual arm sliders are disabled and the ship coasts without
+thrust until Main Judging approves Propelling's request. Stop AI
 revokes propulsion and cancels analysis/maintenance; previous joint targets may continue.
 Pause the simulation to freeze motion. The **LIVE SPACECRAFT AI** panel controls
 the backend even when Generator's separate Demo mode is selected.
 
 Hull/panel health, battery, oxygen, efficiency, charge balance and maintenance
 now evolve in the backend game model. Detections and measured velocity come from
-Gazebo poses. Fuel and material/electrical repair physics are not modeled.
+Gazebo physics. Fuel use and attachment fracture are modeled; electrical power
+and maintenance remain abstract. Detached hardware cannot be repaired in flight.
 Scripted disaster responses in Demo remain illustrations and never
 authorize the backend. See the [AI integration routes](../UB_Spaceship_Travel_Sim_Backend/docs/ai-management.md#model-connection-ports)
 for connecting a different web interface.
@@ -284,7 +348,7 @@ ls frontend/package.json UB_Spaceship_Travel_Sim_Backend/compose.yaml
 Both file names should appear. Repeat this folder-opening method whenever a
 step asks for a new Terminal window at the project root.
 
-### Mac step 3: start the backend first
+### Mac step 3: optional backend (skip for DEMO)
 
 First complete the Docker Desktop setup in the
 [Mac backend guide](../UB_Spaceship_Travel_Sim_Backend/README.md#macos-setup).

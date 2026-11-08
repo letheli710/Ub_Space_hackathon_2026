@@ -1,61 +1,285 @@
 {
-  "ship_sdf": "assets/models/starship/model.sdf",
+  "ship_sdf": "assets/models/modular_station/model.sdf",
   "map_sdf": "assets/maps/solar_system.sdf",
   "ship_entity_id": "starship",
   "destination": {
     "entity_id": "mars",
-    "stop_distance_m": 31
+    "stop_distance_m": 55
   },
   "cruise_speed_m_s": 25,
   "arms": [
     {
-      "id": "power",
-      "system": "power",
+      "id": "command",
+      "label": "Command module arm",
+      "system": "command",
       "joints": {
-        "yaw": "arm_power_yaw",
-        "shoulder": "arm_power_shoulder",
-        "elbow": "arm_power_elbow"
+        "yaw": {
+          "joint_name": "arm_command_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_command_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_command_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_command_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_command_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_command_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "command",
+        "base_link": "arm_command_mount",
+        "tool_link": "arm_command_wrist_link",
+        "parent_link": "module_command",
+        "description": "Dorsal forebody, above the command module",
+        "attachment": "fixed",
+        "reach_m": 3.73
       },
       "maintenance": {
         "components": [
-          "solar_panels",
           "electronics"
         ],
         "targets_rad": {
-          "yaw": 0,
-          "shoulder": 0.25,
-          "elbow": -0.3
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
         },
-        "tolerance_rad": 0.12
+        "tolerance_rad": 0.1
       }
     },
     {
-      "id": "life_support",
-      "system": "life_support",
+      "id": "hab",
+      "label": "Habitation module arm",
+      "system": "hab",
       "joints": {
-        "yaw": "arm_life_support_yaw",
-        "shoulder": "arm_life_support_shoulder",
-        "elbow": "arm_life_support_elbow"
+        "yaw": {
+          "joint_name": "arm_hab_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_hab_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_hab_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_hab_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_hab_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_hab_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "hab",
+        "base_link": "arm_hab_mount",
+        "tool_link": "arm_hab_wrist_link",
+        "parent_link": "module_hab",
+        "description": "Port side of the forward habitation cylinder",
+        "attachment": "fixed",
+        "reach_m": 3.73
       },
       "maintenance": {
         "components": [
           "life_support"
         ],
         "targets_rad": {
-          "yaw": 0,
-          "shoulder": 0.25,
-          "elbow": -0.3
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
         },
-        "tolerance_rad": 0.12
+        "tolerance_rad": 0.1
       }
     },
     {
-      "id": "thermal",
-      "system": "thermal",
+      "id": "node",
+      "label": "Junction node arm",
+      "system": "node",
       "joints": {
-        "yaw": "arm_thermal_yaw",
-        "shoulder": "arm_thermal_shoulder",
-        "elbow": "arm_thermal_elbow"
+        "yaw": {
+          "joint_name": "arm_node_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_node_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_node_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_node_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_node_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_node_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "node",
+        "base_link": "arm_node_mount",
+        "tool_link": "arm_node_wrist_link",
+        "parent_link": "module_node",
+        "description": "Starboard lateral docking node",
+        "attachment": "fixed",
+        "reach_m": 3.73
+      },
+      "maintenance": {
+        "components": [
+          "hull",
+          "electronics"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "cargo",
+      "label": "Cargo pod arm",
+      "system": "cargo",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_cargo_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_cargo_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_cargo_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_cargo_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_cargo_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_cargo_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "cargo",
+        "base_link": "arm_cargo_mount",
+        "tool_link": "arm_cargo_wrist_link",
+        "parent_link": "module_cargo",
+        "description": "Ventral cargo pod, pointing below the ship",
+        "attachment": "fixed",
+        "reach_m": 3.73
+      },
+      "maintenance": {
+        "components": [
+          "hull"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "ringHub",
+      "label": "Ring hub arm",
+      "system": "ring",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_ringHub_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_ringHub_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_ringHub_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_ringHub_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_ringHub_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_ringHub_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "ring",
+        "base_link": "arm_ringHub_mount",
+        "tool_link": "arm_ringHub_wrist_link",
+        "parent_link": "module_ring",
+        "description": "Dorsal hub of the midship habitat ring",
+        "attachment": "fixed",
+        "reach_m": 3.73
       },
       "maintenance": {
         "components": [
@@ -63,31 +287,307 @@
           "robot_arms"
         ],
         "targets_rad": {
-          "yaw": 0,
-          "shoulder": 0.25,
-          "elbow": -0.3
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
         },
-        "tolerance_rad": 0.12
+        "tolerance_rad": 0.1
       }
     },
     {
-      "id": "navigation",
-      "system": "navigation",
+      "id": "ringRailA",
+      "label": "Ring rail arm A",
+      "system": "ring",
       "joints": {
-        "yaw": "arm_navigation_yaw",
-        "shoulder": "arm_navigation_shoulder",
-        "elbow": "arm_navigation_elbow"
+        "slide": {
+          "joint_name": "arm_ringRailA_rail",
+          "max_speed": 0.15
+        },
+        "yaw": {
+          "joint_name": "arm_ringRailA_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_ringRailA_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_ringRailA_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_ringRailA_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_ringRailA_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_ringRailA_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "ring",
+        "base_link": "arm_ringRailA_mount",
+        "tool_link": "arm_ringRailA_wrist_link",
+        "parent_link": "arm_ringRailA_carrier",
+        "description": "Forward face of habitat ring; circular rail radius 10.5 m, initial angle 0.5 rad",
+        "attachment": "ring_rail",
+        "reach_m": 3.73
+      },
+      "maintenance": {
+        "components": [
+          "hull",
+          "robot_arms"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "ringRailB",
+      "label": "Ring rail arm B",
+      "system": "ring",
+      "joints": {
+        "slide": {
+          "joint_name": "arm_ringRailB_rail",
+          "max_speed": 0.15
+        },
+        "yaw": {
+          "joint_name": "arm_ringRailB_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_ringRailB_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_ringRailB_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_ringRailB_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_ringRailB_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_ringRailB_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "ring",
+        "base_link": "arm_ringRailB_mount",
+        "tool_link": "arm_ringRailB_wrist_link",
+        "parent_link": "arm_ringRailB_carrier",
+        "description": "Forward face of habitat ring; circular rail radius 10.5 m, initial angle 3.64159 rad",
+        "attachment": "ring_rail",
+        "reach_m": 3.73
+      },
+      "maintenance": {
+        "components": [
+          "hull",
+          "robot_arms"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "solarRight",
+      "label": "Solar wing arm right",
+      "system": "solar",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_solarRight_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_solarRight_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_solarRight_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_solarRight_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_solarRight_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_solarRight_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "solar",
+        "base_link": "arm_solarRight_mount",
+        "tool_link": "arm_solarRight_wrist_link",
+        "parent_link": "solar_port",
+        "description": "Port main solar wing near the root hinge; preview ID solarRight",
+        "attachment": "solar_hinge",
+        "reach_m": 3.1300000000000003
+      },
+      "maintenance": {
+        "components": [
+          "solar_panels"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "solarLeft",
+      "label": "Solar wing arm left",
+      "system": "solar",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_solarLeft_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_solarLeft_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_solarLeft_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_solarLeft_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_solarLeft_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_solarLeft_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "solar",
+        "base_link": "arm_solarLeft_mount",
+        "tool_link": "arm_solarLeft_wrist_link",
+        "parent_link": "solar_starboard",
+        "description": "Starboard main solar wing near the root hinge; preview ID solarLeft",
+        "attachment": "solar_hinge",
+        "reach_m": 3.1300000000000003
+      },
+      "maintenance": {
+        "components": [
+          "solar_panels"
+        ],
+        "targets_rad": {
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
+        },
+        "tolerance_rad": 0.1
+      }
+    },
+    {
+      "id": "engine",
+      "label": "Engine service arm",
+      "system": "engine",
+      "joints": {
+        "yaw": {
+          "joint_name": "arm_engine_yaw",
+          "max_speed": 0.8
+        },
+        "shoulder": {
+          "joint_name": "arm_engine_shoulder",
+          "offset": -0.6,
+          "max_speed": 0.8
+        },
+        "elbow": {
+          "joint_name": "arm_engine_elbow",
+          "offset": 1.2,
+          "max_speed": 0.8
+        },
+        "wrist": {
+          "joint_name": "arm_engine_wrist",
+          "offset": -0.4,
+          "max_speed": 0.8
+        },
+        "grip": {
+          "joint_name": "arm_engine_finger_a_slide",
+          "coupled_joint_names": [
+            "arm_engine_finger_b_slide"
+          ],
+          "scale": 0.13,
+          "offset": -0.065,
+          "unit": "fraction",
+          "max_speed": 0.08
+        }
+      },
+      "location": {
+        "module_id": "engine",
+        "base_link": "arm_engine_mount",
+        "tool_link": "arm_engine_wrist_link",
+        "parent_link": "module_engine",
+        "description": "Port aft engine/tank service mount",
+        "attachment": "fixed",
+        "reach_m": 3.73
       },
       "maintenance": {
         "components": [
           "thrusters"
         ],
         "targets_rad": {
-          "yaw": 0,
-          "shoulder": 0.25,
-          "elbow": -0.3
+          "yaw": 0.1,
+          "shoulder": 0.7,
+          "elbow": -1.05,
+          "wrist": 0.4
         },
-        "tolerance_rad": 0.12
+        "tolerance_rad": 0.1
       }
     }
   ],
@@ -96,7 +596,7 @@
     "offset_m": [
       15,
       -40,
-      10
+      60
     ],
     "yaw_rad": -1.38
   },
@@ -161,11 +661,31 @@
   "solar_panels": [
     {
       "id": "port",
-      "joint_name": "solar_port_tilt"
+      "joint_name": "solar_port_tilt",
+      "normal_body_at_zero": [
+        0,
+        0,
+        1
+      ],
+      "hinge_axis_body": [
+        0.0,
+        1.0,
+        0.0
+      ]
     },
     {
       "id": "starboard",
-      "joint_name": "solar_starboard_tilt"
+      "joint_name": "solar_starboard_tilt",
+      "normal_body_at_zero": [
+        0,
+        0,
+        1
+      ],
+      "hinge_axis_body": [
+        0.0,
+        -1.0,
+        0.0
+      ]
     }
   ],
   "simulation": {
@@ -175,5 +695,554 @@
     "idle_drain_pct_s": 0.08,
     "thrust_drain_pct_s": 0.6,
     "maintenance_rate_pct_s": 2
+  },
+  "ship_modules": [
+    {
+      "id": "command",
+      "label": "Command module",
+      "link_name": "module_command"
+    },
+    {
+      "id": "hab",
+      "label": "Habitation module",
+      "link_name": "module_hab"
+    },
+    {
+      "id": "node",
+      "label": "Junction node",
+      "link_name": "module_node"
+    },
+    {
+      "id": "cargo",
+      "label": "Cargo pod",
+      "link_name": "module_cargo"
+    },
+    {
+      "id": "spine",
+      "label": "Spine truss",
+      "link_name": "module_spine"
+    },
+    {
+      "id": "ring",
+      "label": "Habitat ring",
+      "link_name": "module_ring"
+    },
+    {
+      "id": "solar",
+      "label": "Solar arrays and radiators",
+      "link_name": "module_solar"
+    },
+    {
+      "id": "engine",
+      "label": "Engine section",
+      "link_name": "module_engine"
+    }
+  ],
+  "ship_bounds_body_m": {
+    "min": [
+      -22.54330127018922,
+      -11.68,
+      -11.68
+    ],
+    "max": [
+      17.725,
+      11.68,
+      11.68
+    ]
+  },
+  "physics": {
+    "hull_link": "hull",
+    "engine_link": "module_engine",
+    "main_thrust_n": 40000.0,
+    "rcs_thrust_n": 18000.0,
+    "rcs_torque_nm": 80000.0,
+    "main_isp_s": 450.0,
+    "rcs_isp_s": 230.0,
+    "rcs_lever_m": 8.0,
+    "fuel_kg": 4000.0,
+    "bonds": [
+      {
+        "id": "module_command",
+        "joint_name": "module_command_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_command_mount",
+        "joint_name": "arm_command_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_hab",
+        "joint_name": "module_hab_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_hab_mount",
+        "joint_name": "arm_hab_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_node",
+        "joint_name": "module_node_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_node_mount",
+        "joint_name": "arm_node_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_cargo",
+        "joint_name": "module_cargo_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_cargo_mount",
+        "joint_name": "arm_cargo_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_spine",
+        "joint_name": "module_spine_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "module_ring",
+        "joint_name": "module_ring_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_ringHub_mount",
+        "joint_name": "arm_ringHub_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "arm_ringRailA_mount",
+        "joint_name": "arm_ringRailA_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "arm_ringRailB_mount",
+        "joint_name": "arm_ringRailB_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_solar",
+        "joint_name": "module_solar_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "solar_port_mount",
+        "joint_name": "solar_port_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.002,
+        "section_modulus_m3": 0.001,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_solarRight_mount",
+        "joint_name": "arm_solarRight_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "solar_starboard_mount",
+        "joint_name": "solar_starboard_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.002,
+        "section_modulus_m3": 0.001,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_solarLeft_mount",
+        "joint_name": "arm_solarLeft_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": "module_engine",
+        "joint_name": "module_engine_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.03,
+        "section_modulus_m3": 0.025,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": "arm_engine_mount",
+        "joint_name": "arm_engine_mount_fixed",
+        "material": "aluminium attachment (effective section)",
+        "area_m2": 0.001,
+        "section_modulus_m3": 0.0002,
+        "shear_strength_pa": 100000000.0,
+        "normal_strength_pa": 180000000.0,
+        "normal_local": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    "impact_targets": [
+      {
+        "id": "command",
+        "label": "Command module",
+        "link_name": "module_command",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "hab",
+        "label": "Habitation module",
+        "link_name": "module_hab",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "node",
+        "label": "Junction node",
+        "link_name": "module_node",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "cargo",
+        "label": "Cargo pod",
+        "link_name": "module_cargo",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "spine",
+        "label": "Spine truss",
+        "link_name": "module_spine",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "ring",
+        "label": "Habitat ring",
+        "link_name": "module_ring",
+        "point_local_m": [
+          10.5,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "solar",
+        "label": "Solar arrays and radiators",
+        "link_name": "module_solar",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "engine",
+        "label": "Engine section",
+        "link_name": "module_engine",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "solar_port",
+        "label": "Port solar wing",
+        "link_name": "solar_port",
+        "point_local_m": [
+          6,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "solar_starboard",
+        "label": "Starboard solar wing",
+        "link_name": "solar_starboard",
+        "point_local_m": [
+          6,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_command",
+        "label": "Command module arm",
+        "link_name": "arm_command_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_hab",
+        "label": "Habitation module arm",
+        "link_name": "arm_hab_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_node",
+        "label": "Junction node arm",
+        "link_name": "arm_node_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_cargo",
+        "label": "Cargo pod arm",
+        "link_name": "arm_cargo_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_ringHub",
+        "label": "Ring hub arm",
+        "link_name": "arm_ringHub_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_ringRailA",
+        "label": "Ring rail arm A",
+        "link_name": "arm_ringRailA_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_ringRailB",
+        "label": "Ring rail arm B",
+        "link_name": "arm_ringRailB_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_solarRight",
+        "label": "Solar wing arm right",
+        "link_name": "arm_solarRight_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_solarLeft",
+        "label": "Solar wing arm left",
+        "link_name": "arm_solarLeft_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "arm_engine",
+        "label": "Engine service arm",
+        "link_name": "arm_engine_wrist_link",
+        "point_local_m": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
   }
 }

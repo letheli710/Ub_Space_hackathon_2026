@@ -1,5 +1,9 @@
 # LLM spacecraft management
 
+The default live ship now has ten individually identified Robot Arms rigs.
+See the [modular spacecraft guide](modular-spacecraft.md) for locations, joint
+units, measured mount/tool poses, rail movement and rebuild instructions.
+
 See [ship state and sensing](ship-state-and-sensing.md) for live health, nearby
 objects, scenario events, service actions and the preview-to-execution workflow.
 
@@ -20,9 +24,9 @@ alias in the future. Each role can override its model and API key independently.
 
 All roles also receive the [common instructions](../starship_sim/ai/prompts/common.md),
 the active scene's actuator IDs and limits, a JSON output schema and an example.
-The physical arm rig labels (`power`, `life_support`, `thermal`, `navigation`)
-describe mounting locations. They do not define additional AI roles or give
-Energy permission to control the power arm. Robot Arms owns all four rigs.
+Arm module labels describe mounting locations, not additional AI roles.
+Robot Arms owns all ten rigs, including both solar-wing arms. Energy owns
+the solar hinges, not the arms attached to those wings.
 
 ## Configure later or enable now
 
@@ -96,8 +100,8 @@ when ready, open a terminal in `Ub_Space_hackathon_2026/UB_Spaceship_Travel_Sim_
    moving toward their targets. **Pause simulation** freezes physical motion.
 
 AI-managed mode turns off the automatic ship-following authority and rejects
-manual arm/panel API commands with 403. The ship starts holding zero commanded
-velocity. Propelling must propose `follow_navigation` or `thruster_velocity`,
+manual arm/panel API commands with 403. Without approval, the ship coasts with no
+thrust. Propelling must propose `follow_navigation`, `thruster_velocity` or `thruster_burn`,
 and Main Judging must approve it before propulsion resumes. Pause/resume and
 planet orbit-speed controls remain human simulator controls. To return to
 manual/autopilot mode, set `AI_ENABLED=false` and recreate the container.
@@ -107,7 +111,7 @@ manual/autopilot mode, set `AI_ENABLED=false` and recreate the container.
 1. Capture measured Gazebo state and the run ID, scene revision and control epoch.
 2. Call Energy, Propelling and Robot Arms concurrently. Each returns zero to
    three proposals, with rationale, expected benefit, risk, confidence and one
-   to eight typed actions. An empty list means hold position/no justified action.
+   to eight typed actions. An empty list requests no new action; propulsion coasts.
 3. Validate ownership, finite values, known actuator IDs and physical limits.
    Invalid subsystem output contributes no executable proposals. Its error is
    shown to Main Judging alongside the other systems' proposals.
@@ -123,7 +127,7 @@ manual/autopilot mode, set `AI_ENABLED=false` and recreate the container.
    automatically replayed; inspect measurements and request a new cycle.
 
 For example, Energy can propose rotating the port panel, Propelling can propose
-brief navigation, and Robot Arms can propose moving a thermal-arm joint.
+brief navigation, and Robot Arms can propose moving a ring-hub arm joint.
 Main Judging may approve all three together, or keep just the panel action and
 one joint action. Conflicting targets for the same panel, arm joint or thruster
 channel cannot be combined. A batch does not guarantee coordinated completion
@@ -142,15 +146,18 @@ fallback model response in the running application.
 | `solar_panel_target` | Energy | `panel_id`, `target_rad` within scene hinge limits |
 | `thruster_velocity` | Propelling | `linear_m_s: {x,y,z}` in ship body frame, vector speed at most configured cruise speed, `duration_s` >0 and <=10 |
 | `follow_navigation` | Propelling | Existing measured destination follower, `duration_s` >0 and <=10 |
-| `arm_target` | Robot Arms | `arm_id`, nonempty `targets` mapping joint aliases to radians within scene limits |
+| `thruster_burn` | Propelling | Body-frame `linear_throttle` and `angular_throttle` vectors, each magnitude <=1; duration >0 and <=10; native physics required |
+| `arm_target` | Robot Arms | `arm_id`, nonempty `targets` mapping aliases to values within scene limits and declared units (angles rad, grip fraction) |
 | `arm_service` | Robot Arms | Configured arm/component, measured service-pose gate, duration >0 and <=10 simulation seconds |
 
 Propulsion grants expire in simulation time, with a separate wall-clock watchdog
-at duration + 1 second. After expiration, AI mode commands zero velocity. The
-current Gazebo ship uses velocity control, not nozzle force, acceleration or
-fuel dynamics. Panel and arm commands are persistent position targets.
+at duration + 1 second. Expiration cuts thrust and preserves coasting momentum.
+The default ship uses bounded forces/torques, fuel consumption and finite braking.
+A velocity request is a goal; zero requests active braking while approved. Panel
+and arm targets persist while attached. Fracture invalidates plans and disables
+detached actuators. See [physics and damage](physics-and-damage.md).
 
-The starter ship now includes two hinged panels, `port` and `starboard`.
+The modular ship includes two hinged main panels, `port` and `starboard`.
 Replacement ships declare optional `solar_panels` joint mappings in the profile;
 the prompts and API discover them rather than hardcoding this model.
 See [model imports](models-and-maps.md#solar-panels-and-ai-capabilities).
@@ -158,8 +165,9 @@ See [model imports](models-and-maps.md#solar-panels-and-ai-capabilities).
 **Current scope:** Gazebo supplies poses, joints and motion. The backend now
 supplies modeled hull/panel health, battery, oxygen, thruster efficiency,
 charge/drain rates, scenario faults and pose-gated maintenance outcomes. Local
-detections include approximate closest approach. Electrical watts, fuel, material
-contact and physical repair remain unavailable. Models must distinguish game
+detections include approximate closest approach. Physics supplies fuel, contact
+stress and attachment failures. Electrical watts and physical repair remain
+unavailable. Models must distinguish game
 outcomes from physical repair. Browser Demo remains a separate illustration.
 
 ## Model connection ports
@@ -236,8 +244,8 @@ off until wanted; model usage incurs your provider's charges.
 From the backend folder, `uv run pytest -q` uses injected test models and an
 HTTP mock transport. It checks combination/partial approvals, permissions,
 limits, malformed responses, provider errors, stale plans, stop, replay and API
-contracts. Test doubles are not selectable in runtime configuration. A real
-DeepSeek inference test still requires your local key and has not been run.
+contracts. Test doubles are not selectable in runtime configuration. Live
+DeepSeek inference requires your local key; fixture tests make no provider calls.
 
 For a physical approval-gate test, build the image first, then run the following
 **inside Ubuntu WSL** (Windows) or macOS Terminal, from the backend directory:
@@ -252,7 +260,7 @@ On Mac, set `export DOCKER_DEFAULT_PLATFORM=linux/amd64` first. On Windows,
 enter Ubuntu from the backend PowerShell window with `wsl -d Ubuntu -u root`;
 its starting folder should be the same backend folder (`pwd` to check).
 The test starts an isolated Gazebo/ROS stack inside a disposable container,
-injects model fixtures and verifies hold, blocked direct commands, a motionless
+injects model fixtures and verifies unpowered rest, blocked direct commands, a motionless
 preview, combined approved movement and propulsion expiration. It makes no
 DeepSeek requests. Do not run the Python script against your normal ROS domain
 or Gazebo partition; its test publishers must remain isolated.

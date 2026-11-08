@@ -1,9 +1,15 @@
 # Replaceable ship models and mission maps
 
-`config/environment.json` selects the assets. The current ship and map are
-starter assets; their geometry is not embedded in React code or the generator.
+`config/environment.json` selects the assets. The default ship is the converted
+eight-module, ten-arm spacecraft; the map is the stylized solar system. Both
+remain replaceable SDF assets. See [the arm catalog and conversion workflow](modular-spacecraft.md).
 The same SDF inputs produce Gazebo's physics world and `/api/v1/scene` for the
 browser. The UI discovers entities, links, arms and limits from this contract.
+
+The default profile also declares breakable fixed attachments, force propulsion
+and impact targets under `physics`. Update these link/joint references when
+replacing the ship, or explicitly omit `physics` for the legacy controller.
+See [physics configuration](physics-and-damage.md#attachment-strength-and-model-replacement).
 
 ## Import workflow
 
@@ -11,7 +17,7 @@ browser. The UI discovers entities, links, arms and limits from this contract.
    `assets/models/explorer/model.sdf` and `assets/maps/new_mission.sdf`.
 2. Edit `config/environment.json` to select the files. Paths are relative to this
    backend folder, not to the configuration file.
-3. Map each controllable arm's joint names to real revolute joints in the SDF.
+3. Map each controllable arm's joint names to real revolute or prismatic joints in the SDF.
    The lower and upper limits are read directly from those joints.
 4. Choose an existing map model as the destination and set the center stopping
    distance and nominal cruise speed in meters and seconds.

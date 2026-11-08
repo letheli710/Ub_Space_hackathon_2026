@@ -4,6 +4,12 @@ Base URL: `http://localhost:8000`. Live stream:
 `ws://localhost:8000/api/v1/telemetry`. Both use the same configurable host port.
 There is one shared simulation per backend process and a single API worker.
 
+The default scene includes a `physics` catalog and live state includes measured
+forces, fuel, attachment failures and projectile poses. `POST /api/v1/impacts`
+launches a bounded ballistic rock. Render `physics.projectiles` in world coordinates
+and keep rendering all measured ship links after detachment. See
+[physics and damage](physics-and-damage.md) for payloads, limits and coast semantics.
+
 The React frontend at `../../frontend/` now implements this contract. Start it
 with `npm ci` and `npm run dev`. Its development server on port 5173 proxies
 `/api` HTTP requests, asset files and WebSocket traffic to port 8000. Change
@@ -15,15 +21,16 @@ prefix; otherwise a same-origin `/api` reverse proxy is used.
 
 1. Fetch `GET /api/v1/scene` once. Each entity has a stable `id`, initial
    `pose_in_world`, a `dynamic` flag and its links. Each link has a stable scoped
-   ID such as `starship::arm_power_upper`, a `pose_in_model`, and primitive visuals.
+   ID such as `starship::arm_command_shoulder_link`, a `pose_in_model`, and visuals.
 2. Build a renderer object for each entity and child objects for its links.
    A visual's `pose` is relative to its link, and its geometry uses meters.
    Boxes have `size: [x, y, z]`; spheres have `radius: [r]`; cylinders have
    `radius: [r]` and `length: [length]`. Cylinders extend along local Z.
-   Colors are RGBA arrays in the range 0–1.
+   Colors are RGBA arrays in the range 0–1. The modular ship uses OBJ mesh
+   visuals with versioned asset URIs; imported geometry is supported as well.
 3. Subscribe to the telemetry stream and apply measured transforms. The
    `starship` transform places the ship relative to the world. A transform such
-   as `starship::arm_power_upper` places that link relative to `starship`.
+   as `starship::arm_command_shoulder_link` places that link relative to `starship`.
    Use each message's `parent_frame_id` and `child_frame_id`, not array order.
    Static objects retain initial scene poses; orbiting planets use measured model poses.
 
@@ -70,7 +77,7 @@ Each envelope contains `type: "state"`, `schema_version: 1`, and `data`:
 | `paused` | Measured world status; initially null. |
 | `connection` | `backend`, `online`, `ready`, topic ages in wall seconds, and any executor error. |
 | `transforms` | Last measured model/link poses, with explicit frame names. |
-| `arms` | Arm IDs, `measured_rad` and separately `requested_rad` for yaw/shoulder/elbow. |
+| `arms` | Arm IDs/labels, canonical `measured`, `requested`, `units`, raw `physical_joints`, and measured body/world base/tool locations. Angular-only `measured_rad` / `requested_rad` remain for compatibility. |
 | `solar_panels` | Panel IDs, measured hinge angles and separately requested targets in radians. |
 | `propulsion` | Control mode, optional requested ship-frame velocity, and simulation-time grant expiration. |
 | `navigation` | Destination ID, measured center distance, arrival flag and nominal cruise speed. |
@@ -115,7 +122,7 @@ return 503. This does not implement disaster injection or astronomical gravity.
 ## Request an arm movement
 
 ```javascript
-const response = await fetch(`${base}/api/v1/arms/power/target`, {
+const response = await fetch(`${base}/api/v1/arms/command/target`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ targets: { yaw: 0.4, shoulder: 0.2, elbow: -0.3 } })
@@ -124,9 +131,12 @@ if (!response.ok) throw new Error(await response.text());
 const accepted = await response.json();
 ```
 
-The default arm IDs are `power`, `life_support`, `thermal`, `navigation`; the
-active scene's `arms` list is authoritative for replacement models. It includes
-joint names and limits. You may send any nonempty subset of its targets; omitted
+The default ten arm IDs and mount locations are listed in the
+[modular spacecraft catalog](modular-spacecraft.md). The active scene's `arms`
+list is authoritative for replacement models. It includes joint names, units
+and canonical `lower_limit` / `upper_limit`. Angular joints use radians; `grip`
+uses an openness fraction 0–1. Only the two rail arms expose `slide` in radians.
+You may send any nonempty subset of its targets; omitted
 joints retain their controller targets. The entire request is validated before
 any target is published. Unknown arms return 404; invalid joints, nonfinite
 angles, out-of-range targets or extra fields return 422. A disconnected or
@@ -134,7 +144,11 @@ stale simulator returns 503. Concurrent clients share the same arms; the latest
 published target for a joint replaces its previous target.
 
 202 means the command was published to the ROS/Gazebo bridge. It does not mean
-that the arm reached the target. Inspect `measured_rad` and the link transforms.
+that the arm reached the target. Inspect canonical `measured`, its `units`,
+both gripper `physical_joints`, and the link transforms. The scene also exports
+`ship_layout` with module IDs/poses and body axes. Each arm's optional `location`
+declares its module, description, links, nominal pose and reach; telemetry adds
+measured base/tool poses with `pose_source`. See the arm guide for field details.
 While paused, targets may be accepted but take effect only after resuming.
 In AI-managed mode this endpoint returns 403; request an AI cycle instead.
 Human scenario control is `POST /api/v1/disasters` with

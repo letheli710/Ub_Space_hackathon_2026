@@ -19,7 +19,7 @@ try {
     if (-not $NoBuild) {
         # Archive bytes avoid DrvFS extended-attribute failures in Docker contexts.
         & tar.exe -czf .runtime/build-context.tar.gz --exclude=__pycache__ --exclude=*.pyc `
-            Dockerfile requirements.lock starship_sim tools worlds config docker assets
+            Dockerfile requirements.lock starship_sim tools worlds config docker assets native
         if ($LASTEXITCODE -ne 0) { throw 'Could not package the Docker context.' }
         & wsl.exe -d $Distribution -u root --cd $linuxRoot -- bash -lc `
             'docker build -t starship-environment:local - < .runtime/build-context.tar.gz'

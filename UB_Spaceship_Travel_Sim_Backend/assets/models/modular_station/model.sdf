@@ -1,0 +1,4857 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="starship">
+    <self_collide>false</self_collide>
+    <link name="hull">
+      <inertial>
+        <mass>1000</mass>
+        <inertia>
+          <ixx>1000</ixx>
+          <iyy>1000</iyy>
+          <izz>1000</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </link>
+    <link name="module_command">
+      <pose>13 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>1500</mass>
+        <inertia>
+          <ixx>4208.75</ixx>
+          <iyy>4208.75</iyy>
+          <izz>2167.5</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>1.7</radius>
+            <length>5</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="module_command_dark">
+        <geometry>
+          <mesh>
+            <uri>module_command_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_command_gold">
+        <geometry>
+          <mesh>
+            <uri>module_command_gold.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.788 .604 .235 1</diffuse>
+          <ambient>.788 .604 .235 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_command_hull">
+        <geometry>
+          <mesh>
+            <uri>module_command_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_command_plating">
+        <geometry>
+          <mesh>
+            <uri>module_command_plating.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.82 .85 .89 1</diffuse>
+          <ambient>.82 .85 .89 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_command_truss">
+        <geometry>
+          <mesh>
+            <uri>module_command_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_command_window">
+        <geometry>
+          <mesh>
+            <uri>module_command_window.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>1 .83 .54 1</diffuse>
+          <ambient>1 .83 .54 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_command_fixed" type="fixed">
+      <pose relative_to="__model__">13 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_command</child>
+    </joint>
+    <link name="arm_command_mount">
+      <pose>11.8 0 1.7 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_command_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_command_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_command_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_mount_fixed" type="fixed">
+      <pose relative_to="__model__">11.8 0 1.7 1.57079632679 0 1.57079632679</pose>
+      <parent>module_command</parent>
+      <child>arm_command_mount</child>
+    </joint>
+    <link name="arm_command_yaw_link">
+      <pose>11.8 0 1.82 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_command_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_command_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_yaw" type="revolute">
+      <pose relative_to="__model__">11.8 0 1.82 1.57079632679 0 1.57079632679</pose>
+      <parent>arm_command_mount</parent>
+      <child>arm_command_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_command_shoulder_link">
+      <pose>11.8 0 2.18 1.57079632679 -0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_command_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_command_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_command_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_shoulder" type="revolute">
+      <pose relative_to="__model__">11.8 0 2.18 1.57079632679 -0.6 1.57079632679</pose>
+      <parent>arm_command_yaw_link</parent>
+      <child>arm_command_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_command_elbow_link">
+      <pose>11.8 -0.846963710093 3.41800342236 1.57079632679 0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>4.4408920985e-16 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>4.4408920985e-16 0.65 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_command_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_command_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_command_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_elbow" type="revolute">
+      <pose relative_to="__model__">11.8 -0.846963710093 3.41800342236 1.57079632679 0.6 1.57079632679</pose>
+      <parent>arm_command_shoulder_link</parent>
+      <child>arm_command_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_command_wrist_link">
+      <pose>11.8 -0.112928494679 4.49093972175 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_command_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_command_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_command_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_command_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_command_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_wrist" type="revolute">
+      <pose relative_to="__model__">11.8 -0.112928494679 4.49093972175 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_command_elbow_link</parent>
+      <child>arm_command_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_command_finger_a">
+      <pose>11.8 0.0593799610113 4.76211272206 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_command_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">11.8 0.0593799610113 4.76211272206 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_command_wrist_link</parent>
+      <child>arm_command_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_command_finger_b">
+      <pose>11.8 -0.166035351892 4.80780666814 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_command_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_command_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_command_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">11.8 -0.166035351892 4.80780666814 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_command_wrist_link</parent>
+      <child>arm_command_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_hab">
+      <pose>7.4 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>1500</mass>
+        <inertia>
+          <ixx>3208.4375</ixx>
+          <iyy>3208.4375</iyy>
+          <izz>1576.875</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>1.45</radius>
+            <length>4.4</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="module_hab_dark">
+        <geometry>
+          <mesh>
+            <uri>module_hab_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_hab_gold">
+        <geometry>
+          <mesh>
+            <uri>module_hab_gold.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.788 .604 .235 1</diffuse>
+          <ambient>.788 .604 .235 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_hab_plating">
+        <geometry>
+          <mesh>
+            <uri>module_hab_plating.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.82 .85 .89 1</diffuse>
+          <ambient>.82 .85 .89 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_hab_fixed" type="fixed">
+      <pose relative_to="__model__">7.4 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_hab</child>
+    </joint>
+    <link name="arm_hab_mount">
+      <pose>8 1.45 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_hab_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_hab_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_mount_fixed" type="fixed">
+      <pose relative_to="__model__">8 1.45 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <parent>module_hab</parent>
+      <child>arm_hab_mount</child>
+    </joint>
+    <link name="arm_hab_yaw_link">
+      <pose>8 1.57 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_hab_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_yaw" type="revolute">
+      <pose relative_to="__model__">8 1.57 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <parent>arm_hab_mount</parent>
+      <child>arm_hab_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_hab_shoulder_link">
+      <pose>8 1.93 0 1.57079632679 0.970796326795 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_hab_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_hab_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_shoulder" type="revolute">
+      <pose relative_to="__model__">8 1.93 0 1.57079632679 0.970796326795 1.57079632679</pose>
+      <parent>arm_hab_yaw_link</parent>
+      <child>arm_hab_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_hab_elbow_link">
+      <pose>8 3.16800342236 0.846963710093 -1.57079632679 0.970796326795 -1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.65 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_hab_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_hab_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_elbow" type="revolute">
+      <pose relative_to="__model__">8 3.16800342236 0.846963710093 -1.57079632679 0.970796326795 -1.57079632679</pose>
+      <parent>arm_hab_shoulder_link</parent>
+      <child>arm_hab_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_hab_wrist_link">
+      <pose>8 4.24093972175 0.112928494679 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_hab_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_hab_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_hab_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_wrist" type="revolute">
+      <pose relative_to="__model__">8 4.24093972175 0.112928494679 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_hab_elbow_link</parent>
+      <child>arm_hab_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_hab_finger_a">
+      <pose>8 4.51211272206 -0.0593799610113 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_hab_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">8 4.51211272206 -0.0593799610113 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_hab_wrist_link</parent>
+      <child>arm_hab_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_hab_finger_b">
+      <pose>8 4.55780666814 0.166035351892 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_hab_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_hab_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_hab_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">8 4.55780666814 0.166035351892 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_hab_wrist_link</parent>
+      <child>arm_hab_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_node">
+      <pose>3.6 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>1500</mass>
+        <inertia>
+          <ixx>2166</ixx>
+          <iyy>2166</iyy>
+          <izz>2166</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>1.9</radius>
+          </sphere>
+        </geometry>
+      </collision>
+      <visual name="module_node_dark">
+        <geometry>
+          <mesh>
+            <uri>module_node_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_node_glass">
+        <geometry>
+          <mesh>
+            <uri>module_node_glass.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.05 .13 .22 1</diffuse>
+          <ambient>.05 .13 .22 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_node_hull">
+        <geometry>
+          <mesh>
+            <uri>module_node_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_node_plating">
+        <geometry>
+          <mesh>
+            <uri>module_node_plating.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.82 .85 .89 1</diffuse>
+          <ambient>.82 .85 .89 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_node_fixed" type="fixed">
+      <pose relative_to="__model__">3.6 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_node</child>
+    </joint>
+    <link name="arm_node_mount">
+      <pose>3.6 -2.35 0 3.14159265359 -1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_node_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_node_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_node_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_mount_fixed" type="fixed">
+      <pose relative_to="__model__">3.6 -2.35 0 3.14159265359 -1.57079632679 3.14159265359</pose>
+      <parent>module_node</parent>
+      <child>arm_node_mount</child>
+    </joint>
+    <link name="arm_node_yaw_link">
+      <pose>3.6 -2.47 0 3.14159265359 -1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_node_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_node_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_yaw" type="revolute">
+      <pose relative_to="__model__">3.6 -2.47 0 3.14159265359 -1.57079632679 3.14159265359</pose>
+      <parent>arm_node_mount</parent>
+      <child>arm_node_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_node_shoulder_link">
+      <pose>3.6 -2.83 0 -1.57079632679 -0.970796326795 -1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_node_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_node_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_node_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_shoulder" type="revolute">
+      <pose relative_to="__model__">3.6 -2.83 0 -1.57079632679 -0.970796326795 -1.57079632679</pose>
+      <parent>arm_node_yaw_link</parent>
+      <child>arm_node_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_node_elbow_link">
+      <pose>3.6 -4.06800342236 -0.846963710093 1.57079632679 -0.970796326795 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-1.33226762955e-15 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>-1.33226762955e-15 0.65 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_node_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_node_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_node_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_elbow" type="revolute">
+      <pose relative_to="__model__">3.6 -4.06800342236 -0.846963710093 1.57079632679 -0.970796326795 1.57079632679</pose>
+      <parent>arm_node_shoulder_link</parent>
+      <child>arm_node_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_node_wrist_link">
+      <pose>3.6 -5.14093972175 -0.112928494679 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_node_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_node_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_node_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_node_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_node_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_wrist" type="revolute">
+      <pose relative_to="__model__">3.6 -5.14093972175 -0.112928494679 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <parent>arm_node_elbow_link</parent>
+      <child>arm_node_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_node_finger_a">
+      <pose>3.6 -5.41211272206 0.0593799610113 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_node_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">3.6 -5.41211272206 0.0593799610113 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <parent>arm_node_wrist_link</parent>
+      <child>arm_node_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_node_finger_b">
+      <pose>3.6 -5.45780666814 -0.166035351892 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_node_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_node_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_node_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">3.6 -5.45780666814 -0.166035351892 1.57079632679 -1.37079632679 1.57079632679</pose>
+      <parent>arm_node_wrist_link</parent>
+      <child>arm_node_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_cargo">
+      <pose>3.6 -1.11022302463e-16 -4.4 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>1500</mass>
+        <inertia>
+          <ixx>2060</ixx>
+          <iyy>2430</iyy>
+          <izz>2060</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>-1.81173576141e-09</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 1.57079632679 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>1.8</radius>
+            <length>2.6</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="module_cargo_dark">
+        <geometry>
+          <mesh>
+            <uri>module_cargo_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_cargo_hull">
+        <geometry>
+          <mesh>
+            <uri>module_cargo_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_cargo_fixed" type="fixed">
+      <pose relative_to="__model__">3.6 -1.11022302463e-16 -4.4 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_cargo</child>
+    </joint>
+    <link name="arm_cargo_mount">
+      <pose>3.6 1.11022302463e-16 -5.8 -1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_cargo_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_cargo_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_mount_fixed" type="fixed">
+      <pose relative_to="__model__">3.6 1.11022302463e-16 -5.8 -1.57079632679 0 1.57079632679</pose>
+      <parent>module_cargo</parent>
+      <child>arm_cargo_mount</child>
+    </joint>
+    <link name="arm_cargo_yaw_link">
+      <pose>3.6 -1.11022302463e-16 -5.92 -1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_cargo_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_yaw" type="revolute">
+      <pose relative_to="__model__">3.6 -1.11022302463e-16 -5.92 -1.57079632679 0 1.57079632679</pose>
+      <parent>arm_cargo_mount</parent>
+      <child>arm_cargo_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_cargo_shoulder_link">
+      <pose>3.6 1.11022302463e-16 -6.28 -1.57079632679 0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>-2.74703970039e-34</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.75 0 0 0 -2.11707018295e-33</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_cargo_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_cargo_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_shoulder" type="revolute">
+      <pose relative_to="__model__">3.6 1.11022302463e-16 -6.28 -1.57079632679 0.6 1.57079632679</pose>
+      <parent>arm_cargo_yaw_link</parent>
+      <child>arm_cargo_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_cargo_elbow_link">
+      <pose>3.6 -0.846963710093 -7.51800342236 -1.57079632679 -0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>2.0662075718e-34</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.65 0 0 0 2.11707018295e-33</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_cargo_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_cargo_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_elbow" type="revolute">
+      <pose relative_to="__model__">3.6 -0.846963710093 -7.51800342236 -1.57079632679 -0.6 1.57079632679</pose>
+      <parent>arm_cargo_shoulder_link</parent>
+      <child>arm_cargo_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_cargo_wrist_link">
+      <pose>3.6 -0.112928494679 -8.59093972175 -1.57079632679 -0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_cargo_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_cargo_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_cargo_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_wrist" type="revolute">
+      <pose relative_to="__model__">3.6 -0.112928494679 -8.59093972175 -1.57079632679 -0.2 1.57079632679</pose>
+      <parent>arm_cargo_elbow_link</parent>
+      <child>arm_cargo_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_cargo_finger_a">
+      <pose>3.6 0.0593799610113 -8.86211272206 -1.57079632679 -0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>2.78092520883e-37</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 7.44890680937e-34</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_cargo_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">3.6 0.0593799610113 -8.86211272206 -1.57079632679 -0.2 1.57079632679</pose>
+      <parent>arm_cargo_wrist_link</parent>
+      <child>arm_cargo_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_cargo_finger_b">
+      <pose>3.6 -0.166035351892 -8.90780666814 -1.57079632679 -0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>2.78092520883e-37</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 7.44890680937e-34</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_cargo_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_cargo_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_cargo_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">3.6 -0.166035351892 -8.90780666814 -1.57079632679 -0.2 1.57079632679</pose>
+      <parent>arm_cargo_wrist_link</parent>
+      <child>arm_cargo_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_spine">
+      <pose>-5 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>800</mass>
+        <inertia>
+          <ixx>16320</ixx>
+          <iyy>16320</iyy>
+          <izz>192</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 -0.8 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 -0.8 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.2 1.2 15.6</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="module_spine_truss">
+        <geometry>
+          <mesh>
+            <uri>module_spine_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_spine_fixed" type="fixed">
+      <pose relative_to="__model__">-5 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_spine</child>
+    </joint>
+    <link name="module_ring">
+      <pose>-2 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>9000</mass>
+        <inertia>
+          <ixx>500776.532511</ixx>
+          <iyy>500776.532511</iyy>
+          <izz>996138.065022</izz>
+          <ixy>-1.81898940355e-12</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-3.57188649752e-17 3.5718864975e-17 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>10.5 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_1">
+        <pose>10.3404814066 1.8233058655 0 0 0 0.174532925199</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_2">
+        <pose>9.86677251825 3.59121150492 0 0 0 0.349065850399</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_3">
+        <pose>9.09326673974 5.25 0 0 0 0.523598775598</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_4">
+        <pose>8.04346665275 6.74926990171 0 0 0 0.698131700798</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_5">
+        <pose>6.74926990171 8.04346665275 0 0 0 0.872664625997</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_6">
+        <pose>5.25 9.09326673974 0 0 0 1.0471975512</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_7">
+        <pose>3.59121150492 9.86677251825 0 0 0 1.2217304764</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_8">
+        <pose>1.8233058655 10.3404814066 0 0 0 1.3962634016</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_9">
+        <pose>6.42939569552e-16 10.5 0 0 0 1.57079632679</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_10">
+        <pose>-1.8233058655 10.3404814066 0 0 0 1.74532925199</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_11">
+        <pose>-3.59121150492 9.86677251825 0 0 0 1.91986217719</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_12">
+        <pose>-5.25 9.09326673974 0 0 0 2.09439510239</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_13">
+        <pose>-6.74926990171 8.04346665275 0 0 0 2.26892802759</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_14">
+        <pose>-8.04346665275 6.74926990171 0 0 0 2.44346095279</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_15">
+        <pose>-9.09326673974 5.25 0 0 0 2.61799387799</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_16">
+        <pose>-9.86677251825 3.59121150492 0 0 0 2.79252680319</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_17">
+        <pose>-10.3404814066 1.8233058655 0 0 0 2.96705972839</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_18">
+        <pose>-10.5 1.2858791391e-15 0 0 0 3.14159265359</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_19">
+        <pose>-10.3404814066 -1.8233058655 0 0 -0 -2.96705972839</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_20">
+        <pose>-9.86677251825 -3.59121150492 0 0 -0 -2.79252680319</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_21">
+        <pose>-9.09326673974 -5.25 0 0 -0 -2.61799387799</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_22">
+        <pose>-8.04346665275 -6.74926990171 0 0 -0 -2.44346095279</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_23">
+        <pose>-6.74926990171 -8.04346665275 0 0 -0 -2.26892802759</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_24">
+        <pose>-5.25 -9.09326673974 0 0 -0 -2.09439510239</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_25">
+        <pose>-3.59121150492 -9.86677251825 0 0 -0 -1.91986217719</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_26">
+        <pose>-1.8233058655 -10.3404814066 0 0 -0 -1.74532925199</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_27">
+        <pose>-1.92881870866e-15 -10.5 0 0 -0 -1.57079632679</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_28">
+        <pose>1.8233058655 -10.3404814066 0 0 -0 -1.3962634016</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_29">
+        <pose>3.59121150492 -9.86677251825 0 0 -0 -1.2217304764</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_30">
+        <pose>5.25 -9.09326673974 0 0 -0 -1.0471975512</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_31">
+        <pose>6.74926990171 -8.04346665275 0 0 -0 -0.872664625997</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_32">
+        <pose>8.04346665275 -6.74926990171 0 0 -0 -0.698131700798</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_33">
+        <pose>9.09326673974 -5.25 0 0 -0 -0.523598775598</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_34">
+        <pose>9.86677251825 -3.59121150492 0 0 -0 -0.349065850399</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="collision_35">
+        <pose>10.3404814066 -1.8233058655 0 0 -0 -0.174532925199</pose>
+        <geometry>
+          <box>
+            <size>1.3 1.869247628885927 1.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="module_ring_dark">
+        <geometry>
+          <mesh>
+            <uri>module_ring_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_ring_hull">
+        <geometry>
+          <mesh>
+            <uri>module_ring_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_ring_plating">
+        <geometry>
+          <mesh>
+            <uri>module_ring_plating.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.82 .85 .89 1</diffuse>
+          <ambient>.82 .85 .89 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_ring_truss">
+        <geometry>
+          <mesh>
+            <uri>module_ring_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_ring_window">
+        <geometry>
+          <mesh>
+            <uri>module_ring_window.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>1 .83 .54 1</diffuse>
+          <ambient>1 .83 .54 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_ring_fixed" type="fixed">
+      <pose relative_to="__model__">-2 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_ring</child>
+    </joint>
+    <link name="arm_ringHub_mount">
+      <pose>-1.4 5.55111512313e-17 1.55 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringHub_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringHub_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-1.4 5.55111512313e-17 1.55 1.57079632679 0 1.57079632679</pose>
+      <parent>module_ring</parent>
+      <child>arm_ringHub_mount</child>
+    </joint>
+    <link name="arm_ringHub_yaw_link">
+      <pose>-1.4 0 1.67 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringHub_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_yaw" type="revolute">
+      <pose relative_to="__model__">-1.4 0 1.67 1.57079632679 0 1.57079632679</pose>
+      <parent>arm_ringHub_mount</parent>
+      <child>arm_ringHub_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringHub_shoulder_link">
+      <pose>-1.4 0 2.03 1.57079632679 -0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringHub_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringHub_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_shoulder" type="revolute">
+      <pose relative_to="__model__">-1.4 0 2.03 1.57079632679 -0.6 1.57079632679</pose>
+      <parent>arm_ringHub_yaw_link</parent>
+      <child>arm_ringHub_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringHub_elbow_link">
+      <pose>-1.4 -0.846963710093 3.26800342236 1.57079632679 0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.65 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringHub_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringHub_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_elbow" type="revolute">
+      <pose relative_to="__model__">-1.4 -0.846963710093 3.26800342236 1.57079632679 0.6 1.57079632679</pose>
+      <parent>arm_ringHub_shoulder_link</parent>
+      <child>arm_ringHub_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringHub_wrist_link">
+      <pose>-1.4 -0.112928494679 4.34093972175 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringHub_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringHub_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringHub_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_wrist" type="revolute">
+      <pose relative_to="__model__">-1.4 -0.112928494679 4.34093972175 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_ringHub_elbow_link</parent>
+      <child>arm_ringHub_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringHub_finger_a">
+      <pose>-1.4 0.0593799610113 4.61211272206 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringHub_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">-1.4 0.0593799610113 4.61211272206 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_ringHub_wrist_link</parent>
+      <child>arm_ringHub_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringHub_finger_b">
+      <pose>-1.4 -0.166035351892 4.65780666814 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringHub_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringHub_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringHub_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">-1.4 -0.166035351892 4.65780666814 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_ringHub_wrist_link</parent>
+      <child>arm_ringHub_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_carrier">
+      <pose>-2 0 0 1.57079632679 -0.5 1.57079632679</pose>
+      <inertial>
+        <pose>10.5 0 1.18 0 0 0</pose>
+        <mass>2</mass>
+        <inertia>
+          <ixx>0.1</ixx>
+          <iyy>0.1</iyy>
+          <izz>0.1</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailA_carrier_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_carrier_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_rail" type="revolute">
+      <pose relative_to="__model__">-2 0 0 1.57079632679 -0.5 1.57079632679</pose>
+      <parent>module_ring</parent>
+      <child>arm_ringRailA_carrier</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_mount">
+      <pose>-0.74 9.21461689985 5.03396815534 3.14159265359 -0.5 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailA_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailA_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-0.74 9.21461689985 5.03396815534 3.14159265359 -0.5 1.57079632679</pose>
+      <parent>arm_ringRailA_carrier</parent>
+      <child>arm_ringRailA_mount</child>
+    </joint>
+    <link name="arm_ringRailA_yaw_link">
+      <pose>-0.62 9.21461689985 5.03396815534 3.14159265359 -0.5 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailA_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_yaw" type="revolute">
+      <pose relative_to="__model__">-0.62 9.21461689985 5.03396815534 3.14159265359 -0.5 1.57079632679</pose>
+      <parent>arm_ringRailA_mount</parent>
+      <child>arm_ringRailA_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_shoulder_link">
+      <pose>-0.26 9.21461689985 5.03396815534 -2.84238747262 -0.406815751748 0.90863759776</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailA_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailA_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_shoulder" type="revolute">
+      <pose relative_to="__model__">-0.26 9.21461689985 5.03396815534 -2.84238747262 -0.406815751748 0.90863759776</pose>
+      <parent>arm_ringRailA_yaw_link</parent>
+      <child>arm_ringRailA_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_elbow_link">
+      <pose>0.978003422365 8.47133631732 4.62791212245 2.84238747262 -0.406815751748 2.23295505583</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>2.70887479114e-18</ixy>
+          <ixz>5.26980108673e-54</ixz>
+          <iyz>9.39829738737e-36</iyz>
+        </inertia>
+        <pose>8.881784197e-16 0.65 8.881784197e-16 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>8.881784197e-16 0.65 8.881784197e-16 -9.62964972194e-35 -6.93889390391e-18 2.77555756156e-17</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailA_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailA_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_elbow" type="revolute">
+      <pose relative_to="__model__">0.978003422365 8.47133631732 4.62791212245 2.84238747262 -0.406815751748 2.23295505583</pose>
+      <parent>arm_ringRailA_shoulder_link</parent>
+      <child>arm_ringRailA_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_wrist_link">
+      <pose>2.05093972175 9.11551282218 4.97982735096 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailA_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailA_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailA_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_wrist" type="revolute">
+      <pose relative_to="__model__">2.05093972175 9.11551282218 4.97982735096 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <parent>arm_ringRailA_elbow_link</parent>
+      <child>arm_ringRailA_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_finger_a">
+      <pose>2.32211272206 9.26672771816 5.06243642513 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailA_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">2.32211272206 9.26672771816 5.06243642513 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <parent>arm_ringRailA_wrist_link</parent>
+      <child>arm_ringRailA_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailA_finger_b">
+      <pose>2.36780666814 9.06890717037 4.95436656734 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailA_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailA_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailA_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">2.36780666814 9.06890717037 4.95436656734 3.03348227479 -0.48914230984 1.79780178525</pose>
+      <parent>arm_ringRailA_wrist_link</parent>
+      <child>arm_ringRailA_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_carrier">
+      <pose>-2 0 0 -1.57079632679 0.5 -1.57079632679</pose>
+      <inertial>
+        <pose>10.5 0 1.18 0 0 0</pose>
+        <mass>2</mass>
+        <inertia>
+          <ixx>0.1</ixx>
+          <iyy>0.1</iyy>
+          <izz>0.1</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailB_carrier_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_carrier_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_rail" type="revolute">
+      <pose relative_to="__model__">-2 0 0 -1.57079632679 0.5 -1.57079632679</pose>
+      <parent>module_ring</parent>
+      <child>arm_ringRailB_carrier</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_mount">
+      <pose>-0.74 -9.21461689985 -5.03396815534 0 0.5 -1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailB_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailB_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-0.74 -9.21461689985 -5.03396815534 0 0.5 -1.57079632679</pose>
+      <parent>arm_ringRailB_carrier</parent>
+      <child>arm_ringRailB_mount</child>
+    </joint>
+    <link name="arm_ringRailB_yaw_link">
+      <pose>-0.62 -9.21461689985 -5.03396815534 0 0.5 -1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailB_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_yaw" type="revolute">
+      <pose relative_to="__model__">-0.62 -9.21461689985 -5.03396815534 0 0.5 -1.57079632679</pose>
+      <parent>arm_ringRailB_mount</parent>
+      <child>arm_ringRailB_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_shoulder_link">
+      <pose>-0.26 -9.21461689985 -5.03396815534 0.299205180966 0.406815751748 -0.90863759776</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>1.7763568394e-15 0.75 4.4408920985e-16 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>1.7763568394e-15 0.75 4.4408920985e-16 0 2.08166817117e-17 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailB_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailB_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_shoulder" type="revolute">
+      <pose relative_to="__model__">-0.26 -9.21461689985 -5.03396815534 0.299205180966 0.406815751748 -0.90863759776</pose>
+      <parent>arm_ringRailB_yaw_link</parent>
+      <child>arm_ringRailB_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_elbow_link">
+      <pose>0.978003422365 -8.47133631732 -4.62791212245 -0.299205180966 0.406815751748 -2.23295505583</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>-6.77218697787e-19</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.65 -2.49800180541e-16 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.65 -2.49800180541e-16 0 0 -6.93889390391e-18</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailB_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailB_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_elbow" type="revolute">
+      <pose relative_to="__model__">0.978003422365 -8.47133631732 -4.62791212245 -0.299205180966 0.406815751748 -2.23295505583</pose>
+      <parent>arm_ringRailB_shoulder_link</parent>
+      <child>arm_ringRailB_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_wrist_link">
+      <pose>2.05093972175 -9.11551282218 -4.97982735096 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_ringRailB_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailB_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_ringRailB_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_wrist" type="revolute">
+      <pose relative_to="__model__">2.05093972175 -9.11551282218 -4.97982735096 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <parent>arm_ringRailB_elbow_link</parent>
+      <child>arm_ringRailB_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_finger_a">
+      <pose>2.32211272206 -9.26672771816 -5.06243642513 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailB_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">2.32211272206 -9.26672771816 -5.06243642513 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <parent>arm_ringRailB_wrist_link</parent>
+      <child>arm_ringRailB_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_ringRailB_finger_b">
+      <pose>2.36780666814 -9.06890717037 -4.95436656734 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_ringRailB_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_ringRailB_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_ringRailB_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">2.36780666814 -9.06890717037 -4.95436656734 -0.108110378799 0.48914230984 -1.79780178525</pose>
+      <parent>arm_ringRailB_wrist_link</parent>
+      <child>arm_ringRailB_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_solar">
+      <pose>-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>500</mass>
+        <inertia>
+          <ixx>2000</ixx>
+          <iyy>2000</iyy>
+          <izz>2000</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="module_solar_dark">
+        <geometry>
+          <mesh>
+            <uri>module_solar_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_solar_radiator">
+        <geometry>
+          <mesh>
+            <uri>module_solar_radiator.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.95 .953 .96 1</diffuse>
+          <ambient>.95 .953 .96 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_solar_solar">
+        <geometry>
+          <mesh>
+            <uri>module_solar_solar.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.035 .10 .27 1</diffuse>
+          <ambient>.035 .10 .27 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_solar_truss">
+        <geometry>
+          <mesh>
+            <uri>module_solar_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_solar_fixed" type="fixed">
+      <pose relative_to="__model__">-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_solar</child>
+    </joint>
+    <link name="solar_port">
+      <pose>-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>50</mass>
+        <inertia>
+          <ixx>37.5104166667</ixx>
+          <iyy>390.166666667</iyy>
+          <izz>352.677083333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>6.1 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>6.1 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>9.2 0.05 3</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="solar_port_dark">
+        <geometry>
+          <mesh>
+            <uri>solar_port_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="solar_port_solar">
+        <geometry>
+          <mesh>
+            <uri>solar_port_solar.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.035 .10 .27 1</diffuse>
+          <ambient>.035 .10 .27 1</ambient>
+        </material>
+      </visual>
+      <visual name="solar_port_truss">
+        <geometry>
+          <mesh>
+            <uri>solar_port_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <link name="solar_port_mount">
+      <pose>-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>2</mass>
+        <inertia>
+          <ixx>1</ixx>
+          <iyy>1</iyy>
+          <izz>1</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </link>
+    <joint name="solar_port_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>module_solar</parent>
+      <child>solar_port_mount</child>
+    </joint>
+    <joint name="solar_port_tilt" type="revolute">
+      <pose relative_to="__model__">-6 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>solar_port_mount</parent>
+      <child>solar_port</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.4</lower>
+          <upper>1.4</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_mount">
+      <pose>-6 1 0.22 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarRight_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarRight_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-6 1 0.22 1.57079632679 0 1.57079632679</pose>
+      <parent>solar_port</parent>
+      <child>arm_solarRight_mount</child>
+    </joint>
+    <link name="arm_solarRight_yaw_link">
+      <pose>-6 1 0.34 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarRight_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_yaw" type="revolute">
+      <pose relative_to="__model__">-6 1 0.34 1.57079632679 0 1.57079632679</pose>
+      <parent>arm_solarRight_mount</parent>
+      <child>arm_solarRight_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_shoulder_link">
+      <pose>-6 1 0.7 1.57079632679 -0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0854933333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.0854933333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-2.22044604925e-16 0.6 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>-2.22044604925e-16 0.6 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.2 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarRight_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarRight_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_shoulder" type="revolute">
+      <pose relative_to="__model__">-6 1 0.7 1.57079632679 -0.6 1.57079632679</pose>
+      <parent>arm_solarRight_yaw_link</parent>
+      <child>arm_solarRight_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_elbow_link">
+      <pose>-6 0.322429031926 1.69040273789 1.57079632679 0.6 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0593191666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0593191666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-1.11022302463e-16 0.5 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>-1.11022302463e-16 0.5 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.0 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarRight_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarRight_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_elbow" type="revolute">
+      <pose relative_to="__model__">-6 0.322429031926 1.69040273789 1.57079632679 0.6 1.57079632679</pose>
+      <parent>arm_solarRight_shoulder_link</parent>
+      <child>arm_solarRight_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_wrist_link">
+      <pose>-6 0.887071505321 2.5157383528 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarRight_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarRight_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarRight_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_wrist" type="revolute">
+      <pose relative_to="__model__">-6 0.887071505321 2.5157383528 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_solarRight_elbow_link</parent>
+      <child>arm_solarRight_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_finger_a">
+      <pose>-6 1.05937996101 2.78691135311 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarRight_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">-6 1.05937996101 2.78691135311 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_solarRight_wrist_link</parent>
+      <child>arm_solarRight_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarRight_finger_b">
+      <pose>-6 0.833964648108 2.8326052992 1.57079632679 0.2 1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarRight_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarRight_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarRight_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">-6 0.833964648108 2.8326052992 1.57079632679 0.2 1.57079632679</pose>
+      <parent>arm_solarRight_wrist_link</parent>
+      <child>arm_solarRight_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="solar_starboard">
+      <pose>-6 0 0 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <inertial>
+        <mass>50</mass>
+        <inertia>
+          <ixx>37.5104166667</ixx>
+          <iyy>390.166666667</iyy>
+          <izz>352.677083333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>6.1 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>6.1 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>9.2 0.05 3</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="solar_starboard_dark">
+        <geometry>
+          <mesh>
+            <uri>solar_starboard_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="solar_starboard_solar">
+        <geometry>
+          <mesh>
+            <uri>solar_starboard_solar.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.035 .10 .27 1</diffuse>
+          <ambient>.035 .10 .27 1</ambient>
+        </material>
+      </visual>
+      <visual name="solar_starboard_truss">
+        <geometry>
+          <mesh>
+            <uri>solar_starboard_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <link name="solar_starboard_mount">
+      <pose>-6 0 0 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <inertial>
+        <mass>2</mass>
+        <inertia>
+          <ixx>1</ixx>
+          <iyy>1</iyy>
+          <izz>1</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </link>
+    <joint name="solar_starboard_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-6 0 0 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <parent>module_solar</parent>
+      <child>solar_starboard_mount</child>
+    </joint>
+    <joint name="solar_starboard_tilt" type="revolute">
+      <pose relative_to="__model__">-6 0 0 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <parent>solar_starboard_mount</parent>
+      <child>solar_starboard</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.4</lower>
+          <upper>1.4</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_mount">
+      <pose>-6 -1 -0.22 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarLeft_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarLeft_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-6 -1 -0.22 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <parent>solar_starboard</parent>
+      <child>arm_solarLeft_mount</child>
+    </joint>
+    <link name="arm_solarLeft_yaw_link">
+      <pose>-6 -1 -0.34 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarLeft_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_yaw" type="revolute">
+      <pose relative_to="__model__">-6 -1 -0.34 -1.57079632679 -1.11022302463e-16 -1.57079632679</pose>
+      <parent>arm_solarLeft_mount</parent>
+      <child>arm_solarLeft_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_shoulder_link">
+      <pose>-6 -1 -0.7 -1.57079632679 0.6 -1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0854933333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.0854933333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-2.22044604925e-16 0.6 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>-2.22044604925e-16 0.6 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.2 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarLeft_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarLeft_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_shoulder" type="revolute">
+      <pose relative_to="__model__">-6 -1 -0.7 -1.57079632679 0.6 -1.57079632679</pose>
+      <parent>arm_solarLeft_yaw_link</parent>
+      <child>arm_solarLeft_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_elbow_link">
+      <pose>-6 -0.322429031926 -1.69040273789 -1.57079632679 -0.6 -1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0593191666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0593191666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0.5 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0.5 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.0 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarLeft_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarLeft_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_elbow" type="revolute">
+      <pose relative_to="__model__">-6 -0.322429031926 -1.69040273789 -1.57079632679 -0.6 -1.57079632679</pose>
+      <parent>arm_solarLeft_shoulder_link</parent>
+      <child>arm_solarLeft_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_wrist_link">
+      <pose>-6 -0.887071505321 -2.5157383528 -1.57079632679 -0.2 -1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_solarLeft_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarLeft_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_solarLeft_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_wrist" type="revolute">
+      <pose relative_to="__model__">-6 -0.887071505321 -2.5157383528 -1.57079632679 -0.2 -1.57079632679</pose>
+      <parent>arm_solarLeft_elbow_link</parent>
+      <child>arm_solarLeft_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_finger_a">
+      <pose>-6 -1.05937996101 -2.78691135311 -1.57079632679 -0.2 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarLeft_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">-6 -1.05937996101 -2.78691135311 -1.57079632679 -0.2 -1.57079632679</pose>
+      <parent>arm_solarLeft_wrist_link</parent>
+      <child>arm_solarLeft_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_solarLeft_finger_b">
+      <pose>-6 -0.833964648108 -2.8326052992 -1.57079632679 -0.2 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_solarLeft_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_solarLeft_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_solarLeft_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">-6 -0.833964648108 -2.8326052992 -1.57079632679 -0.2 -1.57079632679</pose>
+      <parent>arm_solarLeft_wrist_link</parent>
+      <child>arm_solarLeft_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="module_engine">
+      <pose>-16.3 0 0 1.57079632679 0 1.57079632679</pose>
+      <inertial>
+        <mass>3000</mass>
+        <inertia>
+          <ixx>17103.9619844</ixx>
+          <iyy>17103.9619844</iyy>
+          <izz>10277.4171213</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0.471002937474 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0.8 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>2.7</radius>
+            <length>6</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <collision name="collision_1">
+        <pose>0 0 -3.2 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>1.4</radius>
+            <length>2</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="module_engine_dark">
+        <geometry>
+          <mesh>
+            <uri>module_engine_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_engine_gold">
+        <geometry>
+          <mesh>
+            <uri>module_engine_gold.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.788 .604 .235 1</diffuse>
+          <ambient>.788 .604 .235 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_engine_hull">
+        <geometry>
+          <mesh>
+            <uri>module_engine_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_engine_plating">
+        <geometry>
+          <mesh>
+            <uri>module_engine_plating.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.82 .85 .89 1</diffuse>
+          <ambient>.82 .85 .89 1</ambient>
+        </material>
+      </visual>
+      <visual name="module_engine_truss">
+        <geometry>
+          <mesh>
+            <uri>module_engine_truss.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.725 .745 .776 1</diffuse>
+          <ambient>.725 .745 .776 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="module_engine_fixed" type="fixed">
+      <pose relative_to="__model__">-16.3 0 0 1.57079632679 0 1.57079632679</pose>
+      <parent>hull</parent>
+      <child>module_engine</child>
+    </joint>
+    <link name="arm_engine_mount">
+      <pose>-14 2.8 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_engine_mount_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_mount_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_engine_mount_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_mount_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_mount_fixed" type="fixed">
+      <pose relative_to="__model__">-14 2.8 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <parent>module_engine</parent>
+      <child>arm_engine_mount</child>
+    </joint>
+    <link name="arm_engine_yaw_link">
+      <pose>-14 2.92 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.03</ixx>
+          <iyy>0.03</iyy>
+          <izz>0.03</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_engine_yaw_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_yaw_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_yaw" type="revolute">
+      <pose relative_to="__model__">-14 2.92 0 3.14159265359 1.57079632679 3.14159265359</pose>
+      <parent>arm_engine_mount</parent>
+      <child>arm_engine_yaw_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.141592653589793</lower>
+          <upper>3.141592653589793</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_engine_shoulder_link">
+      <pose>-14 3.28 0 1.57079632679 0.970796326795 1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.132743333333</ixx>
+          <iyy>0.00298666666667</iyy>
+          <izz>0.132743333333</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>2.22044604925e-16 0.75 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.16 1.5 0.16</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_engine_shoulder_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_shoulder_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_engine_shoulder_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_shoulder_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_shoulder" type="revolute">
+      <pose relative_to="__model__">-14 3.28 0 1.57079632679 0.970796326795 1.57079632679</pose>
+      <parent>arm_engine_yaw_link</parent>
+      <child>arm_engine_shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.1</lower>
+          <upper>0.9</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_engine_elbow_link">
+      <pose>-14 4.51800342236 0.846963710093 -1.57079632679 0.970796326795 -1.57079632679</pose>
+      <inertial>
+        <mass>0.7</mass>
+        <inertia>
+          <ixx>0.0995691666667</ixx>
+          <iyy>0.00197166666667</iyy>
+          <izz>0.0995691666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>-8.881784197e-16 0.65 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>-8.881784197e-16 0.65 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.13 1.3 0.13</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_engine_elbow_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_elbow_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_engine_elbow_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_elbow_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_elbow" type="revolute">
+      <pose relative_to="__model__">-14 4.51800342236 0.846963710093 -1.57079632679 0.970796326795 -1.57079632679</pose>
+      <parent>arm_engine_shoulder_link</parent>
+      <child>arm_engine_elbow_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.2</lower>
+          <upper>1.7999999999999998</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_engine_wrist_link">
+      <pose>-14 5.59093972175 0.112928494679 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.3</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.01</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="arm_engine_wrist_link_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_wrist_link_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_engine_wrist_link_glow">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_wrist_link_glow.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.275 .784 1 1</diffuse>
+          <ambient>.275 .784 1 1</ambient>
+        </material>
+      </visual>
+      <visual name="arm_engine_wrist_link_hull">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_wrist_link_hull.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.89 .90 .92 1</diffuse>
+          <ambient>.89 .90 .92 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_wrist" type="revolute">
+      <pose relative_to="__model__">-14 5.59093972175 0.112928494679 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_engine_elbow_link</parent>
+      <child>arm_engine_wrist_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.0</lower>
+          <upper>1.2000000000000002</upper>
+          <effort>150</effort>
+          <velocity>1.5</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_engine_finger_a">
+      <pose>-14 5.86211272206 -0.0593799610113 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_engine_finger_a_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_finger_a_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_finger_a_slide" type="prismatic">
+      <pose relative_to="__model__">-14 5.86211272206 -0.0593799610113 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_engine_wrist_link</parent>
+      <child>arm_engine_finger_a</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="arm_engine_finger_b">
+      <pose>-14 5.90780666814 0.166035351892 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <inertial>
+        <mass>0.08</mass>
+        <inertia>
+          <ixx>0.000426666666667</ixx>
+          <iyy>5.33333333333e-05</iyy>
+          <izz>0.000394666666667</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+        <pose>0 0 0 0 0 0</pose>
+      </inertial>
+      <collision name="collision_0">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.24 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="arm_engine_finger_b_dark">
+        <geometry>
+          <mesh>
+            <uri>arm_engine_finger_b_dark.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>.227 .247 .278 1</diffuse>
+          <ambient>.227 .247 .278 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name="arm_engine_finger_b_slide" type="prismatic">
+      <pose relative_to="__model__">-14 5.90780666814 0.166035351892 -1.57079632679 1.37079632679 -1.57079632679</pose>
+      <parent>arm_engine_wrist_link</parent>
+      <child>arm_engine_finger_b</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-0.065</lower>
+          <upper>0.065</upper>
+          <effort>150</effort>
+          <velocity>0.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+        </dynamics>
+      </axis>
+    </joint>
+  </model>
+</sdf>

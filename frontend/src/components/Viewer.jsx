@@ -14,6 +14,7 @@ import DemoScene from './DemoScene.jsx';
 import LiveScene from './LiveScene.jsx';
 import BackendMap from './BackendMap.jsx';
 import AIControlPanel from './AIControlPanel.jsx';
+import DemoAIControls from './DemoAIControls.jsx';
 
 const TITLES = {
   'Planetary Trajectories': 'PLANETARY TRAJECTORIES',
@@ -22,7 +23,7 @@ const TITLES = {
 
 function formatTime(seconds) {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const rest = String(seconds % 60).padStart(2, '0');
+  const rest = String(Math.floor(seconds % 60)).padStart(2, '0');
   return `${minutes}:${rest}`;
 }
 
@@ -53,8 +54,8 @@ function TimeScaleControl({ value, onStep, onChange }) {
     <div
       className={`time-scale ${invalid ? 'invalid' : ''}`}
       role="group"
-      aria-label="Demo time scale"
-      title="Mission time per real second. Type a value such as 100K or 2.5M."
+      aria-label="Demo map travel scale"
+      title="Map travel playback speed. Local rocks, burns and repairs run at 1x. Type 100K or 2.5M."
     >
       <button aria-label="Slower" disabled={value <= MIN_TIME_SCALE} onClick={() => onStep(-1)}>
         −
@@ -87,6 +88,7 @@ function TimeScaleControl({ value, onStep, onChange }) {
 }
 
 export default function Viewer({
+  demoAI,
   tab,
   live,
   viewMode,
@@ -147,11 +149,10 @@ export default function Viewer({
             <button
               className={viewMode === 'live' && live ? 'active' : ''}
               aria-pressed={live}
-              disabled={!scene}
               title={scene ? 'Show the live simulator' : 'Start the simulator backend to use the live view'}
               onClick={() => onViewModeChange('live')}
             >
-              LIVE SIM
+              GAZEBO (OPTIONAL)
             </button>
             <button
               className={!live ? 'active' : ''}
@@ -166,7 +167,7 @@ export default function Viewer({
         {generator && <span className="tiny">WASD / ARROWS · SWIPE TO LOOK</span>}
       </div>
 
-      {(live || planet) && (message || error || (generator && modelError)) && (
+      {(live || planet || viewMode === 'live') && (message || error || (generator && modelError)) && (
         <div className="connection-banner" role="status">
           {generator && modelError ? `Model asset error: ${modelError}` : error || message}
         </div>
@@ -174,7 +175,7 @@ export default function Viewer({
 
       {tab === 'AI Logs' && (
         <div className="ai-log-view">
-          <AIControlPanel simulation={simulation} onShowLiveShip={onShowLiveShip} />
+          {viewMode === 'demo' ? <DemoAIControls ai={demoAI} /> : <AIControlPanel simulation={simulation} onShowLiveShip={onShowLiveShip} />}
           <details className="biglogs"><summary>Simulation and demo events</summary>
             {logs.map((item) => <div key={item.id}>{item.text}</div>)}
           </details>
@@ -224,7 +225,7 @@ export default function Viewer({
             onStormReach={onStormReach}
             onStormDone={onStormDone}
           />
-          <div className="scenehint">DEMO · UNMANNED AI SPACECRAFT · {voyageLabel}</div>
+          <div className="scenehint">DEMO · BROWSER PHYSICS · {voyageLabel}</div>
           {stormFlash > 0 && <div key={stormFlash} className="storm-flash" aria-hidden="true" />}
           {event && <div className="warning">⚠ {event.name.toUpperCase()} DETECTED</div>}
           {armed && <div className="armed-hint">Click to launch {armed} · Esc to cancel</div>}
@@ -269,9 +270,6 @@ export default function Viewer({
             </button>
             <button title="Reset demo" aria-label="Reset demo" onClick={onResetDemo}>
               <RotateCcw size={16} />
-            </button>
-            <button title="Reconnect to simulator" aria-label="Reconnect to simulator" onClick={simulation.reconnect}>
-              <RefreshCw size={16} />
             </button>
             <span>SIM TIME: {formatTime(seconds)}</span>
           </>

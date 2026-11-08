@@ -14,73 +14,278 @@
   ros_type_name: tf2_msgs/msg/TFMessage
   gz_type_name: gz.msgs.Pose_V
   direction: GZ_TO_ROS
-- ros_topic_name: /starship/joint_states
-  gz_topic_name: /starship/joint_states
-  ros_type_name: sensor_msgs/msg/JointState
-  gz_type_name: gz.msgs.Model
+- ros_topic_name: /starship/physics/command
+  gz_topic_name: /starship/physics/command
+  ros_type_name: std_msgs/msg/String
+  gz_type_name: gz.msgs.StringMsg
+  direction: ROS_TO_GZ
+- ros_topic_name: /starship/physics/impact
+  gz_topic_name: /starship/physics/impact
+  ros_type_name: std_msgs/msg/String
+  gz_type_name: gz.msgs.StringMsg
+  direction: ROS_TO_GZ
+- ros_topic_name: /starship/physics/state
+  gz_topic_name: /starship/physics/state
+  ros_type_name: std_msgs/msg/String
+  gz_type_name: gz.msgs.StringMsg
   direction: GZ_TO_ROS
-- ros_topic_name: /starship/cmd_vel
-  gz_topic_name: /model/starship/cmd_vel
-  ros_type_name: geometry_msgs/msg/Twist
-  gz_type_name: gz.msgs.Twist
-  direction: ROS_TO_GZ
-- ros_topic_name: /arms/power/yaw/target
-  gz_topic_name: /arms/power/yaw/target
+- ros_topic_name: /arms/command/yaw/target
+  gz_topic_name: /arms/command/yaw/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/power/shoulder/target
-  gz_topic_name: /arms/power/shoulder/target
+- ros_topic_name: /arms/command/shoulder/target
+  gz_topic_name: /arms/command/shoulder/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/power/elbow/target
-  gz_topic_name: /arms/power/elbow/target
+- ros_topic_name: /arms/command/elbow/target
+  gz_topic_name: /arms/command/elbow/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/life_support/yaw/target
-  gz_topic_name: /arms/life_support/yaw/target
+- ros_topic_name: /arms/command/wrist/target
+  gz_topic_name: /arms/command/wrist/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/life_support/shoulder/target
-  gz_topic_name: /arms/life_support/shoulder/target
+- ros_topic_name: /arms/command/grip/target
+  gz_topic_name: /arms/command/grip/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/life_support/elbow/target
-  gz_topic_name: /arms/life_support/elbow/target
+- ros_topic_name: /arms/hab/yaw/target
+  gz_topic_name: /arms/hab/yaw/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/thermal/yaw/target
-  gz_topic_name: /arms/thermal/yaw/target
+- ros_topic_name: /arms/hab/shoulder/target
+  gz_topic_name: /arms/hab/shoulder/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/thermal/shoulder/target
-  gz_topic_name: /arms/thermal/shoulder/target
+- ros_topic_name: /arms/hab/elbow/target
+  gz_topic_name: /arms/hab/elbow/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/thermal/elbow/target
-  gz_topic_name: /arms/thermal/elbow/target
+- ros_topic_name: /arms/hab/wrist/target
+  gz_topic_name: /arms/hab/wrist/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/navigation/yaw/target
-  gz_topic_name: /arms/navigation/yaw/target
+- ros_topic_name: /arms/hab/grip/target
+  gz_topic_name: /arms/hab/grip/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/navigation/shoulder/target
-  gz_topic_name: /arms/navigation/shoulder/target
+- ros_topic_name: /arms/node/yaw/target
+  gz_topic_name: /arms/node/yaw/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ
-- ros_topic_name: /arms/navigation/elbow/target
-  gz_topic_name: /arms/navigation/elbow/target
+- ros_topic_name: /arms/node/shoulder/target
+  gz_topic_name: /arms/node/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/node/elbow/target
+  gz_topic_name: /arms/node/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/node/wrist/target
+  gz_topic_name: /arms/node/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/node/grip/target
+  gz_topic_name: /arms/node/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/cargo/yaw/target
+  gz_topic_name: /arms/cargo/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/cargo/shoulder/target
+  gz_topic_name: /arms/cargo/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/cargo/elbow/target
+  gz_topic_name: /arms/cargo/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/cargo/wrist/target
+  gz_topic_name: /arms/cargo/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/cargo/grip/target
+  gz_topic_name: /arms/cargo/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringHub/yaw/target
+  gz_topic_name: /arms/ringHub/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringHub/shoulder/target
+  gz_topic_name: /arms/ringHub/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringHub/elbow/target
+  gz_topic_name: /arms/ringHub/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringHub/wrist/target
+  gz_topic_name: /arms/ringHub/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringHub/grip/target
+  gz_topic_name: /arms/ringHub/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/slide/target
+  gz_topic_name: /arms/ringRailA/slide/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/yaw/target
+  gz_topic_name: /arms/ringRailA/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/shoulder/target
+  gz_topic_name: /arms/ringRailA/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/elbow/target
+  gz_topic_name: /arms/ringRailA/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/wrist/target
+  gz_topic_name: /arms/ringRailA/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailA/grip/target
+  gz_topic_name: /arms/ringRailA/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/slide/target
+  gz_topic_name: /arms/ringRailB/slide/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/yaw/target
+  gz_topic_name: /arms/ringRailB/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/shoulder/target
+  gz_topic_name: /arms/ringRailB/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/elbow/target
+  gz_topic_name: /arms/ringRailB/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/wrist/target
+  gz_topic_name: /arms/ringRailB/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/ringRailB/grip/target
+  gz_topic_name: /arms/ringRailB/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarRight/yaw/target
+  gz_topic_name: /arms/solarRight/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarRight/shoulder/target
+  gz_topic_name: /arms/solarRight/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarRight/elbow/target
+  gz_topic_name: /arms/solarRight/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarRight/wrist/target
+  gz_topic_name: /arms/solarRight/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarRight/grip/target
+  gz_topic_name: /arms/solarRight/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarLeft/yaw/target
+  gz_topic_name: /arms/solarLeft/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarLeft/shoulder/target
+  gz_topic_name: /arms/solarLeft/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarLeft/elbow/target
+  gz_topic_name: /arms/solarLeft/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarLeft/wrist/target
+  gz_topic_name: /arms/solarLeft/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/solarLeft/grip/target
+  gz_topic_name: /arms/solarLeft/grip/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/engine/yaw/target
+  gz_topic_name: /arms/engine/yaw/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/engine/shoulder/target
+  gz_topic_name: /arms/engine/shoulder/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/engine/elbow/target
+  gz_topic_name: /arms/engine/elbow/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/engine/wrist/target
+  gz_topic_name: /arms/engine/wrist/target
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ
+- ros_topic_name: /arms/engine/grip/target
+  gz_topic_name: /arms/engine/grip/target
   ros_type_name: std_msgs/msg/Float64
   gz_type_name: gz.msgs.Double
   direction: ROS_TO_GZ

@@ -21,10 +21,15 @@ def role_description(role, scene):
         SystemId.ENERGY: {'allowed_actions': ['solar_panel_target'], 'solar_panels': scene.get('solar_panels', [])},
         SystemId.PROPELLING: {'allowed_actions': ['thruster_velocity', 'follow_navigation'],
             'max_speed_m_s': scene['cruise_speed_m_s'], 'max_duration_s': 10, 'frame': 'ship_body'},
-        SystemId.ROBOT_ARMS: {'allowed_actions': ['arm_target'], 'arms': scene['arms']},
+        SystemId.ROBOT_ARMS: {'allowed_actions': ['arm_target'], 'frame': 'ship_body: X forward, Y port/left, Z up',
+                             'arms': scene['arms'], 'modules': scene.get('ship_layout', {}).get('modules', [])},
     }[role]
     if role == SystemId.ROBOT_ARMS:
         capabilities['allowed_actions'].append('arm_service')
+    if role == SystemId.PROPELLING and scene.get('physics'):
+        capabilities['allowed_actions'].append('thruster_burn')
+        capabilities['physics'] = {key: scene['physics'][key] for key in ('main_thrust_n', 'rcs_thrust_n', 'rcs_torque_nm', 'fuel_kg', 'main_isp_s', 'rcs_isp_s')}
+        capabilities['velocity_semantics'] = 'Body-frame velocity goal converted once to a world vector at approval. Finite acceleration, automatic attitude alignment. 25 m/s nominal goal; actual speed can exceed it after impacts/burns.'
     example = {'assessment': 'No justified actuator change with the supplied evidence.', 'proposals': []}
     if role == SystemId.MAIN_JUDGING:
         example = {'summary': 'No supported beneficial action is available.', 'risk_analysis': [],

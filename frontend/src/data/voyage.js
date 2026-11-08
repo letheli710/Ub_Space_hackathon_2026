@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { advanceDemo, createDemoPhysics, modelOrigin, setDemoTimeScale, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
 
 // Browser-only demo solar system. Orbit radii follow real distances from the Sun (in AU);
 // planets are drawn much larger than real so they stay visible. The live map comes from the
@@ -10,6 +11,7 @@ import * as THREE from 'three';
 export const AU = 392;
 export const KM_PER_AU = 149597870.7;
 const KM_PER_UNIT = KM_PER_AU / AU;
+export const METERS_PER_MAP_UNIT = KM_PER_UNIT * 1000;
 const SIZE_SCALE = 2.5; // world units per pixel of planet size on the original map
 
 // [name, color, size on the map, real orbit radius in AU, starting angle]
@@ -112,17 +114,40 @@ export function stepTimeScaleValue(value, direction) {
 
 /** Speed in km/s (0 while holding in orbit around a planet). */
 export function shipSpeedKmS(voyage) {
+  if (voyage.physics) return voyage.physics.ship.v.length() / 1000;
   return voyage.dwell > 0 ? 0 : SHIP_SPEED_KMS;
 }
 
 /** Days since leaving the current leg's origin planet. */
 export function missionDay(voyage) {
+  if (voyage.physics) return voyage.mapElapsed / 86400;
   return legProgress(voyage) * LEG_DAYS;
 }
 
 /** Mutable voyage state, advanced every animation frame. */
-export function createVoyage() {
-  return { progress: 0, direction: 1, dwell: 0, timeScale: DEFAULT_TIME_SCALE };
+export function createVoyage({ physical = false } = {}) {
+  const v = { progress: 0, direction: 1, dwell: 0, timeScale: DEFAULT_TIME_SCALE };
+  if (physical) {
+    v.physics = createDemoPhysics({ position: start.clone().multiplyScalar(METERS_PER_MAP_UNIT).toArray(), direction: end.clone().sub(start).normalize().toArray() });
+    v.mapPosition = modelOrigin(v.physics.ship).divideScalar(METERS_PER_MAP_UNIT);
+    v.mapElapsed = 0;
+  }
+  return v;
+}
+
+/** Map playback is independent of the safe 1x clock used for local encounters. */
+export function setVoyageTimeScale(voyage, scale) {
+  if (!Number.isFinite(scale) || scale < MIN_TIME_SCALE || scale > MAX_TIME_SCALE) throw new Error('Time scale must be between 1 and 10M.');
+  // Once local physics has entered real time, it stays there until reset. Changing
+  // the map display must never fast-forward a rock, burn, repair or AI reaction.
+  if (voyage.physics?.timeScale > 1) setDemoTimeScale(voyage.physics, scale);
+  voyage.timeScale = scale;
+}
+
+/** All nearby objects share the ship's map anchor and enlarged local meter scale. */
+export function demoRenderPosition(voyage, physicalPoint) {
+  return physicalPoint.clone().sub(modelOrigin(voyage.physics.ship))
+    .multiplyScalar(DEMO_RENDER_SCALE).add(voyage.mapPosition);
 }
 
 export function origin(voyage) {
@@ -144,6 +169,17 @@ export function legProgress(voyage) {
  * `progress` is the share of transfer time measured from Earth, so it moves at a steady rate.
  */
 export function stepVoyage(voyage, dtReal) {
+  if (voyage.physics) {
+    const before = modelOrigin(voyage.physics.ship), elapsed = voyage.physics.elapsed;
+    advanceDemo(voyage.physics, dtReal);
+    const displayRatio = voyage.timeScale / voyage.physics.timeScale;
+    // Amplify only map travel, never local separations, contact speeds or timers.
+    // Integrating the measured displacement preserves collision/thrust deflections.
+    voyage.mapPosition.add(modelOrigin(voyage.physics.ship).sub(before).multiplyScalar(displayRatio / METERS_PER_MAP_UNIT));
+    voyage.mapElapsed += (voyage.physics.elapsed - elapsed) * displayRatio;
+    voyage.progress = voyage.mapElapsed / LEG_SECONDS;
+    return null;
+  }
   let remaining = Math.max(dtReal, 0) * (voyage.timeScale ?? 1);
   if (!Number.isFinite(remaining) || remaining <= 0) return null;
   let event = null;
@@ -176,6 +212,7 @@ export function stepVoyage(voyage, dtReal) {
  * Outer disasters aim here, so an AI that changes course can make them miss.
  */
 export function predictShipPosition(voyage, seconds, out) {
+  if (voyage.physics) return out.copy(voyage.mapPosition).addScaledVector(voyage.physics.ship.v, seconds * voyage.timeScale / METERS_PER_MAP_UNIT);
   const future = { ...voyage };
   const step = 1 / 60;
   for (let t = 0; t < seconds; t += step) {
@@ -192,6 +229,11 @@ export function routeParameter(voyage) {
 
 /** Ship position and heading on the route. */
 export function shipPose(voyage, outPosition, outDirection) {
+  if (voyage.physics) {
+    outPosition.copy(voyage.mapPosition);
+    if (outDirection) outDirection.set(0, 0, 1).applyQuaternion(voyage.physics.ship.q);
+    return outPosition;
+  }
   const u = routeParameter(voyage);
   ROUTE.getPointAt(u, outPosition);
   if (outDirection) {

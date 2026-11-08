@@ -106,6 +106,42 @@
         }
       }
     },
+    "/api/v1/impacts": {
+      "post": {
+        "summary": "Inject Impact",
+        "operationId": "inject_impact_api_v1_impacts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpactCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/arms/{arm_id}/target": {
       "post": {
         "summary": "Command Arm",
@@ -594,7 +630,8 @@
             },
             "type": "object",
             "minProperties": 1,
-            "title": "Targets"
+            "title": "Targets",
+            "description": "Canonical joint targets using each scene joint unit and lower_limit/upper_limit. Angular joints use rad; gripper openness uses fraction 0\u20131."
           }
         },
         "additionalProperties": false,
@@ -655,6 +692,65 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "ImpactCommand": {
+        "properties": {
+          "target_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Id"
+          },
+          "mass_kg": {
+            "type": "number",
+            "maximum": 5000.0,
+            "minimum": 1.0,
+            "title": "Mass Kg",
+            "default": 200
+          },
+          "radius_m": {
+            "type": "number",
+            "maximum": 2.0,
+            "minimum": 0.15,
+            "title": "Radius M",
+            "default": 0.6
+          },
+          "speed_m_s": {
+            "type": "number",
+            "maximum": 150.0,
+            "minimum": 1.0,
+            "title": "Speed M S",
+            "default": 40
+          },
+          "direction_body": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Direction Body",
+            "default": [
+              0,
+              0,
+              -1
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_id"
+        ],
+        "title": "ImpactCommand"
       },
       "LoopRequest": {
         "properties": {

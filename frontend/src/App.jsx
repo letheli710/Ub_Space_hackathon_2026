@@ -12,7 +12,7 @@ import MissionControl, { DEFAULT_MAP_INFO } from './components/MissionControl.js
 import Telemetry from './components/Telemetry.jsx';
 import Timeline from './components/Timeline.jsx';
 import Viewer from './components/Viewer.jsx';
-import { DISASTER_PARAMETERS, demoAiResponse } from './data/disasters.js';
+import { DISASTER_PARAMETERS } from './data/disasters.js';
 import {
   createVoyage,
   destination,
@@ -25,17 +25,20 @@ import {
   shipPose,
   shipSpeedKmS,
   stepVoyage,
+  setVoyageTimeScale,
 } from './data/voyage.js';
 import useSimulation from './simulation/useSimulation.js';
+import { commandDemoBurn, coastDemo, demoTelemetry, launchDemoRock, launchDemoRockAtPointer, injectDemoFault } from './simulation/demoPhysics.js';
+import useDemoAI from './simulation/useDemoAI.js';
 
 // Two ways to run the 3D view:
 //  - Live: the ROS/Gazebo simulator is connected; ship, map, telemetry and arms come from it.
-//  - Demo: no simulator needed; the ship flies Earth ⇄ Mars in the browser and the
-//    Disaster Maker can launch illustrative hazards. Live scenario events affect backend health.
+//  - Demo (primary): browser rigid-body physics, physical impacts and finite burns.
 
-/** Moves the demo ship along its Earth ⇄ Mars route while the demo is playing. */
+/** Advances DEMO physics independently of which React view is mounted. */
 function useVoyage(playing, onLegEvent) {
-  const voyage = useRef(createVoyage());
+  const voyage = useRef(null);
+  if (!voyage.current) voyage.current = createVoyage({ physical: true });
   // Dev only: lets you inspect or nudge the voyage from the browser console while testing.
   if (import.meta.env.DEV) window.__voyage = voyage.current;
   const callback = useRef(onLegEvent);
@@ -61,10 +64,10 @@ function useVoyage(playing, onLegEvent) {
 }
 
 export default function App() {
-  const simulation = useSimulation();
   const [tab, setTab] = useState('Home');
-  const [viewMode, setViewMode] = useState('live');
-  const live = (viewMode === 'live' || tab === 'Planetary Trajectories' || tab === 'AI Logs') && Boolean(simulation.scene);
+  const [viewMode, setViewMode] = useState('demo');
+  const simulation = useSimulation({ enabled: viewMode === 'live' || ['Spacecraft', 'Planetary Trajectories'].includes(tab) });
+  const live = (viewMode === 'live' || tab === 'Planetary Trajectories') && Boolean(simulation.scene);
 
   const [logs, setLogs] = useState([]);
   const [fullPage, setFullPage] = useState(false);
@@ -76,6 +79,7 @@ export default function App() {
   const [playing, setPlaying] = useState(true);
   const [seconds, setSeconds] = useState(0);
   const [armed, setArmed] = useState(null);
+  const [rockSettings, setRockSettings] = useState({ target_id: 'cycle', mass_kg: 200, radius_m: .6, speed_m_s: 40, warning_s: 12 });
   const [blackHole, setBlackHole] = useState(false);
   const [solarStorm, setSolarStorm] = useState(null);
   const [faults, setFaults] = useState([]); // inner failures the AI has not fixed yet
@@ -115,7 +119,7 @@ export default function App() {
     addLog(
       simulation.ready
         ? 'Simulator connected · live measurements received'
-        : 'Waiting for live simulator connection · demo view available',
+        : 'DEMO browser physics ready · optional Gazebo backend disconnected',
     );
   }, [simulation.ready, addLog]);
   const paused = simulation.state?.paused;
@@ -137,15 +141,13 @@ export default function App() {
     if (legEvent === 'arrived') addLogs([`ARRIVED · ${destination(v)} orbit reached · Holding position`]);
     else addLogs([`DEPARTURE · ${origin(v)} → ${destination(v)}`]);
   });
-  const voyageLabel =
-    voyage.current.dwell > 0
-      ? `IN ${destination(voyage.current).toUpperCase()} ORBIT`
-      : `${origin(voyage.current).toUpperCase()} → ${destination(voyage.current).toUpperCase()} · DAY ${Math.floor(missionDay(voyage.current))} / ${Math.round(LEG_DAYS)}`;
-  // Demo time scale: mission seconds per real second (kept on the voyage so stepping uses it).
-  const [timeScale, setTimeScaleState] = useState(voyage.current.timeScale);
+  const demoAI = useDemoAI(voyage, playing && !live, addLog);
+  const voyageLabel = `EARTH → MARS · FREE FLIGHT · MAP DAY ${Math.floor(missionDay(voyage.current))}`;
+  // Map playback stays continuous while local collision/AI time runs safely at 1x.
+  const timeScale = voyage.current.timeScale;
   function setTimeScale(value) {
-    voyage.current.timeScale = value;
-    setTimeScaleState(value);
+    try { setVoyageTimeScale(voyage.current, value); }
+    catch (error) { addLog(error.message); }
   }
   function stepTimeScale(direction) {
     // Read the live value so several quick clicks each move one step.
@@ -154,6 +156,7 @@ export default function App() {
     if (next !== current) setTimeScale(next);
   }
   const demoStatus = {
+    physics: demoTelemetry(voyage.current.physics),
     speedKmS: shipSpeedKmS(voyage.current),
     day: missionDay(voyage.current),
     legDays: LEG_DAYS,
@@ -162,10 +165,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!playing || live) return undefined;
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    if (live) return undefined;
+    const id = setInterval(() => {
+      setSeconds((s) => playing ? s + .1 : s);
+      const events = voyage.current.physics.events.splice(0);
+      if (events.length) addLogs(events.map(e => e.text));
+    }, 100);
     return () => clearInterval(id);
-  }, [playing, live]);
+  }, [playing, live, addLogs, voyage]);
 
   useEffect(() => setMapInfo(DEFAULT_MAP_INFO), [simulation.scene?.revision]);
 
@@ -188,14 +195,18 @@ export default function App() {
     setEvent({ name, severity });
     addLogs([
       `${firstLine} · ${name} · Severity ${severity}%`,
-      'AI DETECTED · Evaluating spacecraft state',
-      `AI RESPONSE · ${demoAiResponse(name)}`,
+      'DEMO scenario active · no automatic AI mitigation has been executed',
     ]);
   }
 
   // Outer disasters: aimed at where the ship will be when they arrive, then fly straight.
   // If the AI changes the ship's course in the meantime, they miss.
   function launch(offsetFromShip) {
+    if (armed === 'Asteroid Collision') {
+      try { launchDemoRockAtPointer(voyage.current.physics, offsetFromShip, rockSettings); }
+      catch (error) { addLog(error.message); }
+      return;
+    }
     const id = nextId.current++;
     const ship = shipPose(voyage.current, new THREE.Vector3());
     const start = ship.clone().add(new THREE.Vector3(...offsetFromShip));
@@ -223,8 +234,8 @@ export default function App() {
   // Inner failures stay active (button lit, effects on) until they are resolved.
   // Nothing resolves them on a timer: the backend AI will report the fix and call resolveFault.
   function triggerFault(name) {
-    if (faults.includes(name)) return;
-    setFaults((current) => [...current, name]);
+    setFaults((current) => current.includes(name) ? current : [...current, name]);
+    injectDemoFault(voyage.current.physics, name);
     startDisaster(name, 'DISASTER INJECTED');
   }
 
@@ -236,6 +247,7 @@ export default function App() {
       if (!faultsRef.current.includes(name)) return;
       const remaining = faultsRef.current.filter((fault) => fault !== name);
       setFaults(remaining);
+      voyage.current.physics.faults = remaining;
       // The failure's effects end; show the most recent failure still open, if any.
       setEvent((event) => {
         if (event?.name !== name) return event;
@@ -251,7 +263,6 @@ export default function App() {
 
   // Solar storm: a particle wave leaves the Sun and sweeps outward; it hits when it reaches the ship.
   function triggerSolarStorm() {
-    if (solarStorm) return;
     setArmed(null);
     setSolarStorm({ id: nextId.current++ });
     const distance = shipPose(voyage.current, new THREE.Vector3()).length();
@@ -280,13 +291,14 @@ export default function App() {
   }
 
   function resetDemo() {
+    demoAI.reset();
     setEvent(null);
     setBlackHole(false);
     setSolarStorm(null);
     setFaults([]);
     setHazards([]);
     setImpacts([]);
-    Object.assign(voyage.current, createVoyage(), { timeScale: voyage.current.timeScale });
+    Object.assign(voyage.current, createVoyage({ physical: true }));
     setSeconds(0);
     timeRef.current = 0;
     addLogs(['DEMO RESET · All systems nominal']);
@@ -314,7 +326,7 @@ export default function App() {
   const workspaceClass = ['workspace', fullPage && 'fullpage', leftOpen && 'left-open', rightOpen && 'right-open']
     .filter(Boolean)
     .join(' ');
-  const status = !simulation.connected
+  const status = !live ? (playing ? 'DEMO' : 'PAUSED') : !simulation.connected
     ? 'OFFLINE'
     : !simulation.ready
       ? 'CONNECTING'
@@ -332,7 +344,7 @@ export default function App() {
       {tab === 'Home' ? (
         <Home event={event} onNavigate={setTab} demoStatus={demoStatus} />
       ) : tab === 'Spacecraft' ? (
-        <SpacecraftViewer />
+        <SpacecraftViewer simulation={simulation} onLog={addLog} />
       ) : tab === 'AI API' ? (
         <AiApiSettings />
       ) : (
@@ -356,8 +368,12 @@ export default function App() {
             />
           ) : (
             <DisasterMaker
+              impact={rockSettings}
+              onImpactChange={setRockSettings}
               live={live}
               simulation={simulation}
+              demo={{ physics: voyage.current.physics, playing, launch: options => launchDemoRock(voyage.current.physics, options), burn: options => commandDemoBurn(voyage.current.physics, options), coast: () => coastDemo(voyage.current.physics) }}
+              demoAI={demoAI}
               onLog={addLog}
               armed={armed}
               onArm={setArmed}
@@ -372,6 +388,7 @@ export default function App() {
 
           <main>
             <Viewer
+              demoAI={demoAI}
               tab={tab}
               live={live}
               viewMode={viewMode}
@@ -408,7 +425,7 @@ export default function App() {
           </main>
 
           <aside className="right">
-            <Telemetry live={live || tab === 'AI Logs'} simulation={simulation} event={event} demoStatus={demoStatus} />
+            <Telemetry live={live} simulation={simulation} event={event} demoStatus={demoStatus} />
             <Timeline logs={logs} />
           </aside>
 
@@ -441,8 +458,8 @@ export default function App() {
           {planetTab ? `BACKEND MAP · ${status}` : live
             ? 'LIVE SPACE ROS / GAZEBO ENVIRONMENT'
             : simulation.ready
-              ? 'DEMO VIEW · SIMULATOR CONNECTED'
-              : 'DEMO VIEW · WAITING FOR SIMULATOR'}
+              ? 'DEMO · BROWSER PHYSICS'
+              : 'DEMO · BROWSER PHYSICS · NO BACKEND REQUIRED'}
         </span>
       </footer>
     </div>

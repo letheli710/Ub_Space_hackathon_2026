@@ -1,0 +1,65 @@
+{
+  "source": "frontend modular station dimensional layout",
+  "axes": "preview (x,y,z) -> body (z,x,y)",
+  "fixed_habitat_ring": true,
+  "arm_ids": [
+    "command",
+    "hab",
+    "node",
+    "cargo",
+    "ringHub",
+    "ringRailA",
+    "ringRailB",
+    "solarRight",
+    "solarLeft",
+    "engine"
+  ],
+  "modules": [
+    {
+      "id": "command",
+      "label": "Command module",
+      "link_name": "module_command"
+    },
+    {
+      "id": "hab",
+      "label": "Habitation module",
+      "link_name": "module_hab"
+    },
+    {
+      "id": "node",
+      "label": "Junction node",
+      "link_name": "module_node"
+    },
+    {
+      "id": "cargo",
+      "label": "Cargo pod",
+      "link_name": "module_cargo"
+    },
+    {
+      "id": "spine",
+      "label": "Spine truss",
+      "link_name": "module_spine"
+    },
+    {
+      "id": "ring",
+      "label": "Habitat ring",
+      "link_name": "module_ring"
+    },
+    {
+      "id": "solar",
+      "label": "Solar arrays and radiators",
+      "link_name": "module_solar"
+    },
+    {
+      "id": "engine",
+      "label": "Engine section",
+      "link_name": "module_engine"
+    }
+  ],
+  "source_sha256": {
+    "modules.jsx": "f84830714df56e69a41f8c7c8eaa7992ecb4cbe35b05eda2d1ab8b5e7ee6f8a2",
+    "parts.jsx": "e1cece9b78b2318c1867eea4f5cfe921e364d0bcd4a9182c22e0845d1097df32",
+    "RoboticArm.jsx": "7b0680b3dd6af3b344ff10a391d065e7a31ee5490f34fdae3955c4e2dfda2c69",
+    "StationShip.jsx": "502c5d5ca4c3ea773477b26e680bae116eb42d74c0097b496613cd3ba84ab84c"
+  }
+}

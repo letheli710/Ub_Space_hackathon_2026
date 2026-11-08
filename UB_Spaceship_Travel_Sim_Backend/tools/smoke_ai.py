@@ -7,6 +7,8 @@ Do not attach this test's command publishers to an existing simulation.
 import asyncio
 import json
 import math
+import os
+import signal
 from pathlib import Path
 import subprocess
 import sys
@@ -69,7 +71,7 @@ async def main():
              '--ros-args', '-p', 'config_file:=/workspace/config/bridge.yaml'])]:
             log = open(f'.runtime/ai-smoke-{name}.log', 'w')
             logs.append(log)
-            children.append(subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT))
+            children.append(subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, start_new_session=True))
         backend = RosBackend(scene, ai_managed=True)
         manager = AICoordinator(scene, backend,
             load_settings({'AI_ENABLED': 'true', 'DEEPSEEK_API_KEY': 'injected-fixtures-only'}), FixtureModels(scene))
@@ -82,7 +84,7 @@ async def main():
         initial = position()
         await asyncio.sleep(.5)
         assert distance(initial, position()) < .05
-        assert backend.snapshot()['propulsion']['control_mode'] == 'ai_hold'
+        assert backend.snapshot()['propulsion']['control_mode'] == 'ai_coast'
         for call in [lambda: backend.command_arm(scene['arms'][0]['id'], {'yaw': .1}),
                      lambda: backend.command_solar_panel(scene['solar_panels'][0]['id'], .1)]:
             try: call()
@@ -90,7 +92,7 @@ async def main():
             else: raise AssertionError('Direct actuator command bypassed Main Judging')
         print('PASS: real AI mode holds propulsion and blocks direct subsystem/manual actuation', flush=True)
         assert backend.snapshot()['sensors']['objects'], 'No nearby objects detected in the real scene'
-        backend.inject_disaster('Asteroid Collision', 50)
+        backend.inject_disaster('Spacecraft Fire', 50)
         damaged_hull = backend.snapshot()['ship_status']['metrics']['hull_integrity_pct']
         assert damaged_hull < 100
         manager.start_cycle(execute=False)
@@ -101,8 +103,8 @@ async def main():
         print('PASS: subsystem proposals and combined judgement publish no actions during preview', flush=True)
         result = await manager.execute_cycle(manager.latest_id)
         assert result['status'] == 'dispatched' and len(result['execution']['actions']) == 3
-        await eventually(lambda: distance(initial, position()) > .2, timeout=5)
-        await eventually(lambda: backend.snapshot()['propulsion']['control_mode'] == 'ai_hold', timeout=5)
+        await eventually(lambda: distance(initial, position()) > .2, timeout=15)
+        await eventually(lambda: backend.snapshot()['propulsion']['control_mode'] == 'ai_coast', timeout=15)
         await eventually(lambda: abs(backend.snapshot()['solar_panels'][0]['measured_rad'] - .25) < .04, timeout=15)
         await eventually(lambda: backend.snapshot()['ship_status']['metrics']['hull_integrity_pct'] > damaged_hull + 1, timeout=15)
         arm = next(arm for arm in scene['arms'] if 'hull' in arm.get('maintenance', {}).get('components', []))
@@ -110,8 +112,9 @@ async def main():
         assert all(abs(measured[key] - value) < arm['maintenance']['tolerance_rad'] for key, value in arm['maintenance']['targets_rad'].items())
         held = position()
         await asyncio.sleep(.5)
-        assert distance(held, position()) < .05
-        print('PASS: combined approved actions move the ship, panel and service arm; propulsion expires to hold', flush=True)
+        assert math.hypot(*backend.physics['force_world_n']) < .01
+        assert distance(held, position()) > .01
+        print('PASS: combined approved actions move the ship, panel and service arm; propulsion expires to coast', flush=True)
         print('PASS: AI receives five shared health metrics and nearby objects; physical arm pose gates modeled hull recovery', flush=True)
     finally:
         if manager:
@@ -119,11 +122,11 @@ async def main():
         if backend:
             backend.close()
         for child in children:
-            child.terminate()
+            if child.poll() is None: os.killpg(child.pid, signal.SIGTERM)
         for child in children:
             try: child.wait(timeout=8)
             except subprocess.TimeoutExpired:
-                child.kill()
+                os.killpg(child.pid, signal.SIGKILL)
                 child.wait()
         for log in logs:
             log.close()

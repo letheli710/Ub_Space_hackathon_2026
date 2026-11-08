@@ -23,3 +23,33 @@ def world_to_local(vector, orientation):
     return (x + qw * tx + qy * tz - qz * ty,
             y + qw * ty + qz * tx - qx * tz,
             z + qw * tz + qx * ty - qy * tx)
+
+
+def compose_pose(parent, local):
+    q, r = parent['orientation'], local['orientation']
+    rotated = world_to_local(tuple(local['position'][a] for a in 'xyz'), {**q, **{a: -q[a] for a in 'xyz'}})
+    x, y, z, w = [q[a] for a in 'xyzw']
+    i, j, k, s = [r[a] for a in 'xyzw']
+    return {'position': {a: parent['position'][a] + rotated[index] for index, a in enumerate('xyz')},
+            'orientation': dict(x=w*i+x*s+y*k-z*j, y=w*j-x*k+y*s+z*i,
+                                z=w*k+x*j-y*i+z*s, w=w*s-x*i-y*j-z*k)}
+
+
+def relative_pose(world, reference):
+    q = reference['orientation']
+    inverse = {**q, **{a: -q[a] for a in 'xyz'}}
+    delta = tuple(world['position'][a] - reference['position'][a] for a in 'xyz')
+    position = dict(zip('xyz', world_to_local(delta, q)))
+    orientation = compose_pose({'position': dict(x=0, y=0, z=0), 'orientation': inverse},
+                               {'position': dict(x=0, y=0, z=0), 'orientation': world['orientation']})['orientation']
+    return {'position': position, 'orientation': orientation}
+
+
+def measured_world_pose(transforms, frame_id, world_frame='world', trail=()):
+    item = transforms.get(frame_id)
+    if item is None or frame_id in trail: return None
+    pose = {key: item[key] for key in ('position', 'orientation')}
+    parent = item.get('parent_frame_id', '')
+    if not parent or parent in {'world', world_frame} or parent.startswith('world::'): return pose
+    parent_pose = measured_world_pose(transforms, parent, world_frame, (*trail, frame_id))
+    return compose_pose(parent_pose, pose) if parent_pose else None

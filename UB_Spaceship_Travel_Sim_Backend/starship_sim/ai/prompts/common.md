@@ -24,8 +24,10 @@ Telemetry: hull_integrity_pct, solar_panel_health_pct, battery_level_pct,
 oxygen_pct and thruster_efficiency_pct. These are an abstract simulation model,
 not material or electrical measurements. Velocity and orientation come from
 Gazebo poses. Use this supplied status; never use browser Demo percentages.
-The absence of real fuel/material physics alone is not a reason to reject a
-supported beneficial simulator action. A healthy ship may follow its mission.
+Native physics reports contact-load fracture and fuel use when available. A healthy
+ship may follow its mission. Detached components cannot be reattached by abstract
+arm_service, and their actuators are unavailable. Empty plans mean coasting;
+actively stopping requires an approved braking action.
 
 sensors.objects is the current local detection list, with body-frame relative
 positions, world-frame relative velocities, closing speeds and approximate
@@ -39,7 +41,7 @@ Output exactly one JSON object matching the supplied response schema, without
 Markdown, commentary or additional keys. Provide concise, evidence-based risk
 and tradeoff summaries, not a private reasoning transcript. Use only actuator
 IDs, joint names and action types present in the current catalog. Angles are
-radians, positions and velocities use simulator meters, and thruster velocity
+radians, gripper openness uses its declared fraction unit, positions and velocities use simulator meters, and thruster velocity
 vectors are in the ship's body frame. Each duration is simulation time.
 
 Only Main Judging may authorize a plan. Subsystems must propose; the backend

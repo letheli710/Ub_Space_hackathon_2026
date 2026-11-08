@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { StarField } from './space/Bodies.jsx';
 import { DEFAULT_POSE, JOINT_LIMITS } from './station/RoboticArm.jsx';
 import StationShip, { ARMS, MODULES } from './station/StationShip.jsx';
+import LiveScene from './LiveScene.jsx';
+import ArmControls from './ArmControls.jsx';
 
 // Shift the rendered view right so the ship sits in the open space beside the control panel.
 const VIEW_SHIFT = 0.12; // fraction of the canvas width
@@ -30,7 +32,7 @@ const JOINTS = [
 ];
 
 /** Spacecraft tab: inspect the modular ship, pull it apart and drive each robotic arm. */
-export default function SpacecraftViewer() {
+function Preview() {
   const [exploded, setExploded] = useState(false);
   const [ringSpin, setRingSpin] = useState(true);
   const [animateArms, setAnimateArms] = useState(true);
@@ -119,4 +121,25 @@ export default function SpacecraftViewer() {
       </aside>
     </section>
   );
+}
+
+export default function SpacecraftViewer({ simulation, onLog }) {
+  const [preview, setPreview] = useState(true);
+  const [selectedArm, setSelectedArm] = useState('command');
+  const [modelError, setModelError] = useState('');
+  return <>
+    <div className="spacecraft-mode" style={{ position: 'absolute', top: 88, right: 24, zIndex: 5 }}>
+      <button onClick={() => setPreview(value => !value)}>{preview ? 'Show live Gazebo ship' : 'Open design preview'}</button>
+    </div>
+    {preview ? <Preview /> : <section className="spacecraft-page">
+      {simulation.scene && <LiveScene scene={simulation.scene} state={simulation.state} shipOnly selectedArm={selectedArm} onError={setModelError} />}
+      <aside className="panel spacecraft-panel">
+        <h2 className="spacecraft-title">Live Gazebo Spacecraft</h2>
+        <p className="muted">Drag to orbit · scroll to zoom. {simulation.ready ? 'Live measured joints' : 'Waiting for fresh backend telemetry'}.</p>
+        <p className="muted">{simulation.scene?.ship_layout?.modules.length ?? 0} modules · {simulation.scene?.arms.length ?? 0} arms · Main Judging approves Robot Arms proposals.</p>
+        {modelError && <p role="alert">{modelError}</p>}
+        <ArmControls simulation={simulation} onLog={onLog} onSelect={setSelectedArm} />
+      </aside>
+    </section>}
+  </>;
 }

@@ -10,6 +10,7 @@ from starship_sim.ai.settings import load_settings
 from starship_sim.ai.contracts import ArmService, ArmTarget, PolicyError, resources, validate_action
 from starship_sim.api import create_app
 from starship_sim.spacecraft import SpacecraftState
+from starship_sim.actuators import joint_names, physical_target
 
 SCENE = json.loads((Path(__file__).resolve().parents[1] / 'config/scene.json').read_text())
 
@@ -36,12 +37,13 @@ def scene():
                           for name, dynamic, position in [('ship', True, pose()), ('sun', False, pose(0, -100)), ('object', True, pose(10))]]
     result['map']['objects'] = [{'entity_id': 'sun', 'kind': 'star'}, {'entity_id': 'object', 'kind': 'asteroid'}]
     result['simulation']['initial_battery_pct'] = 50
+    for panel in result['solar_panels']: panel['hinge_axis_body'] = [1, 0, 0]
     return result
 
 
 def joints_for(scene):
     return {**{panel['joint_name']: 0. for panel in scene['solar_panels']},
-            **{joint['joint_name']: 0. for arm in scene['arms'] for joint in arm['joints'].values()}}
+            **{name: 0. for arm in scene['arms'] for joint in arm['joints'].values() for name in joint_names(joint)}}
 
 
 def test_detection_uses_relative_measured_motion_and_filters_unobserved_or_distant_objects():
@@ -102,7 +104,7 @@ def test_maintenance_requires_measured_service_pose_and_power_then_reports_recov
     state.update(1, {'ship': pose()}, joints, (0, 0, 0), {})
     assert state.metrics['hull_integrity_pct'] == initial
     assert state.maintenance[arm['id']]['status'] == 'positioning'
-    for key, target in arm['maintenance']['targets_rad'].items(): joints[arm['joints'][key]['joint_name']] = target
+    for key, target in arm['maintenance']['targets_rad'].items(): joints[arm['joints'][key]['joint_name']] = physical_target(arm['joints'][key], target)
     state.update(2, {'ship': pose()}, joints, (0, 0, 0), {})
     assert state.metrics['hull_integrity_pct'] > initial
     state.update(3, {'ship': pose()}, joints, (0, 0, 0), {})
@@ -119,7 +121,7 @@ def test_maintenance_requires_measured_service_pose_and_power_then_reports_recov
 
 
 def test_arm_service_authority_capabilities_and_joint_conflicts():
-    arm = SCENE['arms'][0]
+    arm = next(arm for arm in SCENE['arms'] if 'solar_panels' in arm['maintenance']['components'])
     action = ArmService(type='arm_service', arm_id=arm['id'], component='solar_panels', duration_s=5)
     validate_action(SCENE, 'robot_arms', action)
     with pytest.raises(PolicyError): validate_action(SCENE, 'energy', action)

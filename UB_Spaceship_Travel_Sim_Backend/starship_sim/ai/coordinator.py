@@ -59,11 +59,14 @@ class AICoordinator:
                 'navigation': snapshot.get('navigation'), 'propulsion': snapshot.get('propulsion'),
                 'solar_panels': snapshot.get('solar_panels', []), 'arms': snapshot.get('arms', []),
                 'ship_status': deepcopy(snapshot.get('ship_status')), 'sensors': deepcopy(snapshot.get('sensors')),
-                'map_objects': bodies, 'ship_geometry': ship,
-                'unavailable_telemetry': ['material_contact_forces', 'electrical_generation_w', 'fuel', 'material_repair_results'],
-                'limitations': ['Velocity-controlled thrusters, not individual nozzle force or fuel simulation.',
+                'physics': deepcopy(snapshot.get('physics')),
+                'map_objects': bodies, 'ship_geometry': {'id': ship['id'], 'bounds_body_m': ship.get('bounds_body_m'),
+                    'frame': 'ship_body: X forward, Y port/left, Z up', 'modules': self.scene.get('ship_layout', {}).get('modules', [])},
+                'unavailable_telemetry': ['electrical_generation_w', 'material_repair_results'],
+                'limitations': ['Force-limited main engine and RCS; velocity requests are goals, never instantaneous changes. Coast without approval.',
                     'Joint targets are position requests, not proof of movement or repair.',
-                    'Health, power balance and arm maintenance are abstract simulation mechanics, not material physics.',
+                    'Contact fracture uses pre-segmented rigid attachments. No continuous deformation or hypervelocity fragmentation.',
+                    'Fuel is consumed with specific impulse; rigid-body mass does not decrease with fuel. Health, power and maintenance remain abstract.',
                     'Nearby-object warnings use approximate visual bounding spheres; they are not proof of contact.']}
 
     def snapshot(self, execute=False):

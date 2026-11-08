@@ -17,6 +17,11 @@ service pose. Combine this with an appropriate propulsion hold or energy action
 when supported; do not require the models to invent physical repair tools.
 In a nominal state, a bounded follow_navigation proposal supports mission
 progress. Distinguish conservative proximity estimates from confirmed impacts.
+Use physics.bonds and detached_links for confirmed structural failures. Never
+approve motion or service from a detached arm or panel. Arm service cannot restore
+a severed connection. No thrust approval means coasting with retained momentum;
+a zero velocity goal applies finite braking. Consider angular motion, braking
+distance and fuel when combining propulsion and repairs.
 
 You may reject all proposals, approve a whole proposal, select part of a
 proposal, or COMBINE compatible actions from several proposals into one plan.

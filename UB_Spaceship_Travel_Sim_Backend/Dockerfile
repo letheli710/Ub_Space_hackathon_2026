@@ -9,13 +9,17 @@ RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
        ros-jazzy-ros-gz ros-jazzy-rmw-cyclonedds-cpp \
-       ros-jazzy-tf2-msgs python3-venv python3-pip \
+       ros-jazzy-tf2-msgs python3-venv python3-pip cmake g++ nlohmann-json3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 COPY requirements.lock ./
 RUN python3 -m venv --system-site-packages /workspace/.venv \
     && /workspace/.venv/bin/python -m pip install --no-cache-dir -r requirements.lock
+COPY native ./native
+RUN source /opt/ros/jazzy/setup.bash \
+    && cmake -S native -B .build/native -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/workspace \
+    && cmake --build .build/native -j2 && cmake --install .build/native
 COPY starship_sim ./starship_sim
 COPY tools ./tools
 COPY worlds ./worlds
@@ -30,7 +34,8 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
     GZ_PARTITION=starship_environment \
     PYTHONUNBUFFERED=1 \
     PYTHONNOUSERSITE=1 \
-    API_PORT=8000
+    API_PORT=8000 \
+    GZ_SIM_SYSTEM_PLUGIN_PATH=/workspace/lib
 EXPOSE 8000
 ENTRYPOINT ["/workspace/docker/entrypoint.sh"]
 CMD ["/workspace/docker/start.sh"]

@@ -9,6 +9,7 @@ import math
 
 from pydantic import BaseModel, ConfigDict, Field
 from starship_sim.geometry import world_to_local
+from starship_sim.actuators import measured_value
 
 COMPONENTS = ('hull', 'solar_panels', 'life_support', 'thrusters', 'electronics', 'robot_arms')
 METRICS = ('hull_integrity_pct', 'solar_panel_health_pct', 'battery_level_pct', 'oxygen_pct', 'thruster_efficiency_pct')
@@ -37,6 +38,9 @@ def vector(value):
 
 def radius(entity):
     """Approximate visual bounding sphere, used for warnings, never contact proof."""
+    if 'bounds_body_m' in entity:
+        bounds = entity['bounds_body_m']
+        return math.sqrt(sum(max(abs(bounds['min'][i]), abs(bounds['max'][i]))**2 for i in range(3)))
     result = 0.
     for link in entity.get('links', []):
         offset = math.dist(xyz(link['pose_in_model']['position']), (0, 0, 0))
@@ -55,6 +59,8 @@ class SpacecraftState:
         self.scene = scene
         self.config = SimulationConfig.model_validate(scene.get('simulation', {}))
         self.metrics = dict.fromkeys(METRICS, 100.)
+        self.physics = {}
+        self.health_ceilings = dict.fromkeys(METRICS, 100.)
         self.metrics['battery_level_pct'] = self.config.initial_battery_pct
         self.last_time = None
         self.samples, self.velocities = {}, {}
@@ -108,8 +114,30 @@ class SpacecraftState:
         self.maintenance.clear()
 
     def propulsion_factor(self):
-        return (self.metrics['thruster_efficiency_pct'] / 100 * min(1., self.metrics['battery_level_pct'] / 15)
+        # A separated main engine is disabled natively; independent bus RCS remains.
+        engine_lost = self.scene.get('physics', {}).get('engine_link') in self.physics.get('detached_links', [])
+        efficiency = 1. if engine_lost else self.metrics['thruster_efficiency_pct'] / 100
+        return (efficiency * min(1., self.metrics['battery_level_pct'] / 15)
                 * (1 if self.metrics['hull_integrity_pct'] > 0 else 0))
+
+    def apply_physics(self, state):
+        previous = {b['id'] for b in self.physics.get('bonds', []) if b['broken']}
+        self.physics = deepcopy(state)
+        lost = set(state.get('detached_links', []))
+        for bond in state.get('bonds', []):
+            if bond['broken'] and bond['id'] not in previous:
+                self.events = (self.events + [{'kind': 'Structural fracture', 'component': bond['id'],
+                    'at_sim_time_s': bond['broken_at_sim_time_s'], 'source': 'gazebo_contact',
+                    'peak_utilization': bond['peak_utilization'], 'note': 'Attachment failed; component is physical debris.'}])[-30:]
+        modules = self.scene.get('ship_layout', {}).get('modules', [])
+        if modules:
+            remaining = sum(m['link_name'] not in lost for m in modules)
+            self.health_ceilings['hull_integrity_pct'] = 100. * remaining / len(modules)
+        panels = self.scene.get('solar_panels', [])
+        if panels: self.health_ceilings['solar_panel_health_pct'] = 100. * sum(p.get('link_name') not in lost for p in panels) / len(panels)
+        if self.scene.get('physics', {}).get('engine_link') in lost: self.health_ceilings['thruster_efficiency_pct'] = 0.
+        if 'module_hab' in lost or 'module_command' in lost: self.faults['Oxygen Leak'] = 100.
+        for key, ceiling in self.health_ceilings.items(): self.metrics[key] = min(self.metrics[key], ceiling)
 
     def update(self, sim_time, transforms, joints, velocity_body, arm_targets):
         if sim_time is None: return
@@ -142,6 +170,7 @@ class SpacecraftState:
             if length: sun_body = world_to_local(tuple(v / length for v in direction), ship['orientation'])
         for panel in self.scene.get('solar_panels', []):
             angle = joints.get(panel['joint_name'])
+            if panel.get('link_name') in self.physics.get('detached_links', []): angle = None
             efficiency, recommended = 0., None
             if sun_body is not None and angle is not None:
                 normal, axis = panel['normal_body_at_zero'], panel['hinge_axis_body']
@@ -154,7 +183,8 @@ class SpacecraftState:
                 recommended = max(candidates, key=lambda value: n*math.cos(value)+s*math.sin(value))
             alignment.append({'panel_id': panel['id'], 'alignment': efficiency, 'recommended_target_rad': recommended})
         generation = self.config.solar_charge_pct_s * (sum(p['alignment'] for p in alignment) / len(alignment) if alignment else 0.) * self.metrics['solar_panel_health_pct'] / 100
-        moving_arms = sum(any(abs(joints.get(arm['joints'][key]['joint_name'], target) - target) > .05 for key, target in arm_targets.get(arm['id'], {}).items()) for arm in self.scene['arms'])
+        moving_arms = sum(any(abs((measured_value(arm['joints'][key], joints) if measured_value(arm['joints'][key], joints) is not None else target) - target) > .05
+                             for key, target in arm_targets.get(arm['id'], {}).items()) for arm in self.scene['arms'])
         speed_fraction = min(1., math.sqrt(sum(v*v for v in velocity_body)) / self.scene['cruise_speed_m_s'])
         consumption = self.config.idle_drain_pct_s + self.config.thrust_drain_pct_s * speed_fraction**2 + .04*moving_arms + .12*len(self.maintenance)
         self.power = {'generation_pct_s': generation, 'consumption_pct_s': consumption,
@@ -170,7 +200,8 @@ class SpacecraftState:
         for identifier, job in list(self.maintenance.items()):
             active_dt = max(0., min(dt, job['expires_at_sim_time_s'] - (sim_time-dt)))
             arm = next(arm for arm in self.scene['arms'] if arm['id'] == identifier)
-            docked = all(abs(joints.get(arm['joints'][key]['joint_name'], math.inf) - target) <= job['tolerance_rad'] for key, target in job['targets_rad'].items())
+            docked = all(measured_value(arm['joints'][key], joints) is not None and
+                         abs(measured_value(arm['joints'][key], joints) - target) <= job['tolerance_rad'] for key, target in job['targets_rad'].items())
             powered = self.metrics['battery_level_pct'] > 1
             job['status'] = 'servicing' if docked and powered else 'positioning' if not docked else 'no_power'
             if not docked or not powered:
@@ -181,7 +212,7 @@ class SpacecraftState:
             impairment = 1 - self.faults.get('Robotic Arm Malfunction', 0) / 100
             gain = self.config.maintenance_rate_pct_s * active_dt * impairment
             key = metric.get(job['component'])
-            recovered = min(100. - self.metrics[key], gain) if key else 0.
+            recovered = min(self.health_ceilings[key] - self.metrics[key], gain) if key else 0.
             if key: self.metrics[key] += recovered
             job['recovered_pct'] += recovered
             cleared = {'life_support': ['Oxygen Leak'], 'hull': ['Spacecraft Fire'],
@@ -193,7 +224,7 @@ class SpacecraftState:
             if sim_time >= job['expires_at_sim_time_s']:
                 self.maintenance_history = (self.maintenance_history + [{**deepcopy(job), 'status': 'completed'}])[-20:]
                 del self.maintenance[identifier]
-        for key in self.metrics: self.metrics[key] = max(0., min(100., self.metrics[key]))
+        for key in self.metrics: self.metrics[key] = max(0., min(self.health_ceilings[key], self.metrics[key]))
 
     def sense(self, sim_time, ship, poses):
         self.sensors = {'source': 'gazebo_ground_truth', 'range_m': self.config.sensor_range_m,
@@ -233,13 +264,30 @@ class SpacecraftState:
         self.sensors['objects'].sort(key=lambda item: item['distance_m'])
 
     def snapshot(self):
-        speed = self.velocities.get(self.scene['ship_entity_id'])
+        speed = self.physics.get('velocity_world_m_s', self.velocities.get(self.scene['ship_entity_id']))
+        sensors = deepcopy(self.sensors)
+        ship = self.samples.get(self.scene['ship_entity_id'])
+        if ship:
+            for rock in self.physics.get('projectiles', []):
+                delta = tuple(rock['position'][i] - ship[1]['position'][a] for i, a in enumerate('xyz'))
+                distance = math.hypot(*delta)
+                if distance - rock['radius_m'] > self.config.sensor_range_m: continue
+                relative = tuple(rock['velocity_world_m_s'][i] - (speed[i] if speed else 0) for i in range(3))
+                sensors['objects'].append({'entity_id': rock['id'], 'label': 'Incoming space rock', 'kind': 'space_rock',
+                    'position_world_m': vector(rock['position']), 'position_source': 'gazebo_physics',
+                    'relative_position_body_m': vector(world_to_local(delta, ship[1]['orientation'])),
+                    'relative_velocity_world_m_s': vector(relative), 'distance_m': distance, 'radius_m': rock['radius_m'],
+                    'closing_speed_m_s': -sum(delta[i]*relative[i] for i in range(3))/distance if distance else 0,
+                    'proximity_warning': distance < 40, 'sample_age_s': max(0., (self.last_time or 0)-self.physics['sim_time_s'])})
+            sensors['objects'].sort(key=lambda obj: obj['distance_m'])
+        angular_rate = math.hypot(*self.physics['angular_velocity_world_rad_s']) if self.physics else self.angular_rate
         return {'ship_status': {'source': 'simulation_model', 'metrics': {key: round(value, 4) for key, value in self.metrics.items()},
             'velocity_world_m_s': vector(speed) if speed is not None else None,
             'speed_m_s': math.sqrt(sum(v*v for v in speed)) if speed is not None else None,
-            'attitude': {'label': 'MANEUVERING' if self.angular_rate > .02 else 'STABLE', 'orientation': self.attitude,
-                         'angular_rate_rad_s': self.angular_rate}, 'power': deepcopy(self.power),
+            'attitude': {'label': 'MANEUVERING' if angular_rate > .02 else 'STABLE', 'orientation': self.attitude,
+                         'angular_rate_rad_s': angular_rate}, 'power': deepcopy(self.power),
+            'structural_health_ceilings': deepcopy(self.health_ceilings),
             'propulsion_factor': self.propulsion_factor(), 'active_faults': [{'kind': key, 'severity': value} for key, value in self.faults.items()],
             'maintenance': deepcopy(list(self.maintenance.values())), 'maintenance_history': deepcopy(self.maintenance_history), 'recent_events': deepcopy(self.events),
-            'note': 'Health/power/maintenance are abstract game mechanics; motion is Gazebo-measured. No material repair/contact physics.'},
-            'sensors': deepcopy(self.sensors)}
+            'note': 'Motion, contact stress and separation use Gazebo physics. Health/power/maintenance remain modeled indicators. Detached components cannot be repaired in flight.'},
+            'sensors': sensors}

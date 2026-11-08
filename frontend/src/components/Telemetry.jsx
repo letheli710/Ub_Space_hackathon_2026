@@ -35,6 +35,15 @@ function LiveTelemetry({ simulation }) {
       </div>)}
       <div className="metric"><div><span>Measured velocity</span><b>{reading(status?.speed_m_s, ' m/s')}</b></div></div>
       <div className="metric"><div><span>Attitude</span><b>{status?.attitude?.label ?? '—'}</b></div></div>
+      {state?.physics && <>
+        <div className="metric"><div><span>Propellant remaining</span><b>{reading(state.physics.fuel_kg, ' kg', 1)}</b></div></div>
+        <div className="metric"><div><span>Applied thrust</span><b>{reading(Math.hypot(...state.physics.force_world_n), ' N', 0)}</b></div></div>
+        <div className="metric"><div><span>Angular speed</span><b>{reading(Math.hypot(...state.physics.angular_velocity_world_rad_s), ' rad/s', 3)}</b></div></div>
+        <p className="muted">Physics: {state.physics.mode} · {state.physics.bonds.filter(b => b.broken).length} failed attachments</p>
+        {state.physics.bonds.filter(b => b.broken || b.peak_utilization > .01).map(b => <p className="telemetry-fault" key={b.id}>
+          {b.id.replaceAll('_', ' ')} · {b.broken ? 'DETACHED' : 'attached'} · peak load {(100*b.peak_utilization).toFixed(0)}% of capacity
+        </p>)}
+      </>}
       <div className="metric"><div><span>Battery balance</span><b>{reading(status?.power?.balance_pct_s, '%/s', 3)}</b></div></div>
       {(status?.active_faults ?? []).map(fault => <p className="telemetry-fault" key={fault.kind}>{fault.kind} · severity {fault.severity.toFixed(0)}%</p>)}
       {(status?.maintenance ?? []).map(job => <p className="muted telemetry-note" key={job.arm_id}>{job.arm_id} → {job.component.replaceAll('_', ' ')} · {job.status.replaceAll('_', ' ')} · recovered {job.recovered_pct.toFixed(1)}%</p>)}
@@ -85,11 +94,13 @@ function LiveTelemetry({ simulation }) {
           const measurement = state?.arms.find((item) => item.id === arm.id);
           return (
             <div className="arm-reading" key={arm.id}>
-              <strong>{arm.system.replaceAll('_', ' ')}</strong>
+              <strong>{arm.id} · {arm.label ?? arm.system.replaceAll('_', ' ')}</strong>
+              {measurement?.available === false && <strong className="telemetry-fault">DETACHED · control unavailable</strong>}
+              {arm.location && <small>{arm.location.module_id} · {arm.location.description}</small>}
               {Object.keys(arm.joints).map((name) => (
                 <div key={name}>
                   <span>{name}</span>
-                  <output>{reading(measurement?.measured_rad[name], ' rad', 3)}</output>
+                  <output>{reading((measurement?.measured ?? measurement?.measured_rad)?.[name], ` ${arm.joints[name].unit ?? 'rad'}`, 3)}</output>
                 </div>
               ))}
             </div>
@@ -97,7 +108,7 @@ function LiveTelemetry({ simulation }) {
         })}
       </div>
       <p className="muted telemetry-note">
-        Sensor warnings use approximate geometry. Health, charge rates and maintenance are game mechanics; they do not measure material damage or electrical watts.
+        Sensor warnings use approximate geometry. Attachment loads come from Gazebo contacts; health, charge rates and maintenance remain modeled indicators, not electrical measurements.
       </p>
     </div>
   );
@@ -105,13 +116,33 @@ function LiveTelemetry({ simulation }) {
 
 /** Illustrative readings for the in-browser demo. */
 function DemoTelemetry({ event, demoStatus }) {
+  const p = demoStatus.physics;
+  const motion = p ? [
+    ['Velocity vector (m/s)', p.velocity.map(n => n.toFixed(2)).join(', ')],
+    ['Δv from launch', `${p.deltaV.toFixed(3)} m/s`],
+    ['Course deviation', `${p.deviationM.toFixed(2)} m`],
+    ['Position X/Y/Z (km)', p.position.map(n => (n / 1000).toFixed(2)).join(', ')],
+    ['Angular speed', `${Math.hypot(...p.angularVelocity).toFixed(4)} rad/s`],
+    ['Propellant', `${p.fuelKg.toFixed(2)} kg`],
+    ['Attached mass', `${p.massKg.toFixed(1)} kg`],
+    ['Applied thrust', `${p.forceN.toFixed(0)} N`],
+    ['Propulsion', p.mode.toUpperCase()],
+    ['Physics time scale', `${p.timeScale}x`],
+    ['Detached components', String(p.detached.length)],
+  ] : [];
+  const metrics = p ? [
+    ['Structural integrity', Number(p.integrity.toFixed(1))],
+    ['Main solar wings attached', 100 - 50 * p.detached.filter(id => ['solarLeft', 'solarRight'].includes(id)).length],
+    ['Propellant remaining', Math.round(p.fuelKg / 40)],
+    ['Battery charge', Math.round(p.battery)],
+  ] : getMetrics(event);
   return (
     <div className="panel">
       <div className="panelhead">
         <Activity size={18} /> DEMO TELEMETRY <span className="live">● DEMO</span>
       </div>
 
-      {getMetrics(event).map(([label, value]) => (
+      {metrics.map(([label, value]) => (
         <div className="metric" key={label}>
           <div>
             <span>{label}</span>
@@ -126,29 +157,43 @@ function DemoTelemetry({ event, demoStatus }) {
       <div className="metric">
         <div>
           <span>Velocity</span>
-          <b>{demoStatus.inOrbit ? 'IN ORBIT' : `${demoStatus.speedKmS.toFixed(2)} km/s`}</b>
+          <b>{demoStatus.speedKmS.toFixed(5)} km/s</b>
         </div>
       </div>
       <div className="metric">
         <div>
-          <span>Mission day</span>
+          <span>Map travel day</span>
           <b>
-            {Math.floor(demoStatus.day)} / {Math.round(demoStatus.legDays)}
+            {Math.floor(demoStatus.day)}
           </b>
         </div>
       </div>
       <div className="metric">
         <div>
-          <span>Time scale</span>
+          <span>Map travel scale</span>
           <b>{demoStatus.timeScaleLabel}</b>
         </div>
       </div>
       <div className="metric">
         <div>
           <span>Attitude</span>
-          <b>{event ? 'STABILIZING' : 'STABLE'}</b>
+          <b>{p && Math.hypot(...p.angularVelocity) > .0001 ? 'ROTATING' : 'STEADY'}</b>
         </div>
       </div>
+      {motion.map(([label, value]) => <div className="metric" key={label}><div><span>{label}</span><b>{value}</b></div></div>)}
+      {p && <>
+        <p className="muted">Measured browser physics · SI units. Map travel keeps its playback speed during encounters. Local impacts, burns and repairs use 1x time; map position and travel day are illustrative.</p>
+        {p.lastImpact && <p className="telemetry-fault">Last contact: {p.lastImpact.part} · {p.lastImpact.impulseNs.toFixed(0)} N·s · {(p.lastImpact.utilization * 100).toFixed(0)}% attachment capacity</p>}
+        <h4>COMPONENT DAMAGE</h4>
+        {p.bonds.map(b => <div className="metric" key={b.id}><div><span>{b.id} · {b.stage.toUpperCase()}</span><b>{b.health.toFixed(1)}%</b></div><div className="track"><div style={{ width: `${b.health}%`, background: b.health < 50 ? '#e65a48' : b.health < 99.95 ? '#f6a15c' : '#00d9e9' }} /></div></div>)}
+        {p.repairs.map(j => <p className="muted" key={j.arm_id}>REPAIR · {j.arm_id} → {j.part_id} · {j.remaining.toFixed(1)} s left · recovered {j.recovered.toFixed(1)} points</p>)}
+        <p className="muted">Solar generation: {p.solarProtection ? 'ISOLATED' : 'ACTIVE'}. Attached damage can be repaired up to 95%; detached assemblies require reset.</p>
+        <h4>NEARBY ROCKS & DEBRIS</h4>
+        {!p.objects.length && <p className="muted">No local objects detected.</p>}
+        {p.objects.map(o => <p className="muted" key={o.id}>{o.id} · {o.distanceM.toFixed(1)} m · closing {o.closingM_s.toFixed(1)} m/s</p>)}
+        <h4>ARM MOUNTS</h4>
+        {p.arms.map(a => <p className="muted" key={a.id}>{a.id} · {a.module} · {a.available ? 'ATTACHED' : 'UNAVAILABLE — DETACHED'}</p>)}
+      </>}
     </div>
   );
 }

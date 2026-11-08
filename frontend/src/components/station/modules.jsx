@@ -264,14 +264,14 @@ export function Wing({ z, angle, length, width, material, armId, arm, panels = 2
   );
 }
 
-export function SolarArrays({ arm, status }) {
+export function SolarArrays({ arm, status, mainWings = true }) {
   const m = materials();
   // Power crisis: the panels go dark.
   const solar = status?.solarCrisis ? m.solarDead : m.solar;
   return (
     <>
-      <Wing z={-6} angle={0} length={11} width={3} material={solar} armId="solarRight" arm={arm} />
-      <Wing z={-6} angle={Math.PI} length={11} width={3} material={solar} armId="solarLeft" arm={arm} />
+      {mainWings && <Wing z={-6} angle={0} length={11} width={3} material={solar} armId="solarRight" arm={arm} />}
+      {mainWings && <Wing z={-6} angle={Math.PI} length={11} width={3} material={solar} armId="solarLeft" arm={arm} />}
       <Wing z={-11.6} angle={Math.PI / 2} length={5} width={1.6} panels={1} material={solar} arm={arm} />
       <Wing z={-11.6} angle={-Math.PI / 2} length={5} width={1.6} panels={1} material={solar} arm={arm} />
       <Wing z={-9} angle={Math.PI / 4} length={4.2} width={1.3} panels={1} material={m.radiator} arm={arm} />

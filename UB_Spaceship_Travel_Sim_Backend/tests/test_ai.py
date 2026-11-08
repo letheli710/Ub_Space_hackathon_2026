@@ -72,7 +72,7 @@ class Models:
                 combination_rationale='Independent panel, thruster and arm targets can run together')
         return output({SystemId.ENERGY: {'type': 'solar_panel_target', 'panel_id': 'port', 'target_rad': .2},
             SystemId.PROPELLING: {'type': 'follow_navigation', 'duration_s': 2},
-            SystemId.ROBOT_ARMS: {'type': 'arm_target', 'arm_id': 'power', 'targets': {'yaw': .1}}}[role])
+            SystemId.ROBOT_ARMS: {'type': 'arm_target', 'arm_id': 'command', 'targets': {'yaw': .1}}}[role])
 
     async def close(self):
         pass
@@ -217,7 +217,7 @@ def test_partial_transport_failure_is_not_replayed():
     ('robot_arms', SolarPanelTarget(type='solar_panel_target', panel_id='port', target_rad=.1)),
     ('energy', SolarPanelTarget(type='solar_panel_target', panel_id='missing', target_rad=.1)),
     ('energy', SolarPanelTarget(type='solar_panel_target', panel_id='port', target_rad=2)),
-    ('robot_arms', ArmTarget(type='arm_target', arm_id='power', targets={'yaw': 999})),
+    ('robot_arms', ArmTarget(type='arm_target', arm_id='command', targets={'yaw': 999})),
     ('propelling', ThrusterVelocity(type='thruster_velocity', linear_m_s={'x': 25, 'y': 25, 'z': 0}, duration_s=1)),
 ])
 def test_role_ownership_and_physical_limits(role, action):
@@ -250,8 +250,8 @@ def test_invalid_judgements_cannot_form_an_executable_plan(fault):
 
 def test_partial_proposals_can_combine_with_other_systems():
     manager = coordinator()
-    arm = output({'type': 'arm_target', 'arm_id': 'power', 'targets': {'yaw': .1}})
-    arm.proposals[0].actions.append(ArmTarget(type='arm_target', arm_id='power', targets={'elbow': .2}))
+    arm = output({'type': 'arm_target', 'arm_id': 'command', 'targets': {'yaw': .1}})
+    arm.proposals[0].actions.append(ArmTarget(type='arm_target', arm_id='command', targets={'elbow': .2}))
     proposals = manager.proposals('robot_arms', arm) + manager.proposals('energy', output({'type': 'solar_panel_target', 'panel_id': 'port', 'target_rad': .1}))
     judge = Judgement(summary='Partial combination', combination_rationale='Keep elbow fixed',
         approved_action_ids=[p['actions'][0]['id'] for p in proposals], risk_analysis=[
@@ -306,7 +306,7 @@ def test_api_ports_missing_key_and_manual_authority():
                 assert client.post(f'/api/v1/ai/systems/{role}/invoke', json={}).status_code == expected
             assert client.post('/api/v1/ai/cycles', json={}).status_code == expected
             if enabled == 'true':
-                assert client.post('/api/v1/arms/power/target', json={'targets': {'yaw': .1}}).status_code == 403
+                assert client.post('/api/v1/arms/command/target', json={'targets': {'yaw': .1}}).status_code == 403
                 assert client.post('/api/v1/solar-panels/port/target', json={'target_rad': .1}).status_code == 403
 
 

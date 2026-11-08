@@ -1,9 +1,36 @@
 # Backend — Space ROS and Gazebo
 
+**The main simulator is now Generator → DEMO in the frontend.** Its physics runs
+in the browser at an initial 7.9 km/s. You do not need to launch this backend,
+WSL or Docker to use it. Follow the [frontend DEMO launch steps](../frontend/README.md#run-demo--windows-and-macos)
+on Windows or macOS and the [DEMO physics guide](../frontend/docs/demo-physics.md).
+
+For AI in DEMO, run the new lightweight gateway from this directory with
+`python -m starship_sim.demo_api` in the Python environment described in the
+[Windows/macOS DEMO AI guide](../frontend/docs/demo-ai.md). It reads the same local
+`.env` and exposes `/api/v1/demo-ai/status` and `/api/v1/demo-ai/cycle` on **8001**.
+The four models can propose, judge and execute DEMO evasion and timed repairs.
+No ROS, WSL, Docker or Gazebo process is required for this mode.
+
+The rest of this README documents the retained, optional Gazebo backend on **8000**.
+Its native AI execution, 25 m/s cruise and state remain independent of DEMO.
+
 This backend runs the spaceship physics and exposes an HTTP/WebSocket interface
-to the frontend. The default API port is **8000**. The default ship has four
-articulated arms, two hinged solar panels and travels toward Mars from a spawn
+to the frontend. The default API port is **8000**. The modular ship converted
+from the frontend preview has **ten articulated arms**, two hinged solar panels
+and travels toward Mars from a spawn
 point near Earth when AI mode is off.
+
+The ship now has force-based propulsion and contact-driven breakable attachments.
+Cruise remains **25 m/s**, with finite acceleration, rotation, braking, coasting
+and fuel use. See [physics and damage](docs/physics-and-damage.md) for Windows/macOS
+rebuild steps, rock controls, tuning and remaining approximations.
+
+Robot Arms controls all ten rigs through Main Judging's approval gate. Each has
+a stable ID, module/mount description, measured body/world location, wrist and
+paired gripper; two also move around a circular rail. See the
+[modular spacecraft guide](docs/modular-spacecraft.md) for the arm catalog,
+Windows/macOS rebuild steps and replacing this model later.
 
 Four LLM roles are available: **Main Judging, Energy, Propelling and Robot Arms**.
 Subsystems propose actions; Main Judging analyzes risk and selects or combines

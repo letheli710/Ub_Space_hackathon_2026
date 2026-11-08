@@ -1,5 +1,9 @@
 # Live status, object sensing and AI behavior
 
+The default modular ship has ten arms whose measured base/tool locations,
+module IDs and joint units are shared with AI. See the
+[arm catalog and live model guide](modular-spacecraft.md).
+
 The website and all four AI roles now read the same backend state. The five
 health fields in the old **Demo Telemetry** have live counterparts. The offline
 browser Demo remains separate; its scripted values never control Gazebo.
@@ -32,10 +36,10 @@ for first-time dependencies and [AI setup](ai-management.md) for backend keys.
 
 1. Open **Generator → LIVE SIM**. **SHIP TELEMETRY** shows live health, measured
    speed/attitude, battery balance, faults, maintenance and nearby detections.
-2. Apply a **Disaster Maker** event and select its severity. Asteroid Collision
-   lowers hull integrity; Oxygen Leak also causes ongoing oxygen loss. Live
-   events immediately affect backend game state. They do not spawn a physical
-   projectile, radiation or gravity field.
+2. Use **Disaster Maker → Physical space rock** to select a component, mass,
+   speed and radius. Asteroid Collision launches a real ballistic rock; damage
+   requires contact. Other events use severity and modeled faults. Radiation
+   and gravity fields are not spawned. See [physics and damage](physics-and-damage.md).
 3. Open **AI Logs → Run one cycle**. The subsystems see health, faults, nearby
    objects and joints. Main Judging selects or combines proposals; approved
    actions execute automatically. It may hold when no action is justified.
@@ -64,9 +68,9 @@ within 0–100. Gazebo supplies poses and joint feedback.
 | Solar Panel Health / `solar_panel_health_pct` | Storm/power scenarios lower it; panel service restores it. It scales charging. |
 | Battery Level / `battery_level_pct` | Integrates charging minus idle, thrust, moving-arm and maintenance consumption. |
 | Oxygen / `oxygen_pct` | Leak/fire lower it; life-support service restores it and mitigates leaks. |
-| Thruster Efficiency / `thruster_efficiency_pct` | Engine/thruster scenarios lower it; thruster service restores it. It scales achieved speed. |
+| Thruster Efficiency / `thruster_efficiency_pct` | Engine/thruster scenarios lower it; thruster service restores it. It scales thrust, not existing velocity. Main-engine separation disables that engine; bus RCS may survive. |
 
-`ship_status.speed_m_s` uses Gazebo position/stamp differences, in simulator
+`ship_status.speed_m_s` uses native Gazebo velocity (pose differences on legacy profiles), in simulator
 meters per second. `attitude` contains its measured quaternion and an
 angular-rate-derived label. Panel charging uses Sun direction and measured
 hinge angles. `power` includes alignment, suggested bounded panel angles and
@@ -77,15 +81,16 @@ Approved speed limits and grant expiration still apply.
 
 Fire/leaks advance only on the simulation clock; pause freezes them. Reading
 snapshots never advances state. A new container starts a fresh scenario. The
-ship uses velocity control: there is no fuel, nozzle-force, realistic
-acceleration, material fracture, contact verification or welding model.
+default ship uses native force/torque propulsion, fuel consumption and contact-load
+attachment fracture. Lost components impose health ceilings that abstract repair
+cannot exceed. Continuous material deformation and welding remain unavailable.
 
 ## Maintenance through real robotic arms
 
 Robot Arms can propose:
 
 ```json
-{"type":"arm_service","arm_id":"thermal","component":"hull","duration_s":10}
+{"type":"arm_service","arm_id":"ringHub","component":"hull","duration_s":10}
 ```
 
 After Main Judging approval, the backend moves the real arm to its configured
@@ -97,10 +102,13 @@ real joint feedback, not proof of physical contact or repair.
 
 | Default arm | Allowed service components |
 |---|---|
-| `power` | `solar_panels`, `electronics` |
-| `life_support` | `life_support` |
-| `thermal` | `hull`, `robot_arms` |
-| `navigation` | `thrusters` |
+| `command` | `electronics` |
+| `hab` | `life_support` |
+| `node` | `hull`, `electronics` |
+| `cargo` | `hull` |
+| `ringHub`, `ringRailA`, `ringRailB` | `hull`, `robot_arms` |
+| `solarLeft`, `solarRight` | `solar_panels` |
+| `engine` | `thrusters` |
 
 Life-support service mitigates leaks; hull service mitigates fire. Electronics
 and robot-arm service mitigate their respective scenario malfunction flags.

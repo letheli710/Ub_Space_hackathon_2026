@@ -5,6 +5,7 @@ from enum import StrEnum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, FiniteFloat
+from starship_sim.actuators import limits
 
 
 class SystemId(StrEnum):
@@ -39,6 +40,13 @@ class FollowNavigation(Contract):
     duration_s: FiniteFloat = Field(gt=0, le=10)
 
 
+class ThrusterBurn(Contract):
+    type: Literal['thruster_burn']
+    linear_throttle: Vector
+    angular_throttle: Vector
+    duration_s: FiniteFloat = Field(gt=0, le=10)
+
+
 class SolarPanelTarget(Contract):
     type: Literal['solar_panel_target']
     panel_id: str = Field(min_length=1, max_length=100)
@@ -58,8 +66,9 @@ class ArmService(Contract):
     duration_s: FiniteFloat = Field(gt=0, le=10)
 
 
-Action = Annotated[ThrusterVelocity | FollowNavigation | SolarPanelTarget | ArmTarget | ArmService, Field(discriminator='type')]
+Action = Annotated[ThrusterVelocity | ThrusterBurn | FollowNavigation | SolarPanelTarget | ArmTarget | ArmService, Field(discriminator='type')]
 OWNERS = {'thruster_velocity': SystemId.PROPELLING, 'follow_navigation': SystemId.PROPELLING,
+          'thruster_burn': SystemId.PROPELLING,
           'solar_panel_target': SystemId.ENERGY, 'arm_target': SystemId.ROBOT_ARMS, 'arm_service': SystemId.ROBOT_ARMS}
 
 
@@ -103,6 +112,10 @@ def validate_action(scene, system, action):
         speed = math.sqrt(sum(value * value for value in action.linear_m_s.model_dump().values()))
         if speed > scene['cruise_speed_m_s'] + 1e-9:
             raise PolicyError('Thruster velocity exceeds the configured ship speed limit')
+    elif isinstance(action, ThrusterBurn):
+        if not scene.get('physics'): raise PolicyError('Direct burns require native force propulsion')
+        if any(math.hypot(*getattr(action, name).model_dump().values()) > 1+1e-9 for name in ('linear_throttle', 'angular_throttle')):
+            raise PolicyError('Throttle vectors must have magnitude at most 1')
     elif isinstance(action, SolarPanelTarget):
         panel = next((panel for panel in scene.get('solar_panels', []) if panel['id'] == action.panel_id), None)
         if not panel or not panel['lower_rad'] <= action.target_rad <= panel['upper_rad']:
@@ -117,7 +130,7 @@ def validate_action(scene, system, action):
             return
         for name, target in action.targets.items():
             bounds = arm['joints'].get(name)
-            if not bounds or not bounds['lower_rad'] <= target <= bounds['upper_rad']:
+            if not bounds or not limits(bounds)[0] <= target <= limits(bounds)[1]:
                 raise PolicyError('Unknown arm joint or target outside its limits')
 
 

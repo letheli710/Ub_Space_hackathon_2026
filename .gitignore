@@ -18,6 +18,7 @@ __pycache__/
 
 # Local simulator artifacts
 .venv/
+.venv-demo/
 .runtime/
 .pytest_cache/
 .env

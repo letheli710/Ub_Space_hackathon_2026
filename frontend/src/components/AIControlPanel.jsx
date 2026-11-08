@@ -12,12 +12,14 @@ async function request(path, body, signal) {
   return data;
 }
 
-function actionLabel(action) {
+function actionLabel(action, scene) {
   if (action.type === 'follow_navigation') return `Follow destination for ${action.duration_s}s`;
   if (action.type === 'thruster_velocity') return `Thrusters: (${Object.values(action.linear_m_s).join(', ')}) m/s in ship frame for ${action.duration_s}s`;
+  if (action.type === 'thruster_burn') return `Thrust (${Object.values(action.linear_throttle).join(', ')}) · rotation (${Object.values(action.angular_throttle).join(', ')}) throttle for ${action.duration_s}s`;
   if (action.type === 'solar_panel_target') return `Solar panel ${action.panel_id}: ${action.target_rad} rad`;
   if (action.type === 'arm_service') return `Arm ${action.arm_id}: service ${action.component.replaceAll('_', ' ')} for ${action.duration_s}s at its measured service pose`;
-  return `Arm ${action.arm_id}: ${Object.entries(action.targets).map(([name, value]) => `${name} ${value} rad`).join(', ')}`;
+  const arm = scene?.arms.find(item => item.id === action.arm_id);
+  return `Arm ${action.arm_id}: ${Object.entries(action.targets).map(([name, value]) => `${name} ${value} ${arm?.joints[name]?.unit ?? 'rad'}`).join(', ')}`;
 }
 
 export default function AIControlPanel({ simulation, onShowLiveShip }) {
@@ -96,12 +98,12 @@ export default function AIControlPanel({ simulation, onShowLiveShip }) {
         return <details key={proposal.id} className="ai-proposal" open>
           <summary>{proposal.system_id.replaceAll('_', ' ')} · {proposal.title} · {review?.decision ?? 'Awaiting judgement'}</summary>
           <p>{proposal.rationale}</p><p>Expected benefit: {proposal.expected_benefit}</p><p>Risk: {proposal.risks}</p>
-          <ul>{proposal.actions.map(item => <li key={item.id}>{approved.has(item.id) ? 'Approved' : cycle.judgement ? 'Not approved' : 'Proposed'}: {actionLabel(item.action)}</li>)}</ul>
+          <ul>{proposal.actions.map(item => <li key={item.id}>{approved.has(item.id) ? 'Approved' : cycle.judgement ? 'Not approved' : 'Proposed'}: {actionLabel(item.action, simulation.scene)}</li>)}</ul>
           {review && <p>Judge: {review.damage_avoidance} Risk: {review.risks} {review.uncertainties.length > 0 && `Unknowns: ${review.uncertainties.join('; ')}`}</p>}
         </details>;
       })}
       {cycle.execution && <p>Execution: {cycle.execution.status}. {cycle.execution.error ?? cycle.execution.note ?? 'Inspect measured telemetry to confirm movement.'}</p>}
-      {(cycle.execution?.actions ?? []).map((item, index) => <p key={index}>{actionLabel(item.action)} · {item.result?.status ?? 'published'}</p>)}
+      {(cycle.execution?.actions ?? []).map((item, index) => <p key={index}>{actionLabel(item.action, simulation.scene)} · {item.result?.status ?? 'published'}</p>)}
     </section>}
     <details className="ai-audit"><summary>AI activity</summary>{[...(status?.events ?? [])].reverse().map(item => <p key={item.id}><time>{new Date(item.at).toLocaleTimeString()}</time> · {item.text}</p>)}</details>
   </div>;

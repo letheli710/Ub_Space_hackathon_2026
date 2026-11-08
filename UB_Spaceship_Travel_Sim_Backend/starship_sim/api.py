@@ -16,13 +16,15 @@ from starship_sim.ai.coordinator import AICoordinator
 from starship_sim.ai.routes import install_ai_routes
 from starship_sim.ai.settings import load_settings
 from starship_sim.spacecraft import DISASTERS
+from starship_sim.actuators import limits
+from starship_sim.physics import ImpactCommand
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class ArmCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    targets: dict[str, FiniteFloat] = Field(min_length=1)
+    targets: dict[str, FiniteFloat] = Field(min_length=1, description='Canonical joint targets using each scene joint unit and lower_limit/upper_limit. Angular joints use rad; gripper openness uses fraction 0–1.')
 
 
 class WorldControl(BaseModel):
@@ -113,6 +115,16 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None, ai_
         except RuntimeError as exc:
             raise HTTPException(503, str(exc)) from exc
 
+    @app.post('/api/v1/impacts', status_code=202)
+    def inject_impact(command: ImpactCommand):
+        if not scene.get('physics'): raise HTTPException(409, 'This ship profile has no native impact physics')
+        if command.target_id not in {t['id'] for t in scene['physics']['impact_targets']}:
+            raise HTTPException(422, 'Unknown impact target')
+        try:
+            return app.state.backend.inject_impact(command.model_dump())
+        except ValueError as exc: raise HTTPException(422, str(exc)) from exc
+        except RuntimeError as exc: raise HTTPException(409, str(exc)) from exc
+
     @app.post("/api/v1/arms/{arm_id}/target", status_code=202)
     def command_arm(arm_id: str, command: ArmCommand):
         if settings.enabled:
@@ -125,7 +137,7 @@ def create_app(backend=None, origins=None, scene_path=None, assets_dir=None, ai_
             bounds = joints.get(name)
             if bounds is None:
                 raise HTTPException(422, f"Unknown joint: {name}")
-            if not bounds["lower_rad"] <= target <= bounds["upper_rad"]:
+            if not limits(bounds)[0] <= target <= limits(bounds)[1]:
                 raise HTTPException(422, f"{name} is outside the joint limits")
         try:
             return app.state.backend.command_arm(arm_id, command.targets)

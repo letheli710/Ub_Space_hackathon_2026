@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { BLACK_HOLE_POSITION, MOON, PLANETS, ROUTE, SUN, routeParameter, shipPose } from '../../data/voyage.js';
 import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
 import StationShip from '../station/StationShip.jsx';
+import DemoPhysicsObjects from '../DemoPhysicsObjects.jsx';
 import BlackHoleMarker from './BlackHoleMarker.jsx';
 import SolarStorm from './SolarStorm.jsx';
 import BlackHole from './BlackHole.jsx';
@@ -64,6 +65,7 @@ function RouteLine({ voyage }) {
     }
   });
 
+  if (voyage.current.physics) return <Line points={[ROUTE.getPointAt(0), ROUTE.getPointAt(1)]} color={ROUTE_COLOR} lineWidth={1.5} dashed dashSize={4} gapSize={3} transparent opacity={.5} />;
   return (
     <>
       <Line
@@ -176,7 +178,8 @@ export default function FlightScene({
     // The model's nose is +Z: point it along the route and keep its top facing up.
     headingMatrix.lookAt(direction, ORIGIN, UP);
     heading.setFromRotationMatrix(headingMatrix);
-    headingRef.current.quaternion.slerp(heading, 0.08);
+    if (voyage.current.physics) headingRef.current.quaternion.copy(voyage.current.physics.ship.q);
+    else headingRef.current.quaternion.slerp(heading, 0.08);
   });
 
   return (
@@ -215,12 +218,14 @@ export default function FlightScene({
       <group ref={shipFrame}>
         <group ref={headingRef}>
           <group scale={SHIP_SCALE}>
-            <StationShip event={event} ringSpin={playing} />
+            {!voyage.current.physics && <StationShip event={event} ringSpin={playing} />}
           </group>
           <HeadingLine />
         </group>
         <pointLight position={[5, 6, 8]} intensity={80} color="#7ecbff" />
       </group>
+
+      {voyage.current.physics && <DemoPhysicsObjects voyage={voyage} />}
 
       {/* Hazards fly in world space on fixed courses, so they do not follow the ship. */}
       {hazards.map((hazard) => (

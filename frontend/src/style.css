@@ -29,6 +29,10 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .scene-empty { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; color: #9bc0d3; padding: 24px; }
 .live.stale { color: #e9ac75; }
 .arm-controls { padding-top: 18px; }
+.impact-controls { margin: 18px 0; min-width: 0; padding: 14px; border: 1px solid #234763; border-radius: 6px; }
+.impact-controls legend { color: #00d9e9; padding: 0 6px; }
+.impact-controls select { margin-bottom: 14px; }
+.impact-controls input { display: block; width: 100%; margin: 6px 0 12px; padding: 8px; color: #d5f9ff; background: #0a1d33; border: 1px solid #234763; border-radius: 6px; font: inherit; }
 .arm-controls > label { display: block; color: #91adc2; margin-bottom: 8px; }
 .arm-controls select { width: 100%; padding: 10px; background: #0a1d33; color: #d5f9ff; border: 1px solid #234763; border-radius: 6px; text-transform: capitalize; }
 .joint-control { margin-top: 22px; }
