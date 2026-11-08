@@ -1,8 +1,10 @@
-import { Eye, EyeOff, KeyRound, ShieldAlert, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Link, ShieldAlert, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
   PROVIDERS,
+  baseUrlError,
   clearAiSettings,
+  defaultBaseUrl,
   keyFormatHint,
   loadAiSettings,
   maskKey,
@@ -14,32 +16,41 @@ export default function AiApiSettings() {
   const [saved, setSaved] = useState(loadAiSettings);
   const [provider, setProvider] = useState(saved?.provider ?? PROVIDERS[0].id);
   const [apiKey, setApiKey] = useState('');
+  const [baseUrl, setBaseUrl] = useState(saved?.baseUrl ?? '');
   const [remember, setRemember] = useState(saved?.remember ?? false);
   const [showKey, setShowKey] = useState(false);
   const [message, setMessage] = useState('');
 
   const trimmed = apiKey.trim();
   const hint = keyFormatHint(provider, trimmed);
+  const link = baseUrl.trim().replace(/\/+$/, '');
+  const linkError = baseUrlError(link);
+  // A new link can be saved on its own while a key is already stored.
+  const keyToSave = trimmed || saved?.apiKey || '';
+  const changed = trimmed || link !== (saved?.baseUrl ?? '') || provider !== saved?.provider;
+  const canSave = Boolean(keyToSave) && !linkError && Boolean(changed);
   const savedProvider = PROVIDERS.find((item) => item.id === saved?.provider);
 
   function save(event) {
     event.preventDefault();
-    if (!trimmed) return;
-    const next = { provider, apiKey: trimmed, remember };
+    if (!canSave) return;
+    const next = { provider, apiKey: keyToSave, baseUrl: link, remember };
     if (!saveAiSettings(next)) {
       setMessage('This browser blocked storage, so the key could not be saved.');
       return;
     }
     setSaved(next);
     setApiKey('');
+    setBaseUrl(link);
     setShowKey(false);
-    setMessage(remember ? 'Key saved on this device.' : 'Key saved for this browser tab.');
+    setMessage(remember ? 'Settings saved on this device.' : 'Settings saved for this browser tab.');
   }
 
   function clear() {
     clearAiSettings();
     setSaved(null);
-    setMessage('Key removed from this browser.');
+    setBaseUrl('');
+    setMessage('Key and API link removed from this browser.');
   }
 
   return (
@@ -61,6 +72,9 @@ export default function AiApiSettings() {
                 <span>
                   <b>{savedProvider?.label ?? saved.provider}</b> key {maskKey(saved.apiKey)}
                 </span>
+                <small>
+                  {saved.baseUrl || `${defaultBaseUrl(saved.provider) || 'No API link'} (default)`}
+                </small>
                 <small>{saved.remember ? 'Remembered on this device' : 'Saved for this browser tab'}</small>
               </>
             ) : (
@@ -76,6 +90,28 @@ export default function AiApiSettings() {
               </option>
             ))}
           </select>
+
+          <label htmlFor="ai-url">API link</label>
+          <div className="ai-api-key">
+            <span className="ai-api-icon" aria-hidden="true">
+              <Link size={15} />
+            </span>
+            <input
+              id="ai-url"
+              type="url"
+              inputMode="url"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder={defaultBaseUrl(provider) || 'https://your-api.example.com/v1'}
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={Boolean(linkError)}
+              aria-describedby="ai-url-help"
+            />
+          </div>
+          <p id="ai-url-help" className={linkError ? 'ai-api-hint' : 'muted ai-api-help'}>
+            {linkError || 'Leave empty to use the provider\'s standard address, or paste a proxy or self-hosted endpoint.'}
+          </p>
 
           <label htmlFor="ai-key">{saved ? 'Replace API key' : 'API key'}</label>
           <div className="ai-api-key">
@@ -105,11 +141,11 @@ export default function AiApiSettings() {
           </label>
 
           <div className="ai-api-actions">
-            <button type="submit" className="primary" disabled={!trimmed}>
-              Save key
+            <button type="submit" className="primary" disabled={!canSave}>
+              Save
             </button>
             <button type="button" onClick={clear} disabled={!saved}>
-              <Trash2 size={15} /> Remove key
+              <Trash2 size={15} /> Remove
             </button>
           </div>
           {message && <p className="muted ai-api-message">{message}</p>}

@@ -1190,3 +1190,25 @@ footer {
     height: 420px !important;
   }
 }
+
+/* AI API link field */
+.ai-api-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  color: #6fd6ff;
+  border: 1px solid #234763;
+  border-radius: 6px;
+  background: #0a1d33;
+}
+.ai-api-key input[aria-invalid='true'] {
+  border-color: #f0c35a;
+}
+.ai-api-help {
+  margin: 0;
+  font-size: 12px;
+}
+.ai-api-status small {
+  overflow-wrap: anywhere;
+}

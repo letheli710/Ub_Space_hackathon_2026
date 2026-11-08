@@ -6,10 +6,11 @@
 const STORAGE_KEY = 'interstellar-x4.ai-settings';
 
 export const PROVIDERS = [
-  { id: 'anthropic', label: 'Anthropic (Claude)', prefix: 'sk-ant-' },
-  { id: 'openai', label: 'OpenAI', prefix: 'sk-' },
-  { id: 'google', label: 'Google Gemini', prefix: 'AIza' },
-  { id: 'other', label: 'Other', prefix: '' },
+  { id: 'anthropic', label: 'Anthropic (Claude)', prefix: 'sk-ant-', baseUrl: 'https://api.anthropic.com' },
+  { id: 'openai', label: 'OpenAI', prefix: 'sk-', baseUrl: 'https://api.openai.com/v1' },
+  { id: 'deepseek', label: 'DeepSeek', prefix: 'sk-', baseUrl: 'https://api.deepseek.com' },
+  { id: 'google', label: 'Google Gemini', prefix: 'AIza', baseUrl: 'https://generativelanguage.googleapis.com' },
+  { id: 'other', label: 'Other', prefix: '', baseUrl: '' },
 ];
 
 function read(storage) {
@@ -29,7 +30,7 @@ function remove(storage) {
   }
 }
 
-/** Saved settings, or null. Shape: { provider, apiKey, remember }. */
+/** Saved settings, or null. Shape: { provider, apiKey, baseUrl, remember }. */
 export function loadAiSettings() {
   const remembered = read(globalThis.localStorage);
   if (remembered?.apiKey) return { ...remembered, remember: true };
@@ -39,11 +40,11 @@ export function loadAiSettings() {
 }
 
 /** Save to sessionStorage, or localStorage when remember is true. Returns false if storage is blocked. */
-export function saveAiSettings({ provider, apiKey, remember }) {
+export function saveAiSettings({ provider, apiKey, baseUrl = '', remember }) {
   clearAiSettings();
   try {
     const storage = remember ? globalThis.localStorage : globalThis.sessionStorage;
-    storage.setItem(STORAGE_KEY, JSON.stringify({ provider, apiKey }));
+    storage.setItem(STORAGE_KEY, JSON.stringify({ provider, apiKey, baseUrl }));
     return true;
   } catch {
     return false;
@@ -65,4 +66,22 @@ export function keyFormatHint(providerId, apiKey) {
   const provider = PROVIDERS.find((item) => item.id === providerId);
   if (!provider?.prefix || !apiKey || apiKey.startsWith(provider.prefix)) return '';
   return `${provider.label} keys usually start with "${provider.prefix}". Check that you pasted the right key.`;
+}
+
+/** The provider's standard API address, used when no link is entered. */
+export function defaultBaseUrl(providerId) {
+  return PROVIDERS.find((item) => item.id === providerId)?.baseUrl ?? '';
+}
+
+/** An error message when the API link is not a usable http(s) address, otherwise ''. */
+export function baseUrlError(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return 'The API link must start with https:// or http://.';
+    if (url.username || url.password) return 'Do not put a username or password in the API link.';
+    return '';
+  } catch {
+    return 'Enter a full address, for example https://api.example.com/v1.';
+  }
 }
