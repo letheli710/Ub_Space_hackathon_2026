@@ -584,8 +584,11 @@ main {
   min-width: 0;
 }
 .home-canvas {
+  /* Wider than its box (same height, so the ship keeps its size and centre) so the
+     swinging nose is never cut off at the box edge. Display only, so clicks pass through. */
   position: absolute;
-  inset: 0;
+  inset: 0 -30%;
+  pointer-events: none;
 }
 .home-canvas > div:first-child {
   position: absolute !important;
@@ -637,7 +640,7 @@ main {
 }
 .card-systems {
   right: -6%;
-  bottom: 2%;
+  bottom: -8%;
   width: 230px;
 }
 .home-ai-state {
