@@ -104,7 +104,7 @@ function LiveTelemetry({ simulation }) {
 }
 
 /** Illustrative readings for the in-browser demo. */
-function DemoTelemetry({ event }) {
+function DemoTelemetry({ event, demoStatus }) {
   return (
     <div className="panel">
       <div className="panelhead">
@@ -126,7 +126,21 @@ function DemoTelemetry({ event }) {
       <div className="metric">
         <div>
           <span>Velocity</span>
-          <b>7.62 km/s</b>
+          <b>{demoStatus.inOrbit ? 'IN ORBIT' : `${demoStatus.speedKmS.toFixed(2)} km/s`}</b>
+        </div>
+      </div>
+      <div className="metric">
+        <div>
+          <span>Mission day</span>
+          <b>
+            {Math.floor(demoStatus.day)} / {Math.round(demoStatus.legDays)}
+          </b>
+        </div>
+      </div>
+      <div className="metric">
+        <div>
+          <span>Time scale</span>
+          <b>{demoStatus.timeScaleLabel}</b>
         </div>
       </div>
       <div className="metric">
@@ -139,6 +153,10 @@ function DemoTelemetry({ event }) {
   );
 }
 
-export default function Telemetry({ live, simulation, event }) {
-  return live ? <LiveTelemetry simulation={simulation} /> : <DemoTelemetry event={event} />;
+export default function Telemetry({ live, simulation, event, demoStatus }) {
+  return live ? (
+    <LiveTelemetry simulation={simulation} />
+  ) : (
+    <DemoTelemetry event={event} demoStatus={demoStatus} />
+  );
 }

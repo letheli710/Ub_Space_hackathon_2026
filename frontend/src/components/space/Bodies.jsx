@@ -72,7 +72,7 @@ export function Sun({ position, radius = 90 }) {
 }
 
 const STAR_COUNT = 4000;
-const STAR_RADIUS = 5000;
+const STAR_RADIUS = 60000;
 
 /** Distant stars that stay centered on the camera, so they never get closer as the ship flies. */
 export function StarField() {

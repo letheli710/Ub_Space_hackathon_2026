@@ -1,10 +1,13 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import AiApiSettings from './components/AiApiSettings.jsx';
 import DisasterMaker from './components/DisasterMaker.jsx';
 import { TRAVEL_SECONDS } from './components/Hazards.jsx';
+import { STORM_SPEED } from './components/space/SolarStorm.jsx';
 import Header from './components/Header.jsx';
 import Home from './components/Home.jsx';
+import SpacecraftViewer from './components/SpacecraftViewer.jsx';
 import MissionControl, { DEFAULT_MAP_INFO } from './components/MissionControl.jsx';
 import Telemetry from './components/Telemetry.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -13,10 +16,14 @@ import { DISASTER_PARAMETERS, demoAiResponse } from './data/disasters.js';
 import {
   createVoyage,
   destination,
-  legProgress,
+  LEG_DAYS,
+  stepTimeScaleValue,
+  formatTimeScale,
+  missionDay,
   origin,
   predictShipPosition,
   shipPose,
+  shipSpeedKmS,
   stepVoyage,
 } from './data/voyage.js';
 import useSimulation from './simulation/useSimulation.js';
@@ -70,6 +77,9 @@ export default function App() {
   const [seconds, setSeconds] = useState(0);
   const [armed, setArmed] = useState(null);
   const [blackHole, setBlackHole] = useState(false);
+  const [solarStorm, setSolarStorm] = useState(null);
+  const [faults, setFaults] = useState([]); // inner failures the AI has not fixed yet
+  const [stormFlash, setStormFlash] = useState(0);
   const [hazards, setHazards] = useState([]);
   const [impacts, setImpacts] = useState([]);
   const [mapInfo, setMapInfo] = useState(DEFAULT_MAP_INFO);
@@ -130,7 +140,26 @@ export default function App() {
   const voyageLabel =
     voyage.current.dwell > 0
       ? `IN ${destination(voyage.current).toUpperCase()} ORBIT`
-      : `${origin(voyage.current).toUpperCase()} → ${destination(voyage.current).toUpperCase()} · ${Math.round(legProgress(voyage.current) * 100)}%`;
+      : `${origin(voyage.current).toUpperCase()} → ${destination(voyage.current).toUpperCase()} · DAY ${Math.floor(missionDay(voyage.current))} / ${Math.round(LEG_DAYS)}`;
+  // Demo time scale: mission seconds per real second (kept on the voyage so stepping uses it).
+  const [timeScale, setTimeScaleState] = useState(voyage.current.timeScale);
+  function setTimeScale(value) {
+    voyage.current.timeScale = value;
+    setTimeScaleState(value);
+  }
+  function stepTimeScale(direction) {
+    // Read the live value so several quick clicks each move one step.
+    const current = voyage.current.timeScale;
+    const next = stepTimeScaleValue(current, direction);
+    if (next !== current) setTimeScale(next);
+  }
+  const demoStatus = {
+    speedKmS: shipSpeedKmS(voyage.current),
+    day: missionDay(voyage.current),
+    legDays: LEG_DAYS,
+    inOrbit: voyage.current.dwell > 0,
+    timeScaleLabel: formatTimeScale(timeScale),
+  };
 
   useEffect(() => {
     if (!playing || live) return undefined;
@@ -191,6 +220,54 @@ export default function App() {
     }
   }
 
+  // Inner failures stay active (button lit, effects on) until they are resolved.
+  // Nothing resolves them on a timer: the backend AI will report the fix and call resolveFault.
+  function triggerFault(name) {
+    if (faults.includes(name)) return;
+    setFaults((current) => [...current, name]);
+    startDisaster(name, 'DISASTER INJECTED');
+  }
+
+  /** Mark an inner failure as fixed, e.g. when the backend reports how it was resolved. */
+  const faultsRef = useRef(faults);
+  faultsRef.current = faults;
+  const resolveFault = useCallback(
+    (name, how = 'Failure resolved') => {
+      if (!faultsRef.current.includes(name)) return;
+      const remaining = faultsRef.current.filter((fault) => fault !== name);
+      setFaults(remaining);
+      // The failure's effects end; show the most recent failure still open, if any.
+      setEvent((event) => {
+        if (event?.name !== name) return event;
+        const latest = remaining[remaining.length - 1];
+        return latest ? { name: latest, severity: DISASTER_PARAMETERS.severity } : null;
+      });
+      addLogs([`AI RESOLVED · ${name} · ${how}`]);
+    },
+    [addLogs],
+  );
+  // Dev only: try it from the browser console, e.g. __resolveFault('Oxygen Leak', 'Breach sealed').
+  if (import.meta.env.DEV) window.__resolveFault = resolveFault;
+
+  // Solar storm: a particle wave leaves the Sun and sweeps outward; it hits when it reaches the ship.
+  function triggerSolarStorm() {
+    if (solarStorm) return;
+    setArmed(null);
+    setSolarStorm({ id: nextId.current++ });
+    const distance = shipPose(voyage.current, new THREE.Vector3()).length();
+    addLogs([`SOLAR FLARE DETECTED · Particle wave leaving the Sun · ETA ${(distance / STORM_SPEED).toFixed(1)}s`]);
+  }
+
+  function solarStormReached() {
+    setStormFlash((n) => n + 1);
+    startDisaster('Solar Storm', 'SOLAR STORM HIT');
+  }
+
+  function solarStormPassed() {
+    setSolarStorm(null);
+    addLogs(['SOLAR STORM PASSED · Particle levels returning to normal']);
+  }
+
   function miss(hazard) {
     setHazards((current) => current.filter((h) => h.id !== hazard.id));
     addLogs([`MISSED · ${hazard.name} passed the ship`]);
@@ -205,9 +282,11 @@ export default function App() {
   function resetDemo() {
     setEvent(null);
     setBlackHole(false);
+    setSolarStorm(null);
+    setFaults([]);
     setHazards([]);
     setImpacts([]);
-    Object.assign(voyage.current, createVoyage());
+    Object.assign(voyage.current, createVoyage(), { timeScale: voyage.current.timeScale });
     setSeconds(0);
     timeRef.current = 0;
     addLogs(['DEMO RESET · All systems nominal']);
@@ -251,7 +330,11 @@ export default function App() {
       <Header tab={tab} onTabChange={setTab} status={status} />
 
       {tab === 'Home' ? (
-        <Home event={event} onNavigate={setTab} />
+        <Home event={event} onNavigate={setTab} demoStatus={demoStatus} />
+      ) : tab === 'Spacecraft' ? (
+        <SpacecraftViewer />
+      ) : tab === 'AI API' ? (
+        <AiApiSettings />
       ) : (
         <div className={workspaceClass}>
           {planetTab ? (
@@ -280,7 +363,10 @@ export default function App() {
               onArm={setArmed}
               blackHole={blackHole}
               onToggleBlackHole={toggleBlackHole}
-              onTrigger={(name) => startDisaster(name, 'DISASTER INJECTED')}
+              solarStorm={Boolean(solarStorm)}
+              onSolarStorm={triggerSolarStorm}
+              onTrigger={triggerFault}
+              activeFaults={faults}
             />
           )}
 
@@ -301,6 +387,9 @@ export default function App() {
               seconds={seconds}
               onTogglePlaying={() => setPlaying(!playing)}
               onResetDemo={resetDemo}
+              timeScale={timeScale}
+              onTimeScaleStep={stepTimeScale}
+              onTimeScaleChange={setTimeScale}
               voyage={voyage}
               voyageLabel={voyageLabel}
               armed={armed}
@@ -311,11 +400,15 @@ export default function App() {
               onMiss={miss}
               onImpactDone={(id) => setImpacts((current) => current.filter((i) => i.id !== id))}
               blackHole={blackHole}
+              solarStorm={solarStorm}
+              stormFlash={stormFlash}
+              onStormReach={solarStormReached}
+              onStormDone={solarStormPassed}
             />
           </main>
 
           <aside className="right">
-            <Telemetry live={live || tab === 'AI Logs'} simulation={simulation} event={event} />
+            <Telemetry live={live || tab === 'AI Logs'} simulation={simulation} event={event} demoStatus={demoStatus} />
             <Timeline logs={logs} />
           </aside>
 

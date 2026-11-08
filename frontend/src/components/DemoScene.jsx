@@ -21,11 +21,18 @@ export default function Scene({
   onImpactDone,
   blackHole = false,
   blackHoleMarker,
+  solarStorm = null,
+  onStormReach,
+  onStormDone,
 }) {
   const shipFrame = useRef();
 
+  // No zoom limit: a logarithmic depth buffer keeps very near and very far objects sorted correctly.
   return (
-    <Canvas camera={{ fov: 45, near: 0.1, far: 12000, position: [0, 30, 60] }}>
+    <Canvas
+      camera={{ fov: 45, near: 0.001, far: 1e8, position: [0, 30, 60] }}
+      gl={{ logarithmicDepthBuffer: true }}
+    >
       <color attach="background" args={['#020611']} />
       <StarField />
 
@@ -41,6 +48,9 @@ export default function Scene({
         shipFrame={shipFrame}
         blackHole={blackHole}
         blackHoleMarker={blackHoleMarker}
+        solarStorm={solarStorm}
+        onStormReach={onStormReach}
+        onStormDone={onStormDone}
       />
       <LaunchPicker enabled={Boolean(armed)} onLaunch={onLaunch} shipFrame={shipFrame} />
 
@@ -48,8 +58,8 @@ export default function Scene({
         makeDefault
         enablePan
         enableZoom={false}
-        minDistance={3}
-        maxDistance={60}
+        minDistance={0}
+        maxDistance={Infinity}
       />
       <CameraControls
         active={fullPage}

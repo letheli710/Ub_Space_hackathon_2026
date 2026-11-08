@@ -116,7 +116,7 @@ const HALO_FRAGMENT = /* glsl */ `
 
 const GROW_SECONDS = 1.5;
 
-export default function BlackHole({ position, radius = 60 }) {
+export default function BlackHole({ position, radius = 240 }) {
   const { blackHoleGlow } = getTextures();
   const group = useRef();
   const age = useRef(0);

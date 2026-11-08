@@ -1,7 +1,7 @@
 import { Settings } from 'lucide-react';
 import logo from '../assets/interstellar-x4-logo.webp';
 
-const TABS = ['Home', 'Generator', 'Planetary Trajectories', 'AI Logs'];
+const TABS = ['Home', 'Spacecraft', 'Generator', 'Planetary Trajectories', 'AI Logs', 'AI API'];
 
 export default function Header({ tab, onTabChange, status }) {
   return (

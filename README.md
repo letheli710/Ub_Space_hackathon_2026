@@ -10,6 +10,11 @@ Main Judging's combined approvals. AI is off by default until you configure a
 key. Live health, scenario events, nearby-object sensing and approved arm
 maintenance are now implemented in the shared backend game model.
 A separate browser demo illustrates disasters.
+The new **Spacecraft** tab offers a modular model preview with ten visual arms;
+**Generator → DEMO** adds mission-day/time-scale controls, asteroids and a solar
+storm. The live ship continues to come from the backend's replaceable SDF.
+**AI API** holds browser-only settings; live DeepSeek keys remain in backend `.env`
+and **AI Logs** manages the live systems.
 The current ship is a replaceable starter asset. The default backend map is now
 the solar system converted from the frontend artwork: Sun, eight orbiting
 planets, and hazard landmarks. The ship starts near Earth and navigates to Mars.
@@ -35,13 +40,11 @@ inside this folder, so they work wherever you keep the project.
 Ub_Space_hackathon_2026/
 ├── frontend/                           React website
 │   └── README.md                       Frontend setup and troubleshooting
-├── UB_Spaceship_Travel_Sim_Backend/    Space ROS/Gazebo backend
-│   ├── README.md                       Backend setup and troubleshooting
-│   ├── tools/                          Setup, start and stop scripts
-│   ├── config/environment.json         Ship/map selection and arm mappings
-│   └── assets/                         SDF models, maps and mesh files
-├── api_bridge/                         Separate scaffold; not used to run this app
-└── shuttle_sim_backend/                Separate scaffold; not used to run this app
+└── UB_Spaceship_Travel_Sim_Backend/     Space ROS/Gazebo backend
+    ├── README.md                       Backend setup and troubleshooting
+    ├── tools/                          Setup, start and stop scripts
+    ├── config/environment.json         Ship/map selection and arm mappings
+    └── assets/                         SDF models, maps and mesh files
 ```
 
 Choose the instructions for your computer. **macOS** means a Mac laptop or
@@ -60,8 +63,8 @@ For the first run, follow the backend guide before the frontend guide:
 On Windows, the PowerShell launcher runs the Linux simulator inside Ubuntu WSL.
 On macOS, Docker Desktop runs it inside its Linux VM; use `docker compose`
 directly from Terminal. ROS and Gazebo stay inside the container on both systems.
-The Humble `.devcontainer/` is a separate development scaffold and is not required
-for these launch steps.
+The unused API bridge, ROS package and development-container scaffolds have been
+removed. The backend container and frontend are the two applications to launch.
 
 ## Windows: open PowerShell in the project folder
 

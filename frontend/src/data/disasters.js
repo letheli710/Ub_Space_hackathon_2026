@@ -3,8 +3,6 @@ export const OUTER_DISASTERS = [
   'Black Hole Encounter',
   'Solar Storm',
   'Alien Encounter',
-  'Thruster Failure',
-  'Solar Panel Power Crisis',
 ];
 
 export const INNER_DISASTERS = [
@@ -13,6 +11,8 @@ export const INNER_DISASTERS = [
   'AI System Malfunction',
   'Robotic Arm Malfunction',
   'Engine Failure',
+  'Thruster Failure',
+  'Solar Panel Power Crisis',
 ];
 
 /** Fixed values for now. Users can see them but not change them. */

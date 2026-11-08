@@ -308,8 +308,8 @@ npm run dev
 
 Node.js is required for these frontend commands. The
 [frontend README](../frontend/README.md) includes installation and troubleshooting
-steps. You do not need to start `api_bridge/`, `shuttle_sim_backend/` or the
-Humble development container for this connection.
+steps. The unused API bridge, ROS scaffold and development container have been
+removed; start the frontend and this backend for the connection.
 
 ## 8. Stop, restart or rebuild
 

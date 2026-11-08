@@ -1,10 +1,12 @@
+import { Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { BLACK_HOLE_POSITION, MOON, PLANETS, SUN, shipPose } from '../../data/voyage.js';
+import { BLACK_HOLE_POSITION, MOON, PLANETS, ROUTE, SUN, routeParameter, shipPose } from '../../data/voyage.js';
 import { ImpactFlash, IncomingHazard } from '../Hazards.jsx';
-import Ship from '../Ship.jsx';
+import StationShip from '../station/StationShip.jsx';
 import BlackHoleMarker from './BlackHoleMarker.jsx';
+import SolarStorm from './SolarStorm.jsx';
 import BlackHole from './BlackHole.jsx';
 import { OrbitLine, Planet, Sun } from './Bodies.jsx';
 import { getTextures } from './textures.js';
@@ -33,6 +35,68 @@ export function flightHome(voyage) {
 }
 
 const ATMOSPHERES = { Earth: '#5fb6ff', Mars: '#ff9a6a', Venus: '#ffd9a0', Neptune: '#7aa2ff', Uranus: '#a6f2f5' };
+
+const ROUTE_SEGMENTS = 400;
+const ROUTE_POINTS = ROUTE.getSpacedPoints(ROUTE_SEGMENTS); // evenly spaced by distance
+const ROUTE_POINTS_REVERSED = [...ROUTE_POINTS].reverse();
+const ROUTE_COLOR = '#29eaff';
+
+/**
+ * The Earth ⇄ Mars route: dashed ahead of the ship, solid for the part of the
+ * current leg already flown (from Earth on the way out, from Mars on the way back).
+ */
+function RouteLine({ voyage }) {
+  const outbound = useRef();
+  const inbound = useRef();
+
+  useFrame(() => {
+    const v = voyage.current;
+    const travelled = Math.round(routeParameter(v) * ROUTE_SEGMENTS);
+    const flown = v.direction === 1 ? travelled : ROUTE_SEGMENTS - travelled;
+    // Draw only the first `flown` segments of the line that starts at this leg's origin.
+    if (outbound.current) {
+      outbound.current.visible = v.direction === 1;
+      outbound.current.geometry.instanceCount = flown;
+    }
+    if (inbound.current) {
+      inbound.current.visible = v.direction === -1;
+      inbound.current.geometry.instanceCount = flown;
+    }
+  });
+
+  return (
+    <>
+      <Line
+        points={ROUTE_POINTS}
+        color={ROUTE_COLOR}
+        lineWidth={2.2}
+        dashed
+        dashSize={4}
+        gapSize={3}
+        transparent
+        opacity={0.85}
+        depthWrite={false}
+      />
+      <Line ref={outbound} points={ROUTE_POINTS} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
+      <Line ref={inbound} points={ROUTE_POINTS_REVERSED} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
+    </>
+  );
+}
+
+// Heading line: points straight out of the ship's nose (+Z in the model), so any angle
+// between it and the route shows that the ship is not flying along the route.
+// The modular ship is modelled about 41 units long (nose at z = 17.2); the flight view shows it
+// scaled down so it fits the camera, hazard and route scale used here.
+const SHIP_SCALE = 0.15;
+const NOSE = [0, 0, 17.2 * SHIP_SCALE];
+const SHIP_LENGTH = 41 * SHIP_SCALE;
+const HEADING_POINTS = [NOSE, [0, 0, NOSE[2] + SHIP_LENGTH * 2]]; // about two ship lengths
+
+function HeadingLine() {
+  return (
+    <Line points={HEADING_POINTS} color="#ff3b3b" lineWidth={3.5} transparent opacity={0.95} depthWrite={false} />
+  );
+}
 
 const DUST_COUNT = 700;
 const DUST_SIZE = 160;
@@ -84,6 +148,9 @@ export default function FlightScene({
   shipFrame,
   blackHole,
   blackHoleMarker,
+  solarStorm,
+  onStormReach,
+  onStormDone,
 }) {
   const { camera, controls } = useThree();
   const headingRef = useRef();
@@ -134,10 +201,23 @@ export default function FlightScene({
       <Planet position={MOON.position} radius={MOON.radius} texture={textures.Moon} spin={0.004} />
       {blackHole && <BlackHole position={BLACK_HOLE_POSITION} />}
       {blackHole && <BlackHoleMarker element={blackHoleMarker} shipFrame={shipFrame} />}
+      {solarStorm && (
+        <SolarStorm
+          key={solarStorm.id}
+          storm={solarStorm}
+          playing={playing}
+          shipFrame={shipFrame}
+          onReach={onStormReach}
+          onDone={onStormDone}
+        />
+      )}
 
       <group ref={shipFrame}>
         <group ref={headingRef}>
-          <Ship event={event} playing={playing} />
+          <group scale={SHIP_SCALE}>
+            <StationShip event={event} ringSpin={playing} />
+          </group>
+          <HeadingLine />
         </group>
         <pointLight position={[5, 6, 8]} intensity={80} color="#7ecbff" />
       </group>
@@ -157,6 +237,7 @@ export default function FlightScene({
         <ImpactFlash key={impact.id} impact={impact} onDone={onImpactDone} />
       ))}
 
+      <RouteLine voyage={voyage} />
       <SpaceDust shipFrame={shipFrame} />
     </>
   );

@@ -7,6 +7,20 @@ pause/resume commands. It does not run ROS or Gazebo inside the browser.
 The backend should be running before you test the controls. The website can
 open without it, but will show **OFFLINE** and disable simulation commands.
 
+The **Spacecraft** tab previews the modular frontend ship: eight modules, ten
+visual robotic arms, an exploded view, ring animation and joint controls. Those
+controls operate the preview. **Generator → LIVE SIM** still renders the selected
+backend SDF and its measured joints. The preview has not replaced the Gazebo ship.
+
+**Generator → DEMO** includes the modular ship, mission days, adjustable time
+acceleration, detailed asteroids, a solar-storm wave and persistent inner-failure
+indicators. These are browser simulation features. Live scenarios and AI approval
+remain connected to the backend independently.
+
+The **AI API** tab stores optional browser settings only. Live DeepSeek credentials
+belong in the backend `.env`, and **AI Logs** controls that connection. Saving a
+browser key neither configures the backend nor tests a provider connection.
+
 Planetary Trajectories now displays the backend's solar-system SDF and measured
 planet/ship positions. It always uses the backend, independently of the
 Generator's Live Sim / Demo selector. The separate browser-only 3D demo is still

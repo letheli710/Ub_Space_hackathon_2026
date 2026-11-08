@@ -1,5 +1,29 @@
 # Environment validation
 
+## Frontend merge validation — November 8, 2026
+
+Merged incoming frontend commit `901ec70` with the local AI work at `523216d`.
+App and DisasterMaker conflicts were resolved to preserve live AI telemetry and
+scenario commands alongside the modular preview, demo timing and disaster effects.
+The root ignore rules were retained; backend environment settings were untouched.
+
+- **84 backend tests** and **17 frontend tests** passed; the production build
+  passed with its existing bundle-size advisory. Backend async tests ran with
+  normal Windows local-socket permissions and temporary files inside the project.
+- Five voyage tests cover scale parsing/conversion, elapsed-time carryover at
+  arrival/departure, and consistent hazard prediction. Three failed before the
+  boundary-time fix and passed afterward.
+- Browser checks exercised all six tabs: the eight-module/ten-arm preview,
+  exploded view and rail-arm input; Demo time scale and persistent failures;
+  the solar-storm wave; the live backend map; AI Logs and live telemetry; and
+  browser-only API settings. No browser errors were reported.
+- A 1%-severity live thruster scenario reached the backend and changed measured
+  game-state efficiency to 99.35%. Demo effects remained separate from live data.
+  The test scenario was cleared by starting a fresh local simulation afterward.
+- No provider calls or autonomous loop were started during this merge check.
+  The modular preview remains frontend geometry; the Gazebo SDF ship and its
+  current joint mapping were preserved.
+
 ## Live ship state and AI behavior — latest validation
 
 Verified November 7, 2026, on Windows/Ubuntu WSL 2.
