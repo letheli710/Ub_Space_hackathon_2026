@@ -1,0 +1,87 @@
+/* PROTOTYPE — Variant D: Immersive HUD */
+.vd {
+  --ink: #e8ecf2;
+  --ink-2: rgba(232, 236, 242, 0.62);
+  --ink-3: rgba(232, 236, 242, 0.38);
+  --hair: rgba(232, 236, 242, 0.14);
+  --grad: linear-gradient(90deg, #5fd4ff, #9a7bff);
+  --red: #ff6b5e;
+  --sans: 'Geist', 'Inter', system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 60% 45%, #0d1220 0%, #05060a 70%);
+  color: var(--ink);
+  font: 400 13px/1.5 var(--sans);
+}
+.vd button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+.vd-scene { position: absolute; inset: 0; }
+.vd.home .vd-scene { left: 28%; right: -8%; }
+.vd-vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(4, 5, 9, 0.92) 0%, rgba(4, 5, 9, 0.55) 38%, transparent 62%), linear-gradient(0deg, rgba(4, 5, 9, 0.8), transparent 30%); }
+.vd-vignette.console { background: linear-gradient(90deg, rgba(4, 5, 9, 0.85), transparent 22%, transparent 76%, rgba(4, 5, 9, 0.85)), linear-gradient(0deg, rgba(4, 5, 9, 0.85), transparent 18%); }
+
+.vd-top { position: absolute; z-index: 3; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 24px; height: 64px; padding: 0 28px; }
+.vd-top img { height: 34px; }
+.vd-top nav { display: flex; gap: 22px; margin: 0 auto; }
+.vd-top nav button { position: relative; padding: 6px 0; color: var(--ink-3); }
+.vd-top nav button:hover { color: var(--ink); }
+.vd-top nav button.on { color: var(--ink); }
+.vd-top nav button.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--grad); }
+.vd-met { font: 400 11px var(--mono); letter-spacing: 0.08em; color: var(--ink-3); }
+.vd-met b { color: var(--red); font-weight: 400; }
+
+.vd-bracket { position: absolute; z-index: 2; display: grid; gap: 2px; padding: 14px 16px; }
+.vd-bracket::before, .vd-bracket::after { content: ''; position: absolute; width: 12px; height: 12px; border: 0 solid var(--ink-3); }
+.vd-bracket::before { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.vd-bracket::after { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+.vd-bracket.tr { top: 96px; right: 40px; text-align: right; }
+.vd-bracket.tl.console { top: 84px; left: 50%; transform: translateX(-50%); text-align: center; }
+.vd-bracket small { font: 400 10px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-top: 6px; }
+.vd-bracket small:first-child { margin-top: 0; }
+.vd-bracket strong { font: 300 34px/1.1 var(--sans); font-variant-numeric: tabular-nums; }
+.vd-bracket em { margin-left: 6px; font: 400 12px var(--mono); font-style: normal; color: var(--ink-3); }
+
+.vd-hero { position: absolute; z-index: 2; left: 56px; bottom: 120px; max-width: 560px; }
+.vd-eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; font: 400 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.vd-eyebrow i { width: 32px; height: 1px; background: var(--grad); }
+.vd-hero h1 { margin: 0 0 18px; font: 300 52px/1.05 var(--sans); letter-spacing: -0.03em; }
+.vd-lead { margin: 0 0 30px; color: var(--ink-2); font-size: 15px; line-height: 1.7; }
+.vd-actions { display: flex; gap: 24px; align-items: center; }
+.vd-primary { padding: 13px 24px !important; border-radius: 999px; background: var(--ink) !important; color: #05060a !important; font-weight: 500 !important; }
+.vd-primary:hover { background: #fff !important; }
+.vd-ghost { color: var(--ink-2) !important; }
+.vd-ghost:hover { color: var(--ink) !important; }
+.vd-feats { position: absolute; z-index: 2; left: 56px; right: 56px; bottom: 70px; display: flex; gap: 40px; margin: 0; padding: 14px 0 0; list-style: none; border-top: 1px solid var(--hair); color: var(--ink-2); }
+.vd-feats span { margin-right: 10px; font: 400 11px var(--mono); color: var(--ink-3); }
+
+.vd-left, .vd-right { position: absolute; z-index: 2; top: 90px; bottom: 80px; width: 230px; overflow: auto; scrollbar-width: none; }
+.vd-left { left: 28px; display: flex; flex-direction: column; align-items: flex-start; }
+.vd-left small, .vd-right small { margin: 14px 0 6px; font: 400 10px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+.vd-left small:first-child { margin-top: 0; }
+.vd-left button { position: relative; padding: 5px 0 5px 14px; color: var(--ink-2); text-align: left; }
+.vd-left button::before { content: ''; position: absolute; left: 0; top: 50%; width: 5px; height: 1px; background: var(--ink-3); }
+.vd-left button:hover { color: var(--ink); }
+.vd-left button.on { color: var(--red); }
+.vd-left button.on::before { width: 8px; background: var(--red); }
+.vd-right { right: 28px; }
+.vd-read { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 8px 0; }
+.vd-read span { color: var(--ink-2); }
+.vd-read b { font: 300 20px/1 var(--sans); font-variant-numeric: tabular-nums; }
+.vd-read i { grid-column: 1 / -1; height: 1px; margin-top: 8px; background: var(--hair); }
+.vd-read u { display: block; height: 100%; background: var(--grad); }
+.vd-read.low b { color: var(--red); }
+.vd-read.low u { background: var(--red); }
+.vd-sep { height: 18px; }
+.vd-agent { display: flex; justify-content: space-between; padding: 4px 0; color: var(--ink-2); }
+.vd-agent em { font: 400 11px var(--mono); font-style: normal; color: var(--ink-3); }
+.vd-agent em.warn { color: #ffc46b; }
+.vd-alert { position: absolute; z-index: 2; top: 200px; left: 50%; transform: translateX(-50%); font: 400 12px var(--mono); letter-spacing: 0.04em; color: var(--ink-2); white-space: nowrap; }
+.vd-alert span { color: var(--red); }
+.vd-alert button { margin-left: 12px; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.vd-bottom { position: absolute; z-index: 2; left: 28px; right: 28px; bottom: 74px; display: flex; align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--hair); }
+.vd-bottom button { color: var(--ink-2); }
+.vd-bottom button:hover { color: var(--ink); }
+.vd-mono { font: 400 11px var(--mono); color: var(--ink-3); }
+.vd-bottom p { margin: 0 0 0 auto; font: 400 11px var(--mono); color: var(--ink-2); }
+.vd-bottom p.alert { color: var(--red); }

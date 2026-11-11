@@ -1,0 +1,106 @@
+/* PROTOTYPE — Variant B: Flight Deck */
+.vb {
+  --bg: #0a0a0b;
+  --s1: #111214;
+  --s2: #17181b;
+  --line: #24262a;
+  --ink: #ece6da;
+  --ink-2: #9a958b;
+  --ink-3: #5f5c56;
+  --amber: #f0a23b;
+  --red: #ff5b3a;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --cond: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 13px/1.5 'Inter', system-ui, sans-serif;
+}
+.vb button { font: inherit; color: inherit; cursor: pointer; border-radius: 2px; }
+
+.vb-rail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 0; border-right: 1px solid var(--line); background: var(--s1); }
+.vb-rail img { width: 62px; margin-bottom: 14px; }
+.vb-rail button { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; padding: 10px 0; background: none; border: 0; color: var(--ink-3); position: relative; }
+.vb-rail button span { font: 600 9px var(--mono); letter-spacing: 0.08em; }
+.vb-rail button:hover { color: var(--ink); }
+.vb-rail button.on { color: var(--amber); }
+.vb-rail button.on::before { content: ''; position: absolute; left: -8px; top: 10px; bottom: 10px; width: 2px; background: var(--amber); }
+
+.vb-strip { display: flex; align-items: center; gap: 28px; height: 40px; padding: 0 20px; border-bottom: 1px solid var(--line); font: 500 11px var(--mono); letter-spacing: 0.06em; color: var(--ink-3); }
+.vb-strip b { font: 700 15px var(--cond); letter-spacing: 0.12em; color: var(--ink); }
+.vb-strip em { font-style: normal; color: var(--ink); }
+.vb-mode { margin-left: auto; color: #a3c86b; }
+.vb-mode.alert { color: var(--red); animation: vb-blink 1s steps(2) infinite; }
+@keyframes vb-blink { 50% { opacity: 0.35; } }
+
+/* Home */
+.vb-home { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; padding-bottom: 70px; }
+.vb-hero { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); }
+.vb-brief { display: flex; flex-direction: column; justify-content: center; padding: 40px 48px; border-right: 1px solid var(--line); }
+.vb-logo { width: 300px; margin: 0 0 32px -6px; }
+.vb-brief h1 { margin: 0 0 20px; font: 600 64px/0.95 var(--cond); text-transform: uppercase; letter-spacing: 0.005em; }
+.vb-brief p { max-width: 460px; margin: 0 0 36px; color: var(--ink-2); font-size: 15px; line-height: 1.7; }
+.vb-actions { display: flex; gap: 10px; }
+.vb-btn { padding: 14px 22px; background: transparent; border: 1px solid var(--line); font: 600 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.vb-btn:hover { border-color: var(--ink-2); }
+.vb-btn.primary { background: var(--amber); border-color: var(--amber); color: #140d02; }
+.vb-btn.primary:hover { background: #ffb55a; }
+.vb-stage { position: relative; min-height: 520px; background: radial-gradient(ellipse at 55% 50%, #1a1712, transparent 65%); }
+.vb-label { position: absolute; z-index: 1; font: 500 10px var(--mono); letter-spacing: 0.1em; color: var(--ink-3); }
+.vb-label.tl { top: 16px; left: 18px; }
+.vb-label.tr { top: 16px; right: 18px; }
+.vb-label.br { bottom: 16px; right: 18px; }
+.vb-spec { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); }
+.vb-spec > div { padding: 18px 20px; border-right: 1px solid var(--line); font-size: 14px; }
+.vb-spec small, .vb-tile small { display: block; margin-bottom: 6px; font: 500 10px var(--mono); letter-spacing: 0.1em; color: var(--ink-3); }
+.vb-spec strong { font: 500 30px var(--mono); }
+.vb-spec em, .vb-tile em { margin-left: 6px; font: 500 11px var(--mono); font-style: normal; color: var(--ink-3); }
+
+/* Console */
+.vb-console { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100vh; padding-bottom: 66px; }
+.vb-main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 0; }
+.vb-view { position: relative; overflow: hidden; background: #050506; border-right: 1px solid var(--line); }
+.vb-reticle { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border: 1px solid rgba(240, 162, 59, 0.25); border-radius: 50%; pointer-events: none; }
+.vb-reticle::before, .vb-reticle::after { content: ''; position: absolute; background: rgba(240, 162, 59, 0.35); }
+.vb-reticle::before { left: -24px; right: -24px; top: 50%; height: 1px; }
+.vb-reticle::after { top: -24px; bottom: -24px; left: 50%; width: 1px; }
+.vb-caution { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 8px 8px 8px 14px; border: 1px solid var(--red); background: rgba(40, 10, 5, 0.85); font: 500 12px var(--mono); }
+.vb-caution b { color: var(--red); letter-spacing: 0.1em; }
+.vb-caution button { padding: 6px 10px; border: 1px solid var(--red); background: var(--red); color: #1a0500; font-weight: 700; }
+.vb-transport { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 1px; height: 40px; border-top: 1px solid var(--line); background: var(--s1); font: 500 11px var(--mono); }
+.vb-transport button { width: 40px; height: 100%; display: grid; place-items: center; background: none; border: 0; border-right: 1px solid var(--line); }
+.vb-transport button:hover { color: var(--amber); }
+.vb-transport span { padding: 0 14px; color: var(--ink-2); }
+
+.vb-instruments { display: grid; grid-template-columns: 1fr 1fr; align-content: start; overflow: auto; background: var(--line); gap: 1px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.vb-tile { padding: 14px 16px; background: var(--s1); }
+.vb-tile.wide { grid-column: 1 / -1; }
+.vb-tile strong { font: 500 28px/1 var(--mono); }
+.vb-tile.warn strong { color: var(--amber); }
+.vb-ticks { display: flex; gap: 2px; margin-top: 10px; }
+.vb-ticks i { flex: 1; height: 8px; background: var(--s2); }
+.vb-ticks i.on { background: var(--ink-2); }
+.vb-tile.warn .vb-ticks i.on { background: var(--amber); }
+.vb-tile dl { margin: 0; font: 400 12px var(--mono); }
+.vb-tile dl div { display: flex; justify-content: space-between; padding: 4px 0; }
+.vb-tile dt { color: var(--ink-3); }
+.vb-tile dd { margin: 0; }
+.vb-agent { display: flex; align-items: center; gap: 8px; padding: 4px 0; color: var(--ink-2); }
+.vb-agent span { color: var(--ink); }
+.vb-agent em { margin-left: auto; color: #a3c86b; }
+.vb-agent em.warn { color: var(--amber); }
+
+.vb-bottom { display: grid; grid-template-columns: minmax(0, 1fr) 360px; border-top: 1px solid var(--line); }
+.vb-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px 16px; border-right: 1px solid var(--line); }
+.vb-keys small { font: 600 10px var(--mono); letter-spacing: 0.1em; color: var(--ink-3); margin: 0 4px 0 8px; }
+.vb-keys small:first-child { margin-left: 0; }
+.vb-keys button { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; background: var(--s1); border: 1px solid var(--line); font-size: 12px; }
+.vb-keys button:hover { border-color: var(--ink-2); }
+.vb-keys button.on { border-color: var(--red); color: var(--red); }
+.vb-keys kbd { padding: 2px 5px; background: var(--s2); border: 1px solid var(--line); font: 600 10px var(--mono); color: var(--ink-2); }
+.vb-log { list-style: none; margin: 0; padding: 10px 16px; font: 400 11px/1.5 var(--mono); color: var(--ink-2); overflow: hidden; }
+.vb-log li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0; }
+.vb-log li.alert { color: var(--red); }
+.vb-log time { color: var(--ink-3); margin-right: 10px; }
