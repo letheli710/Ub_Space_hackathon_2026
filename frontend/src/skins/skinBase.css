@@ -1,0 +1,5 @@
+/* Minimal reset for themed skins (the classic style.css is not loaded when a skin is active). */
+html, body { margin: 0; padding: 0; }
+body { min-height: 100vh; background: #05060a; -webkit-font-smoothing: antialiased; }
+*, *::before, *::after { box-sizing: border-box; }
+#root { min-height: 100vh; }
