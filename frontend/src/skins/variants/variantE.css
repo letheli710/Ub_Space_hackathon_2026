@@ -1,7 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
 
-/* PROTOTYPE — Variant E: Cryo Lens */
+/* Variant E: Cryo Lens */
 .ve {
+  --dx-ink: #14191e; --dx-ink-2: #4f5962; --dx-ink-3: #87919a; --dx-line: rgba(20, 28, 36, 0.14);
+  --dx-accent: #14191e; --dx-accent-ink: #f4f6f8; --dx-panel: rgba(246, 248, 250, 0.82); --dx-input: rgba(255, 255, 255, 0.55);
+  --dx-red: #c4483c; --dx-amber: #b07425; --dx-green: #3f8f6a; --dx-font: 'Inter', system-ui, sans-serif; --dx-mono: 'IBM Plex Mono', ui-monospace, monospace; --dx-radius: 4px;
   --bg: #e9edf0;
   --ink: #14191e;
   --ink-2: #4f5962;
@@ -13,9 +16,8 @@
   --ring: rgba(20, 28, 36, 0.55);
   --sans: 'Inter', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  position: relative;
-  min-height: 100vh;
-  height: 100vh;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   color: var(--ink);
   font: 400 13px/1.5 var(--sans);
@@ -37,6 +39,19 @@
     var(--bg);
 }
 .ve-ship { position: absolute; inset: 0; }
+.ve-ship.live { pointer-events: auto; }
+.ve-shift { position: absolute; inset: 0; }
+
+/* Dark specimen (the real 3D scene / map): steeper frost so the columns sit on pale glass,
+   and a light reticle inside the lens. */
+.ve-stage.dark { --ring: rgba(236, 242, 246, 0.75); }
+.ve-alerting .ve-stage.dark { --ring: rgba(255, 128, 112, 0.9); }
+.ve-stage.dark .ve-frost.f2 { --h1: calc(var(--lr) * 1.32); background: rgba(236, 240, 243, 0.34); }
+.ve-stage.dark .ve-frost.f3 { --h0: calc(var(--lr) * 1.1); --h1: calc(var(--lr) * 1.6); background: rgba(236, 240, 243, 0.9); }
+.ve-stage.dark .ve-cross line { stroke: rgba(236, 242, 246, 0.45); }
+.ve-stage.dark .ve-arc-label { fill: rgba(236, 242, 246, 0.85); }
+.ve-stage.dark .ve-reticle.alert .ve-arc-label { fill: #ff9a8c; }
+.ve-stage.dark .ve-lens::before { box-shadow: inset 0 0 calc(var(--lr) * 0.18) rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.7); }
 
 /* Three stacked frost layers; each has a progressively larger, softer hole so blur ramps 0 → strong. */
 .ve-frost {
@@ -183,8 +198,6 @@
 .ve-hazards button:hover span { opacity: 1; }
 .ve-hazards button.on { color: var(--red); padding-left: 10px; box-shadow: inset 1px 0 0 var(--red); }
 .ve-hazards button.on span { opacity: 1; color: var(--red); }
-.ve-btn.reset { margin-top: 22px; width: 100%; }
-.ve-btn.reset:disabled { opacity: 0.4; cursor: default; }
 
 .ve-col.right { text-align: left; }
 .ve-systems li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; padding: 7px 0 6px; }
@@ -195,14 +208,6 @@
 .ve-systems u { display: block; height: 1px; background: var(--ink); transition: width 0.8s ease; }
 .ve-systems li.low b, .ve-systems li.low span { color: var(--red); }
 .ve-systems li.low u { background: var(--red); }
-.ve-agents li { display: flex; align-items: center; gap: 9px; padding: 6px 0; font: 400 12.5px var(--sans); border-bottom: 1px solid var(--line-2); }
-.ve-agents i { width: 5px; height: 5px; border-radius: 50%; background: var(--ice); }
-.ve-agents span { margin-left: auto; font: 400 10px var(--mono); letter-spacing: 0.06em; color: var(--ink-3); }
-.ve-agents li.warn i { background: var(--red); }
-.ve-agents li.warn span { color: var(--red); }
-.ve-flight { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 22px; }
-.ve-flight dt { font: 400 9px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
-.ve-flight dd { font: 300 13px var(--sans); font-variant-numeric: tabular-nums; }
 
 .ve-lens-foot.console { pointer-events: auto; }
 .ve-alert { display: flex; align-items: center; gap: 12px; color: var(--ink-2); letter-spacing: 0.08em; }
@@ -222,6 +227,64 @@
 .ve-log li:first-child { color: var(--ink); }
 .ve-log li.alert { color: var(--red); }
 .ve-log li::before { content: '› '; opacity: 0.5; }
+
+/* ---------- live console additions ---------- */
+.ve-col { scrollbar-width: thin; scrollbar-color: rgba(20, 28, 36, 0.15) transparent; }
+.ve-col h4 { margin: 12px 0 4px; font: 400 9px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+.ve-hazards li { display: flex; align-items: stretch; }
+.ve-hazards li > button:first-child { flex: 1; min-width: 0; }
+.ve-hazards .ve-aim { flex: none; width: auto; margin: 6px 0 6px 8px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; justify-content: center; font: 400 9.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.ve-hazards .ve-aim:hover { padding-left: 0; color: var(--ink); }
+.ve-hazards .ve-aim.on { color: #f4f6f8; background: var(--ink); border-radius: 999px; }
+.ve-fold h3 { margin-bottom: 0; }
+.ve-fold h3 button { width: 100%; display: flex; justify-content: space-between; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+.ve-fold h3 button:hover { color: var(--ink); }
+.ve-fold.open h3 { color: var(--ink-2); }
+.ve-fold-body { padding: 10px 0 4px; }
+.ve-col .dx-agents { margin-top: 4px; }
+.ve .dx-btn { border-radius: 999px; padding: 5px 11px; }
+.ve .dx-key { border-radius: 4px; padding: 5px 2px; }
+.ve .dx-bars i { height: 1px; }
+.ve .dx-bars u { background: var(--ink); }
+.ve .dx-latest { font-size: 11.5px; }
+
+.ve-overlays { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+.ve .ve-overlays .dx-armed { top: calc(45vh - 25vmin - 52px); bottom: auto; background: rgba(246, 248, 250, 0.9); border-color: var(--ink); color: var(--ink); }
+.ve-transport {
+  position: fixed; z-index: 3; left: 50%; top: calc(45vh + 25vmin + 64px); transform: translateX(-50%);
+  padding: 4px 6px; border: 1px solid var(--line); border-radius: 999px; background: rgba(246, 248, 250, 0.86);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.ve-transport .dx-btn { border-color: transparent; background: transparent; }
+.ve-transport .dx-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.9); }
+.ve-transport .dx-ts input { border-radius: 999px; }
+.ve-lens-foot.console, .ve-mapinfo .ve-lens-foot { padding: 5px 14px; border-radius: 999px; background: rgba(246, 248, 250, 0.86); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.ve-console { padding-bottom: 140px; }
+
+/* ---------- trajectories ---------- */
+.ve-mapwrap { position: absolute; inset: 64px 0 0; }
+.ve .ve-mapwrap .map-toolbar { padding: 6px 32px; justify-content: center; }
+.ve .ve-mapwrap .map-toolbar button, .ve .ve-mapwrap .map-toolbar select { border-radius: 999px; background: rgba(255, 255, 255, 0.6); }
+.ve .ve-mapwrap .map-readout { left: 32px; bottom: 74px; background: rgba(246, 248, 250, 0.88); border-color: var(--line); }
+.ve-mapinfo { position: fixed; z-index: 3; left: 32px; top: 130px; width: min(280px, 22vw); }
+.ve-mapinfo h2 { font: 200 26px/1.1 var(--sans); letter-spacing: -0.02em; margin-bottom: 10px; }
+.ve-mapinfo .ve-lens-foot.inline { position: static; transform: none; margin-top: 18px; display: inline-flex; }
+.ve-mapinfo .ve-lens-foot i { width: 70px; }
+
+/* ---------- spacecraft ---------- */
+.ve-craft { position: absolute; inset: 0; }
+.ve .ve-craft .spacecraft-panel { z-index: 10; top: 84px; left: 32px; max-height: calc(100% - 170px); background: rgba(246, 248, 250, 0.9); border-color: var(--line); }
+.ve .ve-craft .spacecraft-mode { top: 84px !important; right: 32px !important; z-index: 10 !important; }
+.ve .ve-craft .spacecraft-mode button { border-radius: 999px; background: rgba(246, 248, 250, 0.9); }
+
+/* ---------- AI logs / API sheets ---------- */
+.ve-sheet-wrap { position: fixed; inset: 0; }
+.ve-sheet { position: absolute; z-index: 2; top: 84px; left: 32px; right: 32px; bottom: 84px; }
+.ve-sheet.logs { overflow: hidden; }
+.ve-sheet.api { overflow-y: auto; scrollbar-width: thin; }
+.ve .ve-sheet .ai-system-tabs button, .ve .ve-sheet .ai-api-actions button, .ve .ve-sheet .ai-conn-service button, .ve .ve-sheet .choices button { border-radius: 999px; }
+.ve .ve-sheet .panelhead { font: 200 26px var(--sans); letter-spacing: -0.02em; color: var(--ink); }
+.ve .ve-sheet .panelhead svg { display: none; }
 
 /* Narrow screens: stack text below a smaller lens rather than letting it collide. */
 @media (max-width: 900px) {

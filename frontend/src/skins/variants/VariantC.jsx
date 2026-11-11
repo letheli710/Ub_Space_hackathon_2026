@@ -1,6 +1,15 @@
-// PROTOTYPE — Variant C: Editorial. Black & bone-white, serif display type, hairline rules instead of boxes,
+// Variant C: Editorial. Black & bone-white, serif display type, hairline rules instead of boxes,
 // a single violet signal pulled from the logo. Reads like a mission dossier, not a dashboard.
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, logo } from '../shipCanvas.jsx';
+// Runs on the real DEMO session (see ../demoSkin.jsx).
+import {
+  AiApiView, AiLogsView, DemoViewport, FEATURES, INNER, LEAD, OUTER, SpacecraftView, TABS,
+  TrajectoriesView, logo, useViewReset,
+} from '../demoSkin.jsx';
+import { ShipCanvas } from '../shipCanvas.jsx';
+import {
+  AiControls, DamageList, PhysicsNotes, Propulsion, RockSettings, TimeScale, ViewOverlays,
+  flightRows, hazardState, missionRows, toggleArm,
+} from './variantABCKit.jsx';
 import './variantC.css';
 
 function Masthead({ tab, onTab, sim }) {
@@ -12,7 +21,7 @@ function Masthead({ tab, onTab, sim }) {
           <button key={t} className={t === tab ? 'on' : ''} onClick={() => onTab(t)}>{t}</button>
         ))}
       </nav>
-      <span className="vc-issue">{sim.event ? <b>● Hazard active</b> : 'Demo · nominal'} — MET {sim.met}</span>
+      <span className="vc-issue">{sim.event ? <b>● Hazard active</b> : `${sim.status === 'PAUSED' ? 'Paused' : 'Demo'} · nominal`} — MET {sim.met}</span>
     </header>
   );
 }
@@ -53,62 +62,131 @@ function Home({ sim, onTab }) {
   );
 }
 
-function Console({ sim }) {
+function Hazards({ sim, names }) {
   return (
-    <>
+    <ul className="vc-hazards">
+      {names.map((d) => {
+        const h = hazardState(sim, d);
+        return (
+          <li key={d} className={`${h.active ? 'on' : ''} ${h.armed ? 'armed' : ''}`}>
+            <button onClick={() => sim.trigger(d)} aria-pressed={h.active}>{d}</button>
+            {h.pointer && <button className="vc-aim" aria-pressed={h.armed} onClick={() => toggleArm(sim, d)}>{h.armed ? 'aiming…' : 'aim'}</button>}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function Console({ sim }) {
+  const [resetCount, resetView] = useViewReset();
+  const playing = sim.demo.playing;
+  return (
+    <div className="vc-console">
       <section className="vc-view">
-        <ShipCanvas event={sim.event} lights="mono" scale={0.12} />
-        <div className="vc-caption">
-          <span>Fig. 1 — Spacecraft, live DEMO physics. {sim.nav.origin} to {sim.nav.destination}, day {sim.day}.</span>
-          <span>Sim {sim.met} · ×{sim.timeScale} · <button>Pause</button> <button onClick={sim.clear}>Reset</button> <button>Full page</button></span>
+        <div className="vc-stage">
+          <DemoViewport sim={sim} resetCount={resetCount} />
+          <ViewOverlays sim={sim} />
+          {sim.event && <p className="vc-flash"><b>{sim.event.name}.</b> Severity {sim.event.severity}%. The AI is evaluating a response.</p>}
         </div>
-        {sim.event && <p className="vc-flash"><b>{sim.event.name}.</b> Severity {sim.event.severity}%. The AI is evaluating a response.</p>}
+        <div className="vc-caption">
+          <span>Fig. 1 — Spacecraft, live DEMO physics. {sim.nav.origin} to {sim.nav.destination}, day {sim.day}, {sim.nav.phase.toLowerCase()}.</span>
+          <span className="vc-transport">
+            Sim {sim.met}
+            <button onClick={sim.demo.togglePlaying}>{playing ? 'Pause' : 'Resume'}</button>
+            <button onClick={sim.clear}>Reset</button>
+            <button onClick={resetView}>Reset view</button>
+            <TimeScale sim={sim} />
+          </span>
+        </div>
       </section>
       <section className="vc-cols console">
         <div>
           <h4>I. Scenario</h4>
           <p className="vc-small">Outer</p>
-          <ul className="vc-hazards">
-            {OUTER.map((d) => <li key={d} className={sim.event?.name === d ? 'on' : ''} onClick={() => sim.trigger(d)}>{d}</li>)}
-          </ul>
+          <Hazards sim={sim} names={OUTER} />
           <p className="vc-small">Inner</p>
-          <ul className="vc-hazards">
-            {INNER.map((d) => <li key={d} className={sim.event?.name === d ? 'on' : ''} onClick={() => sim.trigger(d)}>{d}</li>)}
-          </ul>
+          <Hazards sim={sim} names={INNER} />
+          <h4 className="vc-gap">The rock</h4>
+          <RockSettings sim={sim} compact />
         </div>
         <div>
-          <h4>II. Telemetry</h4>
+          <h4>II. Controls</h4>
+          <p className="vc-small">Propulsion</p>
+          <Propulsion sim={sim} compact />
+          <p className="vc-small vc-gap-s">DEMO AI</p>
+          <AiControls sim={sim} compact />
+        </div>
+        <div>
+          <h4>III. Telemetry</h4>
           <dl className="vc-leaders">
             {sim.systems.map((s) => (
               <div key={s.key} className={s.value < 85 ? 'low' : ''}><dt>{s.label}</dt><i /><dd>{s.value}%</dd></div>
             ))}
-            <div><dt>Velocity</dt><i /><dd>{sim.velocity} km/s</dd></div>
-            <div><dt>Attitude</dt><i /><dd>{sim.attitude.toLowerCase()}</dd></div>
-            <div><dt>Propellant</dt><i /><dd>{sim.propellantKg} kg</dd></div>
+            {flightRows(sim).map(([k, v]) => <div key={k}><dt>{k}</dt><i /><dd>{v}</dd></div>)}
           </dl>
           <h4 className="vc-gap">AI agents</h4>
           <dl className="vc-leaders">
-            {sim.agents.map((a) => <div key={a.name}><dt>{a.name}</dt><i /><dd>{a.state}</dd></div>)}
+            {sim.agents.map((a) => <div key={a.id} className={a.ok ? '' : 'low'} title={a.reason}><dt>{a.name}</dt><i /><dd>{a.state}</dd></div>)}
           </dl>
+          <h4 className="vc-gap">Components</h4>
+          <DamageList sim={sim} />
+          <PhysicsNotes sim={sim} />
         </div>
         <div>
-          <h4>III. Log</h4>
+          <h4>IV. Log</h4>
           <ol className="vc-log">
-            {sim.logs.slice(0, 8).map((l, i) => (
-              <li key={i} className={l.alert ? 'alert' : ''}><time>{sim.met}</time>{l.text}</li>
+            {sim.logs.map((l) => (
+              <li key={l.id} className={l.alert ? 'alert' : ''}><time>{l.time}</time>{l.text}</li>
             ))}
           </ol>
         </div>
       </section>
-    </>
+    </div>
   );
+}
+
+function Trajectories({ sim }) {
+  return (
+    <div className="vc-split">
+      <section className="vc-mapwrap">
+        <div className="vc-stage vc-map"><TrajectoriesView sim={sim} /></div>
+        <div className="vc-caption">
+          <span>Fig. 2 — The voyage, top-down. Cyan dashes: planned route; solid: the path flown.</span>
+          <span className="vc-transport">
+            <button onClick={sim.demo.togglePlaying}>{sim.demo.playing ? 'Pause' : 'Resume'}</button>
+            <TimeScale sim={sim} />
+          </span>
+        </div>
+      </section>
+      <aside className="vc-side">
+        <h4>The mission</h4>
+        <p className="vc-route">{sim.nav.origin} <i>to</i> {sim.nav.destination}</p>
+        <div className="vc-prog"><i style={{ width: `${sim.nav.progress * 100}%` }} /></div>
+        <dl className="vc-leaders">
+          {missionRows(sim).map(([k, v]) => <div key={k}><dt>{k}</dt><i /><dd>{v}</dd></div>)}
+        </dl>
+        <h4 className="vc-gap">Inspector</h4>
+        <p className="vc-note">{sim.session.mapInfo}</p>
+      </aside>
+    </div>
+  );
+}
+
+function Page({ tab, sim, onTab }) {
+  if (tab === 'Generator') return <Console sim={sim} />;
+  if (tab === 'Planetary Trajectories') return <Trajectories sim={sim} />;
+  if (tab === 'AI Logs') return <div className="vc-page vc-ailogs"><AiLogsView sim={sim} /></div>;
+  if (tab === 'AI API') return <div className="vc-page vc-apipage"><AiApiView sim={sim} onOpenControls={() => onTab('AI Logs')} /></div>;
+  if (tab === 'Spacecraft') return <div className="vc-page vc-craft"><SpacecraftView sim={sim} /></div>;
+  return null;
 }
 
 export default function VariantC({ page, tab, onTab, sim }) {
   return (
-    <div className="vc">
+    <div className={`vc ${page === 'home' ? 'vc-home' : 'vc-app'}`}>
       <Masthead tab={tab} onTab={onTab} sim={sim} />
-      {page === 'home' ? <Home sim={sim} onTab={onTab} /> : <Console sim={sim} />}
+      {page === 'home' ? <Home sim={sim} onTab={onTab} /> : <Page tab={tab} sim={sim} onTab={onTab} />}
     </div>
   );
 }

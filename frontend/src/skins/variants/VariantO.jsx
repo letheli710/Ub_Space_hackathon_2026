@@ -1,11 +1,21 @@
-// PROTOTYPE — Variant O: Woodblock · 浮世绘星海. Space as an Edo-period woodblock print: Prussian-blue
-// bokashi sky, flat moon disc, spiral clouds, and the solar wind as a towering wave with claw-like foam.
-// The real StationShip is re-shaded as flat cel tones with black inverted-hull key lines.
+// Variant O: Woodblock · 浮世绘星海. Space as an Edo-period woodblock print: Prussian-blue bokashi sky,
+// flat moon disc, spiral clouds, and the solar wind as a towering wave with claw-like foam. The real
+// StationShip is re-shaded as flat cel tones with black inverted-hull key lines. On the Generator the
+// print follows the REAL demo session: the great wave rises on a real solar storm, inbound rocks and
+// aliens rain as meteors, the black hole is a whirlpool, real burns light the flame tongues and real
+// impacts shake the plate. "Print / Physics" swaps in the real DemoViewport under washi and indigo.
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import StationShip from '../../components/station/StationShip.jsx';
-import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE } from '../shipCanvas.jsx';
+import {
+  AiApiView, AiLogsView, DemoViewport, FEATURES, LEAD, SpacecraftView, TABS, TAGLINE, TrajectoriesView, useViewReset,
+} from '../demoSkin.jsx';
+import {
+  AiControls, ArmedHint, EventLog, HazardControls, MissionInfo, PropulsionControls, RockControls, SceneBoundary, Telemetry, Transport,
+  impactKey, useArmedSwitch, useOnImpact, useShaderGuard,
+} from './variantMNOKit.jsx';
+import './variantMNOKit.css';
 import './variantO.css';
 
 /* ------------------------------------------------------------------ helpers */
@@ -24,7 +34,8 @@ const KIND = (name) => {
   if (!name) return null;
   if (name === 'Asteroid Collision') return 'meteor';
   if (name === 'Black Hole Encounter') return 'swirl';
-  if (name === 'Solar Storm' || name === 'Alien Encounter') return 'wave';
+  if (name === 'Solar Storm') return 'wave';
+  if (name === 'Alien Encounter') return 'meteor';
   return 'inner';
 };
 const AUTO = ['wave', 'meteor', 'swirl'];
@@ -91,10 +102,15 @@ function makeTextures() {
   return { washi, grain: w.toDataURL() };
 }
 
+
 /* ----------------------------------------------------------- the director */
-/** One mutable timeline shared by the SVG print layers and the 3D ship: what hazard, how strong, manoeuvre. */
-function useDirector(page, event) {
-  const D = useRef({ kind: 'wave', active: false, age: 99, level: 0, man: 0, time: 0, evKind: null, evT0: 0, evName: null }).current;
+/**
+ * One mutable timeline shared by the SVG print layers and the 3D ship: which hazard, how strong, the
+ * manoeuvre. Home: an autoplay reel. Generator: the real session (R) — storm → wave, black hole →
+ * whirlpool, inbound rocks/aliens → meteors, active faults → trouble aboard; real thrust → manoeuvre.
+ */
+function useDirector(page, event, R) {
+  const D = useRef({ kind: 'wave', active: false, age: 99, level: 0, man: 0, time: 0, evKind: null, evT0: 0, evName: null, hit: -99 }).current;
   const [plate, setPlate] = useState(null);
   useEffect(() => {
     D.evKind = KIND(event?.name);
@@ -102,36 +118,46 @@ function useDirector(page, event) {
     D.evT0 = performance.now() / 1000;
   }, [event, D]);
   useEffect(() => {
-    let raf, last = performance.now() / 1000, shown;
+    let raf, last = performance.now() / 1000, shown, realKind = null, realT0 = 0;
     const start = last;
     const loop = () => {
       const now = performance.now() / 1000;
       const dt = Math.min(0.05, now - last);
       last = now;
       D.time = now - start;
-      let active = false, t0 = null;
-      if (D.evKind) { D.kind = D.evKind; active = true; t0 = D.evT0; }
-      else if (page === 'home') {
-        const C = 13, T = now - start, c = Math.floor(T / C), l = T - c * C;
-        D.kind = AUTO[c % AUTO.length];
-        active = l > 2.5 && l < 10.5;
-        t0 = start + c * C + 2.5;
+      let active = false, t0 = null, target = 0, man = null;
+      if (page === 'home') {
+        if (D.evKind) { D.kind = D.evKind; active = true; t0 = D.evT0; }
+        else {
+          const C = 13, T = now - start, c = Math.floor(T / C), l = T - c * C;
+          D.kind = AUTO[c % AUTO.length];
+          active = l > 2.5 && l < 10.5;
+          t0 = start + c * C + 2.5;
+        }
+        const a = active ? now - t0 : 99;
+        target = active ? (a < 5.5 ? 1 : 0.62) : 0;
+      } else {
+        const k = R.storm ? 'wave' : R.bh ? 'swirl' : R.meteor ? 'meteor' : R.inner ? 'inner' : null;
+        if (k !== realKind) { realKind = k; realT0 = now; }
+        if (k) { D.kind = k; active = true; t0 = realT0; }
+        // An incoming storm front swells the wave; the hit itself raises it to full height.
+        target = !k ? 0 : k === 'wave' ? (R.stormHit ? 1 : 0.72) : 1;
+        man = R.burn ? 1 : R.correcting ? 0.3 : 0;
       }
       D.active = active;
       D.age = active ? now - t0 : D.age + dt;
       const a = D.age;
-      const target = active ? (a < 5.5 ? 1 : 0.62) : 0;
       D.level += (target - D.level) * (1 - Math.exp(-dt * (active && a < 2 ? 2.4 : 1.1)));
-      D.man = active ? smooth(0.15, 0.9, a) * (1 - smooth(3.8, 6.2, a)) : D.man * Math.exp(-dt * 3);
-      const fz = window.__voFreeze; // dev-only screenshot hook (unset in the app)
-      if (fz) { Object.assign(D, fz); D.active = true; }
+      if (man === null) D.man = active ? smooth(0.15, 0.9, a) * (1 - smooth(3.8, 6.2, a)) : D.man * Math.exp(-dt * 3);
+      else D.man += (man - D.man) * (1 - Math.exp(-dt * 4));
+      D.hitAge = now - D.hit;
       const p = active ? D.kind : null;
       if (p !== shown) { shown = p; setPlate(p); }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [page, D]);
+  }, [page, D, R]);
   return [D, plate];
 }
 const lv = (D, k) => (D.kind === k ? D.level : 0);
@@ -563,7 +589,7 @@ function ShipRig({ D, event, page }) {
   const cur = useRef({ x: 0, y: 0, p: 0, r: 0, init: false });
   useFrame((s, dt) => {
     const T = s.clock.elapsedTime, m = D.man, a = D.age, vw = viewport.width, vh = viewport.height;
-    let x = -vw * (page === 'console' ? 0.16 : 0.1), y = -vh * 0.03 + Math.sin(T * 0.9) * 0.09;
+    let x = -vw * (page === 'console' ? 0.04 : 0.1), y = -vh * 0.03 + Math.sin(T * 0.9) * 0.09;
     let pitch = Math.sin(T * 0.9 + 0.6) * 0.05, roll = Math.sin(T * 0.7) * 0.1;
     if (D.kind === 'wave') {
       x -= m * vw * 0.08; y += m * vh * 0.03 + Math.sin(a * 2.2) * 0.14 * m;
@@ -582,13 +608,19 @@ function ShipRig({ D, event, page }) {
       x += Math.sin(T * 31) * 0.02 * D.level; y += Math.sin(T * 27) * 0.02 * D.level;
       roll += Math.sin(T * 3) * 0.25 * D.level;
     }
+    // A real impact knocks the ship sideways and sets it rolling.
+    const h = D.hitAge ?? 99;
+    if (h < 2.5) {
+      const k = Math.exp(-h * 2.2);
+      x += Math.sin(h * 19) * 0.25 * k; y += Math.cos(h * 23) * 0.18 * k; roll += 0.6 * k;
+    }
     const c = cur.current, k = c.init ? 1 - Math.exp(-dt * 5) : 1;
     c.init = true;
     c.x += (x - c.x) * k; c.y += (y - c.y) * k; c.p += (pitch - c.p) * k; c.r += (roll - c.r) * k;
     pos.current.position.set(c.x, c.y, 0);
     att.current.rotation.set(c.r, 0, c.p);
   });
-  const scale = Math.min(0.1, (viewport.width / 38) * 0.5);
+  const scale = Math.min(0.1, (viewport.width / 38) * 0.5) * (page === 'console' ? 0.82 : 1);
   return (
     <group ref={pos}>
       <group ref={att}>
@@ -606,7 +638,7 @@ function ShipRig({ D, event, page }) {
 }
 
 /* ----------------------------------------------------------- stage + UI */
-function Stage({ D, sim, page, tex }) {
+function Stage({ D, sim, page, tex, onCreated, onError, failed }) {
   return (
     <div className="vo-stage" aria-hidden="true">
       <div className="vo-sky" />
@@ -614,16 +646,32 @@ function Stage({ D, sim, page, tex }) {
       <div className="vo-sea" />
       <Wave D={D} cfg={WAVES.far} grain={tex.grain} className="far" />
       <Wave D={D} cfg={WAVES.back} grain={tex.grain} className="back" />
-      <div className="vo-ship">
-        <Canvas flat dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 40 }} gl={{ alpha: true, antialias: true }}>
-          <ambientLight intensity={1.1} color="#fff6e6" />
-          <directionalLight position={[-4, 6, 5]} intensity={2.4} color="#fffaf0" />
-          <ShipRig D={D} event={sim.event} page={page} />
-        </Canvas>
-      </div>
+      {!failed && (
+        <div className="vo-ship">
+          <SceneBoundary onError={onError}>
+            <Canvas flat dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 40 }} gl={{ alpha: true, antialias: true }} onCreated={onCreated}>
+              <ambientLight intensity={1.1} color="#fff6e6" />
+              <directionalLight position={[-4, 6, 5]} intensity={2.4} color="#fffaf0" />
+              <ShipRig D={D} event={sim.event} page={page} />
+            </Canvas>
+          </SceneBoundary>
+        </div>
+      )}
       <Wave D={D} cfg={WAVES.front} grain={tex.grain} className="front" />
       <div className="vo-paper" style={{ backgroundImage: `url(${tex.washi})` }} />
       <div className="vo-edge" />
+    </div>
+  );
+}
+
+/** The real 3D DEMO scene printed on washi: indigo tint, paper grain, the plate's key-line border. */
+function PhysicsPlate({ sim, tex, resetCount }) {
+  return (
+    <div className="vo-stage vo-physplate">
+      <DemoViewport sim={sim} resetCount={resetCount} className="vo-viewport" />
+      <div className="vo-indigo" aria-hidden="true" />
+      <div className="vo-paper" aria-hidden="true" style={{ backgroundImage: `url(${tex.washi})` }} />
+      <div className="vo-edge" aria-hidden="true" />
     </div>
   );
 }
@@ -638,7 +686,7 @@ function Nav({ tab, onTab, sim }) {
       {TABS.map((t) => (
         <button key={t} className={t === tab ? 'on' : ''} onClick={() => onTab(t)}>{t}</button>
       ))}
-      <span className="vo-met">MET {sim.met} · Day {sim.day}</span>
+      <span className="vo-met">MET {sim.met} · Day {sim.day} · {sim.status}</span>
     </nav>
   );
 }
@@ -657,13 +705,14 @@ function TitleCartouche({ compact }) {
   );
 }
 
-function PlateBanner({ plate, sim }) {
+function PlateBanner({ plate, sim, page }) {
   if (!plate) return null;
   const p = PLATES[plate];
+  const name = page === 'home' ? sim.event?.name ?? p.en : sim.event?.name && KIND(sim.event.name) === plate ? sim.event.name : p.en;
   return (
     <div className="vo-alarm" key={plate}>
       <span className="vo-alarm-jp">警報</span>
-      <span className="vo-alarm-en">{sim.event?.name ?? p.en}</span>
+      <span className="vo-alarm-en">{name}</span>
       <span className="vo-alarm-sub">{p.jp}</span>
     </div>
   );
@@ -680,7 +729,7 @@ function Signature({ plate }) {
   );
 }
 
-function Home({ onTab, plate }) {
+function Home({ onTab, plate, sim }) {
   return (
     <>
       <TitleCartouche />
@@ -690,73 +739,112 @@ function Home({ onTab, plate }) {
         <button className="vo-cta" onClick={() => onTab('Generator')}>
           Launch Simulation <span>出航</span>
         </button>
+        <span className="vo-nav-line">{sim.nav.phase} · day {sim.day} · {sim.velocity} km/s · hull {sim.systems[0].value}%</span>
       </section>
       <Signature plate={plate} />
     </>
   );
 }
 
-function Console({ sim, plate }) {
-  const [inner, setInner] = useState(INNER[0]);
+const H_JP = {
+  outer: '天変', inner: '船内', rock: '流星', prop: '推進', ai: '指揮', systems: '船体', flight: '航路', damage: '損傷',
+  repairs: '修理', objects: '近傍', agents: '頭脳', log: '航海日誌', mission: '航程', selected: '選択',
+};
+const H = ({ title, k }) => <h2>{title} <em>{H_JP[k] ?? ''}</em></h2>;
+
+function Console({ sim, view, setView, onResetView }) {
   return (
     <>
-      <TitleCartouche compact />
-      <aside className="vo-side">
-        <section className="vo-cart">
-          <h2>Hazards <em>天変</em></h2>
-          <div className="vo-haz">
-            {OUTER.map((n) => (
-              <button key={n} className={sim.event?.name === n ? 'on' : ''} onClick={() => sim.trigger(n)}>{n}</button>
-            ))}
-          </div>
-          <div className="vo-inner">
-            <select value={inner} onChange={(e) => setInner(e.target.value)} aria-label="Internal fault">
-              {INNER.map((n) => <option key={n}>{n}</option>)}
-            </select>
-            <button onClick={() => sim.trigger(inner)}>Inject</button>
-          </div>
-          <button className="vo-reset" onClick={sim.clear} disabled={!sim.event}>Calm the sea · Reset</button>
-        </section>
-        <section className="vo-cart">
-          <h2>Systems <em>船体</em></h2>
-          {sim.systems.map((s) => (
-            <div key={s.key} className={`vo-bar ${s.value < 75 ? 'low' : ''}`}>
-              <span>{s.label}</span>
-              <i><b style={{ width: `${s.value}%` }} /></i>
-              <em>{s.value}</em>
-            </div>
-          ))}
-        </section>
-        <section className="vo-cart">
-          <h2>AI Agents <em>指揮</em></h2>
-          {sim.agents.map((a) => (
-            <div key={a.name} className={`vo-agent ${a.ok ? '' : 'warn'}`}>
-              <i />{a.name}<span>{a.state}</span>
-            </div>
-          ))}
-        </section>
+      <aside className="vo-side vo-left">
+        <section className="vo-cart"><HazardControls sim={sim} H={H} /></section>
+        <section className="vo-cart"><RockControls sim={sim} H={H} /></section>
+        <section className="vo-cart"><PropulsionControls sim={sim} H={H} /></section>
+        <section className="vo-cart"><AiControls sim={sim} H={H} /></section>
       </aside>
-      <section className="vo-cart vo-log">
-        <h2>Ship's Log <em>航海日誌</em></h2>
-        {sim.logs.slice(0, 3).map((l, i) => (
-          <p key={`${l.t}-${i}`} className={l.alert ? 'alert' : ''}>{l.text}</p>
-        ))}
-        <span className="vo-nav-line">{sim.nav.origin} → {sim.nav.destination} · {sim.nav.phase} · {sim.velocity} km/s</span>
-      </section>
-      <Signature plate={plate} />
+      <aside className="vo-side vo-right">
+        <section className="vo-cart"><Telemetry sim={sim} H={H} /></section>
+        <section className="vo-cart vo-logcart"><EventLog sim={sim} H={H} limit={20} /></section>
+      </aside>
+      <div className="vo-cart vo-transport">
+        <Transport sim={sim} view={view} setView={setView} onResetView={onResetView} names={['Print', 'Physics']} />
+      </div>
+      <ArmedHint sim={sim} className="vo-armed" />
     </>
   );
 }
 
-export default function VariantO({ page, tab, onTab, sim }) {
-  const tex = useMemo(makeTextures, []);
-  const [D, plate] = useDirector(page, sim.event);
+function Pages({ tab, sim, onTab }) {
+  const traj = tab === 'Planetary Trajectories';
   return (
-    <div className={`vo vo-${page} ${plate ? 'vo-danger' : ''}`}>
-      <Stage D={D} sim={sim} page={page} tex={tex} />
+    <div className={`vo-page ${traj ? 'vo-page-traj' : ''}`}>
+      <div className={`vo-plate mno-embed ${tab === 'Spacecraft' || traj ? 'vo-plate-dark' : ''}`}>
+        <div className="vo-plate-in">
+          {traj && <TrajectoriesView sim={sim} />}
+          {tab === 'AI Logs' && <AiLogsView sim={sim} onShowLiveShip={() => onTab('Spacecraft')} />}
+          {tab === 'AI API' && <AiApiView sim={sim} onOpenControls={() => onTab('AI Logs')} />}
+          {tab === 'Spacecraft' && <SpacecraftView sim={sim} />}
+        </div>
+        <span className="vo-plate-title">{tab}</span>
+      </div>
+      {traj && <aside className="vo-side vo-trajinfo"><section className="vo-cart"><MissionInfo sim={sim} H={H} /></section></aside>}
+    </div>
+  );
+}
+
+export default function VariantO({ tab, onTab, sim }) {
+  const tex = useMemo(makeTextures, []);
+  const page = tab === 'Home' ? 'home' : 'console';
+  const gen = tab === 'Generator';
+  const [view, setView] = useState('scene');
+  const [resetCount, resetView] = useViewReset();
+  const [failed, onCreated] = useShaderGuard('Woodblock');
+  const [noGL, setNoGL] = useState(false);
+  const [hit, setHit] = useState(0);
+
+  // Real state the print reads every frame.
+  const R = useRef({}).current;
+  const p = sim.demo.physics;
+  const name = sim.event?.name;
+  Object.assign(R, {
+    storm: sim.demo.solarStorm || name === 'Solar Storm',
+    stormHit: name === 'Solar Storm',
+    bh: sim.demo.blackHole,
+    meteor: p.objects.some((o) => o.closingM_s > 0.05) || sim.demo.hazards.length > 0,
+    inner: sim.demo.activeFaults.length > 0,
+    burn: p.mode === 'burn',
+    correcting: p.mode === 'course correction',
+    impact: impactKey(sim),
+  });
+  const [D, plate] = useDirector(page, sim.event, R);
+  useArmedSwitch(sim, setView);
+  useOnImpact(sim, () => {
+    D.hit = performance.now() / 1000;
+    setHit((n) => n + 1);
+  });
+  useEffect(() => {
+    if (sim.demo.stormFlash) setHit((n) => n + 1);
+  }, [sim.demo.stormFlash]);
+
+  const physics = gen && view === 'physics';
+  const scene = tab !== 'Spacecraft';
+  return (
+    <div className={`vo mk-root vo-${page} vo-tab-${tab.replace(/\s+/g, '-').toLowerCase()} ${plate && (gen || page === 'home') ? 'vo-danger' : ''} ${physics ? 'vo-physics' : ''}`}>
+      {physics ? (
+        <PhysicsPlate sim={sim} tex={tex} resetCount={resetCount} />
+      ) : scene ? (
+        <Stage D={D} sim={sim} page={page} tex={tex} onCreated={onCreated} onError={() => setNoGL(true)} failed={failed || noGL} />
+      ) : (
+        <div className="vo-stage vo-blank" style={{ backgroundImage: `url(${tex.washi})` }} />
+      )}
+      {hit > 0 && <div key={hit} className="vo-hit" aria-hidden="true" />}
       <Nav tab={tab} onTab={onTab} sim={sim} />
-      <PlateBanner plate={plate} sim={sim} />
-      {page === 'home' ? <Home onTab={onTab} plate={plate} /> : <Console sim={sim} plate={plate} />}
+      {(page === 'home' || gen) && <PlateBanner plate={plate} sim={sim} page={page} />}
+      {page === 'home' ? <Home onTab={onTab} plate={plate} sim={sim} /> : gen ? (
+        <>
+          <TitleCartouche compact />
+          <Console sim={sim} view={view} setView={setView} onResetView={resetView} />
+        </>
+      ) : <Pages tab={tab} sim={sim} onTab={onTab} />}
     </div>
   );
 }

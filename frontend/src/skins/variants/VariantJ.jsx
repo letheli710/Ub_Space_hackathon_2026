@@ -1,6 +1,13 @@
-// PROTOTYPE — throwaway. Variant J "Cockpit · 驾驶舱视角": first-person command deck looking out a window.
+// Variant J "Cockpit · 驾驶舱视角": first-person command deck. The real DEMO flight scene is what you see
+// through the window; hazards are guarded switches and backlit keys, telemetry lives on soft-key MFDs.
 import { useRef, useState } from 'react';
-import { ShipCanvas, logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from '../shipCanvas.jsx';
+import { ShipCanvas } from '../shipCanvas.jsx';
+import {
+  AiApiView, AiLogsView, DemoViewport, FEATURES, INNER, LEAD, OUTER, SpacecraftView, TABS, TAGLINE, TrajectoriesView, logo, useViewReset,
+} from '../demoSkin.jsx';
+import {
+  AIMABLE, Agents, AiControls, Damage, EventLog, FlightData, Objects, Propulsion, Repairs, RockForm, Transport, ViewOverlays, missionRows, toggleAim,
+} from './variantDShared.jsx';
 import './variantJ.css';
 
 const FEATURE_TEXT = [
@@ -27,7 +34,7 @@ function Plate({ className = '', children, label }) {
   );
 }
 
-function ModeSelector({ tab, onTab }) {
+function ModeSelector({ tab, onTab, children }) {
   return (
     <div className="vj-modes" role="tablist" aria-label="Mode select">
       <span className="vj-etch">MODE SELECT</span>
@@ -37,6 +44,7 @@ function ModeSelector({ tab, onTab }) {
           <span>{t}</span>
         </button>
       ))}
+      {children && <div className="vj-modes-end">{children}</div>}
     </div>
   );
 }
@@ -71,29 +79,57 @@ function Gauge({ value }) {
   );
 }
 
-function Window({ sim, page }) {
+/** Multi-function display: soft keys along the top select the page. */
+function Mfd({ label, pages, className = '' }) {
+  const [current, setCurrent] = useState(pages[0][0]);
+  const body = pages.find(([name]) => name === current)?.[1];
+  return (
+    <Plate className={`vj-cell ${className}`} label={label}>
+      <div className="vj-oled vj-mfd">
+        <div className="vj-pages">
+          {pages.map(([name]) => (
+            <button key={name} className={name === current ? 'on' : ''} onClick={() => setCurrent(name)}>{name}</button>
+          ))}
+        </div>
+        <div className="vj-mfd-body">{body}</div>
+      </div>
+    </Plate>
+  );
+}
+
+/** What's outside the window, per tab. */
+function Window({ sim, kind, resetCount }) {
   const alert = !!sim.event;
   return (
     <div className="vj-window">
       <div className="vj-frame" />
       <div className="vj-glass">
-        <div className="vj-view">
-          <div className="vj-planet" />
-          <div className="vj-ship">
-            <ShipCanvas event={sim.event} lights="warm" scale={0.17} z={page === 'home' ? 9 : 10} fov={40} swing={0.35} />
+        {kind === 'home' && (
+          <div className="vj-view">
+            <div className="vj-planet" />
+            <div className="vj-ship">
+              <ShipCanvas event={sim.event} lights="warm" scale={0.17} z={9} fov={40} swing={0.35} />
+            </div>
           </div>
-        </div>
+        )}
+        {kind === 'console' && (
+          <div className="vj-view live">
+            <DemoViewport sim={sim} resetCount={resetCount}><ViewOverlays sim={sim} /></DemoViewport>
+          </div>
+        )}
+        {kind === 'map' && <div className="vj-screen-in dx-page vj-mapview"><TrajectoriesView sim={sim} /></div>}
+        {kind === 'craft' && <div className="vj-screen-in dx-page vj-craftview"><SpacecraftView sim={sim} /></div>}
         <div className="vj-refl" />
-        {page === 'console' && (
+        {kind === 'console' && (
           <div className={`vj-hud vj-hud-min ${alert ? 'warn' : ''}`}>
             <span>{alert ? `▲ ${sim.event.name.toUpperCase()} · SEV ${sim.event.severity}%` : 'ALL SYSTEMS NOMINAL'}</span>
             <span>V {sim.velocity} km/s · {sim.nav.phase}</span>
+            {!sim.demo.playing && <span>PAUSED</span>}
           </div>
         )}
       </div>
-      <i className="vj-mullion m1" />
-      <i className="vj-mullion m2" />
-      {page === 'home' && (
+      {(kind === 'home' || kind === 'console') && <><i className="vj-mullion m1" /><i className="vj-mullion m2" /></>}
+      {kind === 'home' && (
         <div className="vj-hud vj-hud-home" aria-label="Combiner display">
           <img src={logo} alt="" />
           <h1>
@@ -108,6 +144,15 @@ function Window({ sim, page }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Large central display for the AI Logs and AI API pages. */
+function Screen({ label, className, children }) {
+  return (
+    <Plate className="vj-screen" label={label}>
+      <div className={`vj-oled vj-screen-body dx-page ${className}`}>{children}</div>
+    </Plate>
   );
 }
 
@@ -141,9 +186,9 @@ function Home({ sim, onTab }) {
           <div className="vj-launch-side">
             <div className="vj-annun">
               <span className={armed ? 'lit amber' : ''}>ARMED</span>
-              <span className="lit green">AI LINK</span>
-              <span className="lit green">PHYS OK</span>
-              <span>BACKEND</span>
+              <span className={sim.demo.ai.enabled ? 'lit green' : ''}>AI LINK</span>
+              <span className={sim.systems[0].value > 50 ? 'lit green' : 'lit red'}>PHYS OK</span>
+              <span className={sim.session.simulation.ready ? 'lit green' : ''}>BACKEND</span>
             </div>
             <button className="vj-push" onClick={() => setFeat((f) => (f + 1) % FEATURES.length)}>
               EXPLORE FEATURES ›
@@ -170,94 +215,128 @@ function Home({ sim, onTab }) {
   );
 }
 
-function Console({ sim }) {
-  const alert = !!sim.event;
+function Systems({ sim }) {
+  const power = sim.systems.find((s) => s.key === 'Power').value;
   return (
-    <div className="vj-dash-body vj-console-body">
-      <Plate className="vj-cell" label="SYSTEMS">
-        <div className="vj-oled vj-sys">
-          <div className="vj-sys-dial">
-            <Gauge value={sim.systems.find((s) => s.key === 'Power').value} />
-            <span>BATT {sim.systems.find((s) => s.key === 'Power').value}%</span>
-          </div>
-          <ul>
-            {sim.systems.map((s) => (
-              <li key={s.key} className={s.value < 70 ? 'low' : s.value < 90 ? 'mid' : ''}>
-                <span>{s.label}</span>
-                <b style={{ '--v': `${s.value}%` }} />
-                <em>{s.value}</em>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Plate>
-
-      <Plate className="vj-cell" label="AI AGENTS · NAV">
-        <div className="vj-oled">
-          <ul className="vj-agents">
-            {sim.agents.map((a) => (
-              <li key={a.name}>
-                <Led on tone={a.ok ? 'green' : 'amber'} />
-                <span>{a.name}</span>
-                <em>{a.state}</em>
-              </li>
-            ))}
-          </ul>
-          <div className="vj-nav">
-            <div>
-              <span>{sim.nav.origin}</span>
-              <span>{sim.nav.phase}</span>
-              <span>{sim.nav.destination}</span>
-            </div>
-            <b style={{ '--p': `${Math.min(sim.nav.progress, 1) * 100}%` }} />
-            <dl>
-              <dt>MET</dt><dd>{sim.met}</dd>
-              <dt>VEL</dt><dd>{sim.velocity} km/s</dd>
-              <dt>PROP</dt><dd>{sim.propellantKg} kg</dd>
-              <dt>ATT</dt><dd>{sim.attitude}</dd>
-            </dl>
-          </div>
-        </div>
-      </Plate>
-
-      <Plate className="vj-cell" label="EVENT LOG">
-        <div className="vj-oled vj-log">
-          {sim.logs.slice(0, 7).map((l, i) => (
-            <div key={`${l.t}-${i}`} className={l.alert ? 'alert' : ''}>
-              <span>{l.alert ? '▲' : '·'}</span>
-              {l.text}
-            </div>
-          ))}
-        </div>
-      </Plate>
-
-      <Plate className="vj-cell vj-master" label="MASTER">
-        <button className={`vj-mc ${alert ? 'flash' : ''}`} aria-label="Master caution" onClick={sim.clear}>
-          <span>MASTER</span>
-          <span>CAUTION</span>
-        </button>
-        <button className="vj-reset" onClick={sim.clear}>
-          <span>MASTER RESET</span>
-        </button>
-        <div className="vj-annun vj-annun-sm">
-          <span className={alert ? 'lit red' : ''}>WARN</span>
-          <span className={alert ? 'lit amber' : 'lit green'}>{alert ? 'CAUT' : 'NOM'}</span>
-        </div>
-      </Plate>
+    <div className="vj-sys">
+      <div className="vj-sys-dial">
+        <Gauge value={power} />
+        <span>BATT {power}%</span>
+      </div>
+      <ul>
+        {sim.systems.map((s) => (
+          <li key={s.key} className={s.value < 70 ? 'low' : s.value < 90 ? 'mid' : ''}>
+            <span>{s.label}</span>
+            <b style={{ '--v': `${s.value}%` }} />
+            <em>{s.value}</em>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function LeftPanel({ page, sim }) {
-  if (page === 'console') {
+function Master({ sim }) {
+  const alert = !!sim.event;
+  return (
+    <Plate className="vj-cell vj-master" label="MASTER">
+      <button className={`vj-mc ${alert ? 'flash' : ''}`} aria-label="Master caution · reset demo" onClick={sim.clear}>
+        <span>MASTER</span>
+        <span>CAUTION</span>
+      </button>
+      <button className="vj-reset" onClick={sim.clear}>
+        <span>MASTER RESET</span>
+      </button>
+      <div className="vj-annun vj-annun-sm">
+        <span className={alert ? 'lit red' : ''}>WARN</span>
+        <span className={alert ? 'lit amber' : 'lit green'}>{alert ? 'CAUT' : 'NOM'}</span>
+        <span className={sim.demo.ai.enabled ? 'lit green' : sim.demo.ai.busy ? 'lit amber' : ''}>A/P</span>
+        <span className={sim.demo.playing ? 'lit green' : 'lit amber'}>{sim.demo.playing ? 'RUN' : 'HOLD'}</span>
+      </div>
+    </Plate>
+  );
+}
+
+function LogCell({ sim }) {
+  return (
+    <Plate className="vj-cell" label="EVENT LOG">
+      <div className="vj-oled vj-log">
+        {sim.logs.map((l) => (
+          <div key={l.id} className={l.alert ? 'alert' : ''}>
+            <span>{l.alert ? '▲' : '·'}</span>
+            <span className="vj-log-t">{l.time}</span>
+            {l.text}
+          </div>
+        ))}
+      </div>
+    </Plate>
+  );
+}
+
+function Console({ sim }) {
+  return (
+    <div className="vj-dash-body vj-console-body">
+      <Mfd label="MFD 1 · STATUS" pages={[
+        ['SYS', <><Systems sim={sim} /><div className="vj-mfd-sub">AGENTS</div><Agents sim={sim} /></>],
+        ['DMG', <Damage sim={sim} />],
+        ['FLT', <FlightData sim={sim} />],
+        ['ARM', <><div className="vj-mfd-sub">REPAIRS</div><Repairs sim={sim} /><div className="vj-mfd-sub">NEARBY OBJECTS</div><Objects sim={sim} /></>],
+      ]} />
+      <Mfd label="MFD 2 · CONTROL" pages={[
+        ['ROCK', <RockForm sim={sim} launchLabel="LAUNCH ROCK" />],
+        ['PROP', <Propulsion sim={sim} />],
+        ['AI', <AiControls sim={sim} />],
+      ]} />
+      <LogCell sim={sim} />
+      <Master sim={sim} />
+    </div>
+  );
+}
+
+function MapDash({ sim }) {
+  return (
+    <div className="vj-dash-body vj-console-body">
+      <Plate className="vj-cell" label="MISSION">
+        <div className="vj-oled vj-mission">
+          <dl>{missionRows(sim).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        </div>
+      </Plate>
+      <Plate className="vj-cell" label="NAV">
+        <div className="vj-oled">
+          <div className="vj-nav">
+            <div>
+              <span>{sim.nav.origin}</span>
+              <span>{Math.round(sim.nav.progress * 100)}%</span>
+              <span>{sim.nav.destination}</span>
+            </div>
+            <b style={{ '--p': `${sim.nav.progress * 100}%` }} />
+          </div>
+          <p className="vj-mapinfo">{sim.session.mapInfo}</p>
+        </div>
+      </Plate>
+      <LogCell sim={sim} />
+      <Master sim={sim} />
+    </div>
+  );
+}
+
+function LeftPanel({ kind, sim }) {
+  if (kind === 'console') {
     return (
       <Plate className="vj-side vj-side-l" label="HAZARD · OUTER">
         <div className="vj-gsw-grid">
           {OUTER.map((h) => (
-            <GuardedSwitch key={h} label={h} active={sim.event?.name === h} onFlip={() => sim.trigger(h)} />
+            <div key={h} className="vj-gsw-cell">
+              <GuardedSwitch label={h} active={sim.isActive(h)} onFlip={() => sim.trigger(h)} />
+              {AIMABLE.includes(h) && (
+                <button className={`vj-aim ${sim.demo.armed === h ? 'on' : ''}`} aria-pressed={sim.demo.armed === h} onClick={() => toggleAim(sim, h)}>
+                  <Led on={sim.demo.armed === h} tone="amber" />AIM
+                </button>
+              )}
+            </div>
           ))}
         </div>
-        <div className="vj-etch vj-foot">EXTERNAL · GUARDED</div>
+        <div className="vj-etch vj-foot">{sim.demo.armed ? 'AIM ARMED · CLICK VIEW · ESC CANCEL' : 'EXTERNAL · GUARDED'}</div>
       </Plate>
     );
   }
@@ -275,13 +354,13 @@ function LeftPanel({ page, sim }) {
   );
 }
 
-function RightPanel({ page, sim }) {
-  if (page === 'console') {
+function RightPanel({ kind, sim }) {
+  if (kind === 'console') {
     return (
       <Plate className="vj-side vj-side-r" label="HAZARD · INNER">
         <div className="vj-btn-grid">
           {INNER.map((h) => (
-            <button key={h} className={`vj-bl ${sim.event?.name === h ? 'on' : ''}`} onClick={() => sim.trigger(h)}>
+            <button key={h} className={`vj-bl ${sim.isActive(h) ? 'on' : ''}`} aria-pressed={sim.isActive(h)} onClick={() => sim.trigger(h)}>
               {h}
             </button>
           ))}
@@ -301,7 +380,7 @@ function RightPanel({ page, sim }) {
         ))}
       </ul>
       <ul className="vj-mini">
-        {sim.systems.slice(0, 4).map((s) => (
+        {sim.systems.map((s) => (
           <li key={s.key}>
             <span>{s.key}</span>
             <b style={{ '--v': `${s.value}%` }} />
@@ -312,8 +391,12 @@ function RightPanel({ page, sim }) {
   );
 }
 
-export default function VariantJ({ page, tab, onTab, sim }) {
+const KIND = { Home: 'home', Generator: 'console', 'Planetary Trajectories': 'map', Spacecraft: 'craft', 'AI Logs': 'screen', 'AI API': 'screen' };
+
+export default function VariantJ({ tab, onTab, sim }) {
   const root = useRef(null);
+  const [resetCount, resetView] = useViewReset();
+  const kind = KIND[tab] ?? 'home';
   const alert = !!sim.event;
   const onMove = (e) => {
     const el = root.current;
@@ -321,18 +404,30 @@ export default function VariantJ({ page, tab, onTab, sim }) {
     el.style.setProperty('--mx', (e.clientX / window.innerWidth - 0.5).toFixed(3));
     el.style.setProperty('--my', (e.clientY / window.innerHeight - 0.5).toFixed(3));
   };
+  let centre;
+  if (kind === 'screen') {
+    centre = tab === 'AI Logs'
+      ? <Screen label="MFD · AI MANAGEMENT & EVENT LOG" className="logs"><AiLogsView sim={sim} onShowLiveShip={() => onTab('Generator')} /></Screen>
+      : <Screen label="MFD · AI API LINK" className="api"><AiApiView sim={sim} onOpenControls={() => onTab('AI Logs')} /></Screen>;
+  } else {
+    centre = <Window sim={sim} kind={kind} resetCount={resetCount} />;
+  }
   return (
-    <div ref={root} className={`vj vj-page-${page} ${alert ? 'vj-alert' : ''}`} onMouseMove={onMove}>
+    <div ref={root} className={`vj dx-root vj-page-${kind} ${alert ? 'vj-alert' : ''}`} onMouseMove={onMove}>
       <div className="vj-ceiling" />
       <div className="vj-top">
-        <LeftPanel page={page} sim={sim} />
-        <Window sim={sim} page={page} />
-        <RightPanel page={page} sim={sim} />
+        <LeftPanel kind={kind} sim={sim} />
+        {centre}
+        <RightPanel kind={kind} sim={sim} />
       </div>
       <div className="vj-dash-wrap">
         <div className="vj-dash">
-          <ModeSelector tab={tab} onTab={onTab} />
-          {page === 'home' ? <Home sim={sim} onTab={onTab} /> : <Console sim={sim} />}
+          <ModeSelector tab={tab} onTab={onTab}>
+            {kind !== 'home' && <Transport sim={sim} onResetView={kind === 'console' ? resetView : undefined} text />}
+          </ModeSelector>
+          {kind === 'home' && <Home sim={sim} onTab={onTab} />}
+          {kind === 'console' && <Console sim={sim} />}
+          {kind === 'map' && <MapDash sim={sim} />}
         </div>
       </div>
       <div className="vj-wash" aria-hidden />

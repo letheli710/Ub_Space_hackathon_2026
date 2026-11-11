@@ -1,7 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
-/* PROTOTYPE — Variant J "Cockpit". Everything scoped under .vj */
+/* Variant J "Cockpit". Everything scoped under .vj */
 .vj {
+  --dx-ink: #e9e2d2; --dx-ink-2: #c9c2b2; --dx-ink-3: #9d978a; --dx-line: #2c2f33;
+  --dx-accent: #e8a33c; --dx-accent-ink: #1d1206; --dx-panel: #0c0d0f; --dx-input: #121416;
+  --dx-red: #ff8a80; --dx-amber: #e8a33c; --dx-green: #66d08c;
+  --dx-font: 'IBM Plex Sans Condensed', 'Arial Narrow', sans-serif; --dx-mono: 'IBM Plex Mono', ui-monospace, monospace; --dx-radius: 3px;
   --panel: #2a2d31;
   --panel-hi: #34383d;
   --panel-lo: #1d1f22;
@@ -26,7 +30,7 @@
 .vj *,
 .vj *::before,
 .vj *::after { box-sizing: border-box; }
-.vj button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+:where(.vj) button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
 .vj ul { list-style: none; margin: 0; padding: 0; }
 .vj h1, .vj h3, .vj p, .vj dl, .vj dd { margin: 0; }
 
@@ -455,6 +459,82 @@
   28% { transform: translate(1px, -1px); }
   40% { transform: translate(0, 0); }
 }
+
+/* ---------- live DEMO console ---------- */
+.vj-mullion { pointer-events: none; }
+.vj-modes-end { margin-left: auto; }
+.vj .dx-btn {
+  border: 1px solid #0b0c0d; border-radius: 3px; color: #c9c2b2;
+  font: 600 10px/1.15 var(--sans); letter-spacing: .07em; text-transform: uppercase;
+  background: linear-gradient(#2c2f33, #202225);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 2px 0 #0a0b0c;
+}
+.vj .dx-btn:hover:not(:disabled) { color: var(--label); border-color: #0b0c0d; }
+.vj .dx-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+.vj .dx-btn.on, .vj .dx-btn.dx-primary {
+  color: #ffe2b8; border-color: #0b0c0d; background: linear-gradient(#5a3a14, #3a250c);
+  box-shadow: inset 0 0 12px rgba(232,163,60,.5), 0 0 10px rgba(232,163,60,.25), 0 2px 0 #0b0c0d;
+  text-shadow: 0 0 6px rgba(232,163,60,.8);
+}
+.vj .dx-transport .dx-btn { height: 28px; padding: 0 10px; width: auto; }
+.vj .dx-transport .dx-ts .dx-btn { width: 24px; padding: 0; }
+.vj .dx-field input, .vj .dx-field select, .vj .dx-ts input {
+  background: #050607; border-color: #2c2f33; color: var(--oled-ink); box-shadow: inset 0 1px 3px #000;
+}
+.vj .dx-ts input { height: 28px; font-size: 11px; }
+.vj .dx-field > span { font-family: var(--sans); font-weight: 600; letter-spacing: .14em; }
+.vj .dx-bars u { background: #d9d2c2; }
+.vj .dx-bars i { height: 4px; background: #121416; box-shadow: inset 0 1px 2px #000; }
+.vj .dx-dl dd { font-family: var(--mono); font-size: 11px; }
+.vj .dx-note { color: var(--label-dim); }
+.vj .dx-armed { bottom: 22%; color: #ffc27a; background: rgba(10, 8, 4, .55); border-color: rgba(232,163,60,.6); text-shadow: 0 0 8px rgba(232,163,60,.6); letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; }
+
+.vj-view.live { cursor: default; }
+.vj-mfd { display: flex; flex-direction: column; gap: 8px; }
+.vj-mfd-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #34373b transparent; padding-right: 4px; }
+.vj-mfd-sub { margin: 10px 0 5px; font: 600 9px var(--sans); letter-spacing: .16em; color: var(--label-dim); }
+.vj-mfd-body .vj-sys { grid-template-columns: 86px 1fr; }
+.vj-mfd-body .vj-dial { width: 86px; }
+.vj-log { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #34373b transparent; }
+.vj-log .vj-log-t { color: #6f6a60; font-variant-numeric: tabular-nums; }
+
+.vj-gsw-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.vj-aim {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 2px;
+  font: 600 9px var(--sans); letter-spacing: .16em; color: var(--label-dim);
+  background: #121416; border: 1px solid #0a0a0b; box-shadow: inset 0 1px 2px #000;
+}
+.vj-aim:hover { color: var(--label); }
+.vj-aim.on { color: #ffe0b0; background: #4a2f0c; box-shadow: inset 0 0 8px rgba(232,163,60,.5); }
+.vj-page-console .vj-gsw-grid { gap: 10px 10px; }
+.vj-page-console .vj-gsw-well { width: 42px; height: 56px; }
+.vj-page-console .vj-gsw-bat { top: 27px; height: 22px; }
+.vj-page-console .vj-gsw.on .vj-gsw-bat { top: 7px; }
+.vj-bl:last-child { grid-column: span 2; }
+
+.vj-mission dl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.vj-mission dt { font: 600 9px var(--sans); letter-spacing: .14em; color: var(--label-dim); text-transform: uppercase; }
+.vj-mission dd { font-size: 11px; }
+.vj-mapinfo { margin-top: 12px; font: 400 12px/1.45 var(--sans); color: #c5bead; }
+
+/* window as a screen: planetary map and spacecraft viewer */
+.vj-screen-in { position: absolute; inset: 0; }
+.vj .vj-mapview .map-toolbar { z-index: 4; padding: 8px 9% 6px; background: linear-gradient(rgba(2,3,5,.85), transparent); }
+.vj .vj-mapview .map-readout { z-index: 4; left: 8%; bottom: 14px; background: rgba(8, 9, 10, .82); }
+.vj .vj-mapview .backend-map canvas { position: absolute; inset: 0; }
+.vj .vj-craftview .spacecraft-panel { z-index: 4; top: 12%; left: 6%; width: 250px; max-height: 80%; background: rgba(10, 11, 12, .86); }
+.vj .vj-craftview .spacecraft-mode { top: 18px !important; right: 12% !important; }
+
+/* AI Logs / AI API: the window gives way to one large MFD */
+.vj-page-screen .vj-top, .vj-page-craft .vj-top { height: calc(100vh - 54px - 150px); }
+.vj-page-screen .vj-dash-wrap, .vj-page-craft .vj-dash-wrap { top: calc(100vh - 140px); bottom: 74px; }
+.vj-screen { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.vj-screen-body { flex: 1; min-height: 0; padding: 14px 16px; font: 400 12.5px/1.55 var(--sans); }
+.vj-screen-body.api { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #34373b transparent; }
+.vj .vj-screen-body.logs .ai-logs-page { height: 100%; }
+.vj .vj-screen-body .ai-system-tabs button { text-transform: uppercase; font: 600 10.5px var(--sans); letter-spacing: .1em; }
+.vj .vj-screen-body .ai-system-tabs button.active { color: #ffe2b8; background: linear-gradient(#5a3a14, #3a250c); border-color: #0b0c0d; box-shadow: inset 0 0 12px rgba(232,163,60,.5); }
+.vj .vj-screen-body .panelhead { font: 600 11px var(--sans); letter-spacing: .2em; color: var(--label-dim); }
 
 @media (prefers-reduced-motion: reduce) {
   .vj-alert .vj-view, .vj-alert .vj-wash { animation: none; }

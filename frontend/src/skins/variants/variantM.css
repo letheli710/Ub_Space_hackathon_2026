@@ -137,48 +137,81 @@
 .vm-feats b { font: 500 10px var(--mono); color: var(--amber); margin-right: 6px; }
 
 .vm-side { position: absolute; right: 24px; top: 84px; width: 300px; z-index: 3; display: grid; gap: 10px; }
+.vm-tele > div { min-width: 0; overflow-wrap: anywhere; }
 .vm-tele { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; font-size: 17px; font-weight: 500; letter-spacing: 0.04em; }
 .vm-tele small { display: block; font: 400 9.5px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
 
-/* ---------- console ---------- */
-.vm-left, .vm-right { position: absolute; top: 76px; z-index: 3; display: grid; gap: 10px; align-content: start; max-height: calc(100vh - 170px); overflow: auto; scrollbar-width: none; }
-.vm-left { left: 20px; width: 290px; }
-.vm-right { right: 20px; width: 310px; }
+/* ---------- console (Generator) ---------- */
+.vm {
+  --k-fg: var(--w); --k-dim: var(--dim); --k-line: rgba(244, 241, 234, 0.18); --k-accent: var(--amber); --k-hot: var(--red);
+  --k-btn: rgba(244, 241, 234, 0.05); --k-btn-on: var(--red); --k-btn-on-fg: #fff; --k-input: rgba(0, 0, 0, 0.45);
+  --k-panel: rgba(8, 7, 6, 0.72); --k-mono: var(--mono); --k-small: 10.5px;
+}
+.vm .mk { font-size: 13.5px; letter-spacing: 0.02em; }
+.vm .mk button { font-size: 12.5px; letter-spacing: 0.04em; }
+.vm .mk-primary { color: #0b0806 !important; letter-spacing: 0.14em; text-transform: uppercase; }
+.vm .vm-h { font-weight: 600; font-size: 13.5px; letter-spacing: 0.18em; margin: 10px 0 6px; }
+.vm .mk-note, .vm .mk-alert, .vm .mk-log li, .vm .mk-dl dd { font-family: var(--mono); }
+.vm-left, .vm-right { position: absolute; top: 70px; bottom: 16px; z-index: 3; display: flex; flex-direction: column; gap: 8px; }
+.vm-left { left: 16px; width: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(244, 241, 234, 0.25) transparent; }
+.vm-right { right: 16px; width: 330px; }
+.vm-col > .vm-panel { flex: none; }
+.vm-right .vm-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(244, 241, 234, 0.25) transparent; }
+.vm-right .vm-logp { flex: 0 0 150px; overflow-y: auto; scrollbar-width: none; }
+.vm-transport { position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); bottom: 76px; padding: 8px 10px; border-left-color: var(--amber); }
+.vm-transport .mk-play { min-width: 86px; text-align: center; }
+.vm .mk-switch button.on { background: var(--amber); border-color: var(--amber); color: #0b0806; }
+.vm-armed { top: auto; bottom: 128px; border-left: 2px solid var(--amber); font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.vm-threats li.rock b, .vm-threats li.debris b { color: var(--w); }
+.vm-threats li.debris i::after { background: var(--dim); }
+.vm-threats li.storm i::after { background: #ffc94a; }
+.vm-threats li.bh i::after { background: #b884ff; }
+.vm-threats li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vm-br.debris { --c: rgba(244, 241, 234, 0.55); }
 
-.vm-bar-row { display: grid; grid-template-columns: 1fr 90px 28px; gap: 8px; align-items: center; font-size: 14px; letter-spacing: 0.04em; margin-top: 5px; }
-.vm-bar-row i { height: 4px; background: var(--faint); position: relative; }
-.vm-bar-row i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--w); transition: width 0.6s; }
-.vm-bar-row b { font: 500 11px var(--mono); text-align: right; }
-.vm-bar-row.amber i::after { background: var(--amber); }
-.vm-bar-row.amber b { color: var(--amber); }
-.vm-bar-row.red i::after { background: var(--red); }
-.vm-bar-row.red b { color: var(--red); }
+/* Physics view: the real DemoViewport graded to match the action scene */
+.vm-grade { background: radial-gradient(ellipse 80% 75% at 50% 50%, transparent 50%, rgba(10, 6, 2, 0.55) 100%), linear-gradient(180deg, rgba(255, 170, 80, 0.05), rgba(255, 120, 40, 0.07)); }
+.vm-physics .vm-vignette { opacity: 0.6; }
+.vm-physics .vm-alarm { display: none; }
+.vm-lowfx .vm-stage { background: radial-gradient(circle at 18% 32%, rgba(201, 162, 124, 0.35) 0 14vmin, transparent 15vmin), radial-gradient(circle at 80% 20%, rgba(255, 210, 150, 0.25), transparent 30%), #040305; }
 
-.vm-inject h4 button { background: none; border: 1px solid rgba(244, 241, 234, 0.4); padding: 3px 10px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
-.vm-inject h4 button:hover { background: var(--w); color: #000; }
-.vm-inject small { display: block; margin: 8px 0 5px; font: 400 9.5px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
-.vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.vm-grid button { background: rgba(244, 241, 234, 0.05); border: 1px solid var(--faint); padding: 6px 7px; text-align: left; font-size: 13px; letter-spacing: 0.04em; line-height: 1.1; }
-.vm-grid button:hover { border-color: var(--amber); color: var(--amber); }
-.vm-grid button.on { background: var(--red); border-color: var(--red); color: #fff; }
+/* ---------- other tabs: real pages in a bracketed frame ---------- */
+.vm-tab-ai-logs .vm-stage, .vm-tab-ai-api .vm-stage, .vm-tab-planetary-trajectories .vm-stage { filter: brightness(0.42) saturate(0.7) blur(2px); }
+.vm-page { position: absolute; z-index: 3; top: 72px; left: 20px; right: 20px; bottom: 78px; display: flex; gap: 12px; }
+.vm-page-traj aside { width: 320px; flex: none; overflow-y: auto; }
+.vm-frame { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: rgba(6, 5, 4, 0.82); border: 1px solid var(--k-line); }
+.vm-frame-in { position: absolute; inset: 0; overflow: hidden; }
+.vm-frame-doc .vm-frame-in { overflow: auto; scrollbar-width: thin; }
+.vm-frame-ship { background: #020611; }
+.vm-frame::before, .vm-frame::after, .vm-corner::before, .vm-corner::after { content: ''; position: absolute; width: 18px; height: 18px; border: 2px solid var(--amber); pointer-events: none; z-index: 6; }
+.vm-frame::before { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+.vm-frame::after { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+.vm-corner { position: absolute; inset: 0; pointer-events: none; }
+.vm-corner::before { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+.vm-corner::after { left: 0; bottom: 0; border-right: 0; border-top: 0; }
 
-.vm-agents > div { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; font-size: 14.5px; margin-top: 4px; }
-.vm-agents i { width: 6px; height: 6px; border-radius: 50%; background: #7fe0a0; }
-.vm-agents span { font: 400 10.5px var(--mono); color: var(--dim); }
-.vm-agents .warn i { background: var(--amber); }
-.vm-agents .warn span { color: var(--amber); }
-.vm-log p { margin: 0 0 5px; font: 400 10px/1.4 var(--mono); color: var(--dim); }
-.vm-log p:first-child { color: var(--w); }
-.vm-log p.alert { color: var(--red); }
+.vm .mno-embed { font-family: var(--mono); font-size: 12px; }
+.vm .mno-embed .panelhead, .vm .mno-embed h3, .vm .mno-embed h4, .vm .mno-embed .spacecraft-title { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; }
+.vm .mno-embed .ai-api { padding: 24px 0; }
+.vm .mno-embed .backend-map { background: #040305; }
+.vm .mno-embed .spacecraft-panel { background: rgba(8, 7, 6, 0.8); }
 
 @media (max-width: 1100px) {
-  .vm-top nav { display: none; }
+  .vm-top nav { gap: 0; }
+  .vm-top nav button { padding: 6px 6px; font-size: 12px; letter-spacing: 0.08em; }
   .vm-side { display: none; }
-  .vm-left { width: 240px; }
-  .vm-right { width: 260px; }
+  .vm-left { width: 260px; }
+  .vm-right { width: 280px; }
 }
 @media (max-width: 760px) {
-  .vm-left { display: none; }
-  .vm-right { top: auto; bottom: 90px; left: 16px; right: 16px; width: auto; max-height: 40vh; }
+  .vm-top { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .vm-top nav { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; }
+  .vm-left, .vm-right { position: static; width: auto; margin: 0 16px; }
+  .vm.vm-tab-generator { overflow-y: auto; }
+  .vm-tab-generator .vm-left { margin-top: 120px; }
+  .vm-tab-generator .vm-right { margin: 8px 16px 90px; }
   .vm-hero { left: 16px; right: 16px; }
+  .vm-page { flex-direction: column; left: 16px; right: 16px; top: 110px; }
+  .vm-page-traj aside { width: auto; max-height: 35vh; }
+  .vm-transport { left: 16px; right: 16px; transform: none; }
 }

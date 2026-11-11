@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
 
 /* PROTOTYPE — Variant N: Ink Cosmos · 水墨太空 */
 .vn {
@@ -22,6 +22,16 @@
 .vn .vn-dim { color: var(--ink3); }
 
 .vn-canvas { position: absolute; inset: 0; }
+/* CSS paper painting under the (transparent) canvas: what you see if the ink shader fails */
+.vn-paperbg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 81% 20%, var(--red) 0 7.4vh, rgba(184, 50, 31, 0.12) 7.6vh, transparent 18vh),
+    radial-gradient(ellipse 40% 26% at 30% 40%, rgba(22, 20, 18, 0.12), transparent 70%),
+    radial-gradient(ellipse 50% 20% at 70% 70%, rgba(22, 20, 18, 0.1), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 6% 104%, rgba(22, 20, 18, 0.32), transparent 70%),
+    linear-gradient(180deg, #f3ecdc, #ece2cc);
+}
 .vn-grain {
   position: absolute;
   inset: 0;
@@ -210,7 +220,7 @@
   animation: vn-ink-in 0.9s cubic-bezier(.2, .8, .2, 1) both;
 }
 .vn-alarm-home { right: 4vw; top: 11vh; }
-.vn-alarm-console { left: 27vw; }
+.vn-alarm-console { left: calc(3vw + 300px); top: 110px; }
 .vn-alarm-cn {
   writing-mode: vertical-rl;
   font-family: 'Ma Shan Zheng', serif;
@@ -233,10 +243,19 @@
 /* ---------------- console: inject (left) ---------------- */
 .vn-inject {
   position: absolute;
-  left: 4vw;
-  top: 13vh;
-  width: 230px;
+  left: 3vw;
+  top: 104px;
+  bottom: 18px;
+  width: 268px;
   z-index: 2;
+}
+.vn-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 20, 18, 0.35) transparent;
+  padding: 10px 12px 14px;
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, rgba(241, 233, 216, 0.86) 60%, rgba(241, 233, 216, 0.55) 100%);
+  border-radius: 4px 18px 6px 14px;
 }
 .vn h3 {
   margin: 18px 0 8px;
@@ -250,79 +269,125 @@
 .vn h3 b { font-family: 'Noto Serif SC', serif; font-weight: 900; font-size: 15px; letter-spacing: 0.3em; }
 .vn h3 span { font-size: 12px; font-style: italic; color: var(--ink3); }
 .vn-inject h3:first-child { margin-top: 0; }
-.vn-list { display: flex; flex-direction: column; }
-.vn-list button,
-.vn-reset {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 3px 0 3px 16px;
-  text-align: left;
-  position: relative;
-  transition: transform 0.25s, color 0.25s;
-}
-.vn-list button b,
-.vn-reset b { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 14px; letter-spacing: 0.12em; white-space: nowrap; }
-.vn-list button span,
-.vn-reset span { font-size: 12px; font-style: italic; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vn-list button::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin-top: -3px;
-  border-radius: 50%;
-  background: var(--ink);
-  opacity: 0;
-  transition: opacity 0.25s;
-}
-.vn-list button:hover { transform: translateX(4px); }
-.vn-list button:hover::before { opacity: 0.5; }
-.vn-list button.on { color: var(--red); }
-.vn-list button.on::before { opacity: 1; background: var(--red); width: 9px; height: 9px; margin-top: -4.5px; border-radius: 2px; transform: rotate(-6deg); }
-.vn-reset { margin-top: 16px; padding: 7px 16px; border: 1px solid rgba(22, 20, 18, 0.5); border-radius: 2px 10px 3px 12px; }
-.vn-reset:hover { background: var(--ink); color: var(--paper); }
-.vn-reset:hover span { color: #cfc6b5; }
 
 /* ---------------- console: colophon (right) ---------------- */
 .vn-colophon {
   position: absolute;
-  right: 4vw;
-  top: 13vh;
-  width: 250px;
+  right: 3vw;
+  top: 104px;
+  bottom: 18px;
+  width: 300px;
   z-index: 2;
   font-size: 13px;
 }
 .vn-meta { display: flex; flex-wrap: wrap; gap: 2px 14px; font-style: italic; color: var(--ink2); font-variant-numeric: tabular-nums; }
-.vn-sys { display: grid; grid-template-columns: 46px 1fr 30px; align-items: center; column-gap: 8px; padding: 2px 0; }
-.vn-sys b { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 13px; letter-spacing: 0.1em; }
-.vn-sys span { display: none; }
-.vn-sys i {
-  height: 5px;
-  background: linear-gradient(90deg, var(--ink) 0, var(--ink) calc(var(--v) - 6%), rgba(22, 20, 18, 0.35) var(--v), transparent calc(var(--v) + 2%));
-  border-radius: 3px 1px 4px 1px;
-  filter: url(#vn-rough);
-  transition: background 0.6s;
-}
-.vn-sys em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
-.vn-sys.low i { background: linear-gradient(90deg, var(--red) 0, var(--red) calc(var(--v) - 6%), rgba(184, 50, 31, 0.35) var(--v), transparent calc(var(--v) + 2%)); }
-.vn-sys.low em { color: var(--red); }
-.vn-agent { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 6px; padding: 1px 0; }
-.vn-agent i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
-.vn-agent b { font-weight: 500; }
-.vn-agent span { font-style: italic; color: var(--ink3); }
-.vn-agent.warn i { background: var(--red); animation: vn-pulse 1s infinite; }
-.vn-agent.warn span { color: var(--red); }
 @keyframes vn-pulse { 50% { opacity: 0.3; } }
-.vn-log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.vn-log li { font-style: italic; color: var(--ink2); line-height: 1.3; border-left: 2px solid rgba(22, 20, 18, 0.2); padding-left: 8px; }
-.vn-log li:first-child { color: var(--ink); }
-.vn-log li.alert { color: var(--red); border-left-color: var(--red); }
+
+/* ---------------- shared console kit, in ink ---------------- */
+.vn {
+  --k-fg: var(--ink); --k-dim: var(--ink3); --k-line: rgba(22, 20, 18, 0.3); --k-accent: var(--red); --k-hot: var(--red); --k-ok: var(--ink2);
+  --k-btn: transparent; --k-btn-on: var(--ink); --k-btn-on-fg: var(--paper); --k-input: rgba(255, 252, 244, 0.55);
+  --k-panel: rgba(241, 233, 216, 0.94); --k-mono: 'Cormorant Garamond', serif; --k-small: 12.5px; --k-radius: 2px;
+}
+.vn .mk { font-size: 14px; }
+.vn .mk + .mk { margin-top: 4px; }
+.vn .mk h3:first-child { margin-top: 0; }
+.vn .mk button { font: inherit; font-size: 13px; color: var(--ink); background: transparent; border: 1px solid rgba(22, 20, 18, 0.32); border-radius: 2px 8px 2px 6px; padding: 4px 8px; }
+.vn .mk button:hover:not(:disabled) { background: rgba(22, 20, 18, 0.06); border-color: var(--ink); }
+.vn .mk button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.vn .mk-hazards .mk-choices { display: flex; flex-direction: column; gap: 0; }
+.vn .mk-hazards .mk-choices button { border: 0; border-radius: 0; padding: 3px 0 3px 16px; display: flex; align-items: baseline; gap: 10px; position: relative; text-align: left; transition: transform 0.25s, color 0.25s; }
+.vn .mk-hazards .mk-choices button b { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 14px; letter-spacing: 0.12em; white-space: nowrap; }
+.vn .mk-hazards .mk-choices button span { font-size: 12px; font-style: italic; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vn .mk-hazards .mk-choices button::before { content: ''; position: absolute; left: 2px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--ink); opacity: 0; transition: opacity 0.25s; }
+.vn .mk-hazards .mk-choices button:hover { transform: translateX(4px); background: transparent; }
+.vn .mk-hazards .mk-choices button:hover::before { opacity: 0.5; }
+.vn .mk-hazards .mk-choices button.on { background: transparent; color: var(--red); }
+.vn .mk-hazards .mk-choices button.on span { color: var(--red); }
+.vn .mk-hazards .mk-choices button.on::before { opacity: 1; background: var(--red); width: 9px; height: 9px; margin-top: -4.5px; border-radius: 2px; transform: rotate(-6deg); }
+.vn .mk-primary { background: var(--ink) !important; border-color: var(--ink) !important; color: var(--paper) !important; font-style: italic; letter-spacing: 0.06em; border-radius: 40% 12% 30% 8% / 60% 30% 70% 40% !important; padding: 7px !important; }
+.vn .mk-primary:hover { background: var(--red) !important; border-color: var(--red) !important; }
+.vn .mk-field { font-style: italic; font-size: 11.5px; }
+.vn .mk-field input, .vn .mk-field select, .vn .mk-scale input { font-family: 'Cormorant Garamond', serif; font-size: 14px; border-width: 0 0 1px; background: transparent; padding: 2px 4px; }
+.vn .mk-note, .vn .mk-alert { font-style: italic; }
+.vn .mk-mode { font-style: italic; font-size: 12px; }
+.vn .mk-bar { grid-template-columns: minmax(0, 1fr) 80px 28px; font-size: 13px; }
+.vn .mk-bar span { text-transform: none; font-family: 'Noto Serif SC', serif; font-size: 12.5px; }
+.vn .mk-bar span small { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink3); font-size: 11.5px; margin-left: 4px; letter-spacing: 0; }
+.vn .mk-bar i { height: 5px; background: rgba(22, 20, 18, 0.1); border-radius: 3px 1px 4px 1px; filter: url(#vn-rough); }
+.vn .mk-bar b { background: var(--ink); border-radius: 3px 1px 4px 1px; }
+.vn .mk-bar.warn b { background: var(--ink2); }
+.vn .mk-bar.low b, .vn .mk-bar.bad b { background: var(--red); }
+.vn .mk-bar em { font-family: 'Cormorant Garamond', serif; font-size: 13px; }
+.vn .mk-dl dt { font-style: italic; text-transform: none; letter-spacing: 0.02em; font-size: 11.5px; }
+.vn .mk-dl dd { font-size: 13.5px; font-weight: 600; }
+.vn .mk-agent { font-size: 14px; }
+.vn .mk-agent i { background: var(--ink); }
+.vn .mk-agent span { font-style: italic; font-size: 12.5px; }
+.vn .mk-agent.warn i { background: var(--red); animation: vn-pulse 1s infinite; }
+.vn .mk-log li { font-style: italic; border-left: 2px solid rgba(22, 20, 18, 0.2); padding-left: 8px; font-size: 12.5px; color: var(--ink2); }
+.vn .mk-log li:first-child { color: var(--ink); }
+.vn .mk-log li.alert { color: var(--red); border-left-color: var(--red); }
+.vn .mk-log time { font-style: normal; font-variant-numeric: tabular-nums; }
+.vn .mk-switch button.on { background: var(--red); border-color: var(--red); color: #f6eee0; }
+.vn-transport { position: absolute; z-index: 3; left: 50%; bottom: 74px; transform: translateX(-50%); padding: 7px 12px; background: rgba(241, 233, 216, 0.9); border-radius: 4px 16px 6px 14px; box-shadow: 0 0 0 1px rgba(22, 20, 18, 0.25); }
+.vn-transport .mk-play { min-width: 74px; text-align: center; }
+.vn-armed { bottom: 128px; border-color: var(--red) !important; font-style: italic; border-radius: 3px 12px 3px 10px; }
+
+/* Physics view: the real 3D scene printed onto paper */
+.vn-physics .vn-canvas { filter: sepia(0.55) saturate(0.6) contrast(1.05) brightness(1.08); }
+.vn-physfx {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(ellipse 72% 70% at 50% 50%, transparent 52%, rgba(22, 20, 18, 0.62) 100%),
+    linear-gradient(rgba(241, 233, 216, 0.16), rgba(241, 233, 216, 0.16));
+  box-shadow: inset 0 0 0 10px rgba(241, 233, 216, 0.85), inset 0 0 0 11.5px rgba(22, 20, 18, 0.6);
+}
+.vn-physics .vn-grain { opacity: 0.3; }
+.vn-physics .vn-top { color: var(--paper); }
+.vn-physics .vn-top nav button span, .vn-physics .vn-brand em { color: #d8cfbd; }
+.vn-physics .vn-brand img { filter: grayscale(1) brightness(2.2); mix-blend-mode: normal; }
+.vn-physics .vn-alarm-cn { color: var(--paper); }
+
+/* ---------------- other tabs: real pages mounted like a hanging scroll ---------------- */
+.vn-page { position: absolute; z-index: 2; top: 104px; left: 3vw; right: 3vw; bottom: 80px; display: flex; gap: 24px; }
+.vn-scrollmount {
+  position: relative; flex: 1; min-width: 0;
+  background: rgba(246, 240, 226, 0.94);
+  border: 1px solid rgba(22, 20, 18, 0.55);
+  box-shadow: 0 0 0 6px rgba(241, 233, 216, 0.95), 0 0 0 7px rgba(22, 20, 18, 0.6), 0 12px 40px rgba(22, 20, 18, 0.25);
+}
+.vn-scrollmount::before, .vn-scrollmount::after { content: ''; position: absolute; left: -22px; right: -22px; height: 9px; background: linear-gradient(#3b302a, #16120f 60%, #3b302a); border-radius: 5px; z-index: 2; }
+.vn-scrollmount::before { top: -16px; }
+.vn-scrollmount::after { bottom: -16px; }
+.vn-mount-in { position: absolute; inset: 0; overflow: auto; scrollbar-width: thin; }
+.vn-map .vn-mount-in, .vn-dark .vn-mount-in { overflow: hidden; }
+.vn-mount-seal { position: absolute; right: -12px; bottom: 16px; z-index: 3; font-size: 16px; }
+.vn-traj-info { position: relative; right: auto; top: auto; bottom: auto; width: 300px; flex: none; }
+.vn .mno-embed { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; font-size: 14px; }
+.vn .mno-embed .muted { font-style: italic; font-size: 13.5px; }
+.vn .mno-embed button { border-radius: 2px 8px 2px 6px; padding: 5px 10px; background: transparent; border: 1px solid rgba(22, 20, 18, 0.35); }
+.vn .mno-embed .ai-system-tabs button.active { background: var(--ink); color: var(--paper); }
+.vn .mno-embed .primary { background: var(--ink); color: var(--paper); }
+.vn .mno-embed .panel { background: transparent; border: 0; }
+.vn .mno-embed .panelhead { font-family: 'Noto Serif SC', serif; letter-spacing: 0.25em; }
+.vn .mno-embed h3, .vn .mno-embed h4 { font-family: 'Noto Serif SC', serif; }
+/* the DemoMap and the spacecraft viewer keep their night-sky canvases, tinted like an ink print */
+.vn .vn-map .backend-map canvas { filter: invert(0.9) hue-rotate(180deg) sepia(0.45) saturate(0.85); }
+.vn .vn-map .map-readout { background: rgba(241, 233, 216, 0.92); }
+.vn .vn-dark .spacecraft-page canvas { filter: sepia(0.35) saturate(0.7); }
+.vn .vn-dark .spacecraft-panel { background: rgba(241, 233, 216, 0.94); border: 1px solid rgba(22, 20, 18, 0.4); }
+.vn .vn-dark .spacecraft-mode button { background: rgba(241, 233, 216, 0.94); }
 
 @media (max-width: 900px) {
-  .vn-top nav { display: none; }
+  .vn-top { flex-wrap: wrap; gap: 6px; }
+  .vn-top nav { gap: 10px; overflow-x: auto; max-width: 100%; }
   .vn-en { margin-top: 8vh; }
-  .vn-colophon { display: none; }
+  .vn-inject, .vn-colophon { position: static; width: auto; margin: 8px 16px; }
+  .vn.vn-tab-generator { overflow-y: auto; }
+  .vn-tab-generator .vn-inject { margin-top: 130px; }
+  .vn-tab-generator .vn-colophon { margin-bottom: 140px; }
+  .vn-page { flex-direction: column; left: 16px; right: 16px; top: 130px; }
+  .vn-traj-info { width: auto; max-height: 30vh; }
 }
+

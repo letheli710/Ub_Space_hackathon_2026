@@ -1,14 +1,22 @@
-﻿// PROTOTYPE — Variant N: Ink Cosmos · 水墨太空.
+// Variant N: Ink Cosmos · 水墨太空.
 // The solar system as a shan-shui ink painting on xuan paper: space is the empty paper (留白), nebulae
 // are ink washes, gas giants drift like misty mountains, the Sun is a vermilion seal-red disc. The real
-// StationShip is re-skinned with ink-wash shaders + an inverted-hull brush outline. Hazards are painted
-// in ink (vortex blot, flicked meteor strokes, vermilion storm wash) and the ship swerves leaving a
-// calligraphic stroke ribbon.
+// StationShip is re-skinned with ink-wash shaders + an inverted-hull brush outline. On the Generator the
+// painting follows the REAL demo session: inbound rocks/aliens flick ink strokes, the black hole spreads
+// an ink blot, a solar storm floods vermilion, real burns thicken the brush trail and real impacts
+// splash ink. "Ink / Physics" swaps in the real DemoViewport, tinted to paper.
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import StationShip from '../../components/station/StationShip.jsx';
-import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
+import {
+  AiApiView, AiLogsView, DemoViewport, FEATURES, LEAD, SpacecraftView, TABS, TAGLINE, TrajectoriesView, logo, useViewReset,
+} from '../demoSkin.jsx';
+import {
+  AiControls, ArmedHint, EventLog, HazardControls, MissionInfo, PropulsionControls, RockControls, SceneBoundary, Telemetry, Transport,
+  impactKey, useArmedSwitch, useShaderGuard,
+} from './variantMNOKit.jsx';
+import './variantMNOKit.css';
 import './variantN.css';
 
 const CN = {
@@ -34,7 +42,7 @@ const DEMO = ['Black Hole Encounter', 'Asteroid Collision', 'Solar Storm', 'Spac
 
 const PAGE = {
   home: { x: 2.0, y: -0.35, scale: 0.17 },
-  console: { x: 0.2, y: 0.05, scale: 0.15 },
+  console: { x: 0.15, y: 0.1, scale: 0.125 },
 };
 const SCROLL = 0.9; // world drift speed (units/s) — the paper slides left, the ship "sails" right
 
@@ -458,7 +466,8 @@ function Trail({ headRef }) {
   return <mesh geometry={geo} material={mat} frustumCulled={false} renderOrder={1} />;
 }
 
-function World({ event, page }) {
+
+function World({ event, page, R, lowfx }) {
   const { camera, size } = useThree();
   const shared = useMemo(
     () => ({
@@ -498,7 +507,7 @@ function World({ event, page }) {
   const shipRoot = useRef();
   const head = useRef({ x: 0, y: 0, amp: 0 });
   const ev = useRef(null);
-  const st = useRef({ y: 0, vy: 0, bx: PAGE[page].x, by: PAGE[page].y, sc: PAGE[page].scale, lv: { hole: 0, storm: 0, meteor: 0, alien: 0 }, inkT: 0, fire: 0 });
+  const st = useRef({ y: 0, vy: 0, bx: PAGE[page].x, by: PAGE[page].y, sc: PAGE[page].scale, lv: { hole: 0, storm: 0, meteor: 0, alien: 0 }, inkT: 0, fire: 0, splashT: -99, seenImpact: R.impact, holeT: 0, inner: 0 });
   const v3 = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => {
@@ -521,21 +530,45 @@ function World({ event, page }) {
     s.bx += (cfg.x - s.bx) * k;
     s.by += (cfg.y - s.by) * k;
     s.sc += (cfg.scale - s.sc) * k;
+    const ease = 1 - Math.exp(-dt * 3);
 
     const e = ev.current;
-    if (e && e.start === null) e.start = t;
+    if (e && e.start === null) {
+      e.start = t;
+      s.splashT = t; // a new disaster splashes ink at the ship
+    }
     const age = e ? t - e.start : 99;
-    const kind = e ? KIND[e.name] || 'inner' : null;
-    const hz = e ? sstep(0, 1.2, age) * (1 - 0.65 * sstep(7, 11, age)) : 0;
-    const env = e ? sstep(0.5, 1.5, age) * (1 - sstep(4.5, 7.5, age)) : 0;
+    let target = 0;
+    let env;
+    if (page === 'home') {
+      // Home reel: each demo hazard eases in, peaks, fades.
+      const kind = e ? KIND[e.name] || 'inner' : null;
+      const hz = e ? sstep(0, 1.2, age) * (1 - 0.65 * sstep(7, 11, age)) : 0;
+      env = e ? sstep(0.5, 1.5, age) * (1 - sstep(4.5, 7.5, age)) : 0;
+      for (const key of Object.keys(s.lv)) s.lv[key] += ((kind === key ? hz : 0) - s.lv[key]) * ease;
+      s.fire += ((e && FIRE.has(e.name) ? 1 : 0) - s.fire) * (1 - Math.exp(-dt * 4));
+      s.inner += ((kind === 'inner' ? env : 0) - s.inner) * ease;
+      target = (kind ? DODGE[kind] : 0) * env;
+      if (kind === 'meteor') target += Math.sin(t * 5) * 0.18 * env;
+    } else {
+      // Generator: every layer follows the real session.
+      s.lv.hole += ((R.hole ? 1 : 0) - s.lv.hole) * ease;
+      s.lv.storm += ((R.storm ? 1 : 0) - s.lv.storm) * ease;
+      s.lv.meteor += ((R.meteor ? 1 : 0) - s.lv.meteor) * ease;
+      s.lv.alien += ((R.alien ? 1 : 0) - s.lv.alien) * ease;
+      s.fire += ((R.fire ? 1 : 0) - s.fire) * (1 - Math.exp(-dt * 4));
+      s.inner += ((R.inner ? 1 : 0) - s.inner) * ease;
+      if (R.impact !== s.seenImpact) {
+        s.seenImpact = R.impact;
+        s.splashT = t;
+      }
+      // Real thrust: the ship lifts on a burn and weaves under course correction.
+      target = (R.burn ? 0.45 : 0) + (R.correcting ? Math.sin(t * 1.7) * 0.12 : 0) + (R.meteor && R.thrusting ? Math.sin(t * 4) * 0.15 : 0);
+      env = Math.max(R.burn ? 1 : 0, s.inner * 0.6);
+    }
+    if (s.lv.hole < 0.01) s.holeT = t;
 
-    // hazard levels ease in and out
-    for (const key of Object.keys(s.lv)) s.lv[key] += ((kind === key ? hz : 0) - s.lv[key]) * (1 - Math.exp(-dt * 3));
-    s.fire += ((e && FIRE.has(e.name) ? 1 : 0) - s.fire) * (1 - Math.exp(-dt * 4));
-
-    // emergency manoeuvre: damped spring toward a dodge offset, banking with vertical speed
-    let target = (kind ? DODGE[kind] : 0) * env;
-    if (kind === 'meteor') target += Math.sin(t * 5) * 0.18 * env;
+    // emergency manoeuvre: damped spring toward the target offset, banking with vertical speed
     s.vy += ((target - s.y) * 11 - s.vy * 5.2) * dt;
     s.y += s.vy * dt;
     const bob = Math.sin(t * 0.6) * 0.08;
@@ -544,11 +577,11 @@ function World({ event, page }) {
     const heading = Math.atan2(s.vy, SCROLL * 1.4) * 0.85;
     outer.current.position.set(x, y, 0);
     outer.current.rotation.z = heading;
-    yawG.current.rotation.y = Math.PI / 2 - 0.5 + Math.sin(t * 0.25) * 0.12 + (kind === 'inner' ? Math.sin(t * 2.2) * 0.12 * env : 0);
-    rollG.current.rotation.z = -s.vy * 0.55 + (kind === 'inner' ? Math.sin(t * 3.1) * 0.3 * env : 0);
+    yawG.current.rotation.y = Math.PI / 2 - 0.5 + Math.sin(t * 0.25) * 0.12 + Math.sin(t * 2.2) * 0.12 * s.inner;
+    rollG.current.rotation.z = -s.vy * 0.55 + Math.sin(t * 3.1) * 0.3 * s.inner;
     scaleG.current.scale.setScalar(s.sc);
 
-    // trail head sits at the engines (behind the ship along its heading)
+    // trail head sits at the engines; a real burn lays down a heavy brush stroke
     const back = s.sc * 15;
     head.current.x = x - Math.cos(heading) * back;
     head.current.y = y - Math.sin(heading) * back;
@@ -563,14 +596,16 @@ function World({ event, page }) {
     u.uAlien.value = s.lv.alien;
     u.uFire.value = s.fire;
     u.uSunP.value.set(aspect * 0.62, 0.6);
-    toScreen(s.bx + 3.4 - Math.min(age, 20) * 0.45, s.by + 1.05, u.uHoleP.value);
+    const holeAge = page === 'home' ? age : t - s.holeT;
+    toScreen(s.bx + 3.4 - Math.min(holeAge, 20) * 0.45, s.by + 1.05, u.uHoleP.value);
     toScreen(s.bx + 1.7, s.by - 1.35, u.uAlienP.value);
-    if (age < 0.35) toScreen(x + 0.5, y, u.uSplashP.value);
-    u.uSplash.value = e ? sstep(0.25, 0.7, age) * (1 - sstep(2.6, 6.5, age)) : Math.max(0, u.uSplash.value - dt);
-    u.uSplashR.value = 0.12 + 0.5 * (1 - Math.pow(1 - Math.min(1, Math.max(0, (age - 0.25) / 1.5)), 3));
+    const sa = t - s.splashT;
+    if (sa < 0.35) toScreen(x + 0.5, y, u.uSplashP.value);
+    u.uSplash.value = sstep(0.05, 0.5, sa) * (1 - sstep(2.6, 6.5, sa));
+    u.uSplashR.value = 0.12 + 0.5 * (1 - Math.pow(1 - Math.min(1, Math.max(0, (sa - 0.05) / 1.5)), 3));
 
     shared.hull.uniforms.uTime.value = t;
-    shared.uFlash.value = s.fire * (0.55 + 0.45 * Math.sin(t * 7)) * (kind === 'storm' ? 0.5 : 1);
+    shared.uFlash.value = s.fire * (0.55 + 0.45 * Math.sin(t * 7)) * (s.lv.storm > 0.5 ? 0.5 : 1) + (R.damaged && page !== 'home' ? 0.12 : 0);
 
     s.inkT -= dt;
     if (s.inkT <= 0 && shipRoot.current) {
@@ -581,7 +616,7 @@ function World({ event, page }) {
 
   return (
     <>
-      <mesh frustumCulled={false} renderOrder={-10} material={bg}>
+      <mesh frustumCulled={false} renderOrder={-10} material={bg} visible={!lowfx}>
         <planeGeometry args={[2, 2]} />
       </mesh>
       <Trail headRef={head} />
@@ -635,7 +670,7 @@ function Nav({ tab, onTab, sim }) {
       <div className="vn-brand">
         <img src={logo} alt="" />
         <span>Interstellar X<sup>4</sup></span>
-        <em>{sim.met}</em>
+        <em>{sim.met} · {sim.status}</em>
       </div>
       <nav>
         {TABS.map((t) => (
@@ -692,67 +727,74 @@ function Home({ sim, onTab, shown }) {
           {shown ? `${CN[shown.name] || ''} · 应急演示` : '星海无波 · 一切如常'}
         </div>
         <div className="vn-vcol vn-dim">
-          {sim.nav.origin} → {sim.nav.destination} · 第{sim.day}日
+          {sim.nav.origin} → {sim.nav.destination} · 第{sim.day}日 · {sim.velocity} km/s · 船体 {sim.systems[0].value}%
         </div>
       </aside>
     </>
   );
 }
 
-function Console({ sim }) {
-  const active = sim.event?.name;
-  const Item = ({ name }) => (
-    <button className={active === name ? 'on' : ''} onClick={() => sim.trigger(name)}>
-      <b>{CN[name]}</b>
-      <span>{name}</span>
-    </button>
-  );
+const H_CN = {
+  outer: '天外之患', inner: '舱内之危', rock: '飞石', prop: '推进', ai: '智能', systems: '舟况', flight: '航迹',
+  damage: '伤损', repairs: '修缮', objects: '近物', agents: '众智', log: '记事', mission: '航程', selected: '所察',
+};
+const H = ({ title, k }) => <h3><b>{H_CN[k] ?? ''}</b><span>{title}</span></h3>;
+const hazardLabel = (n) => <><b>{CN[n]}</b><span>{n}</span></>;
+const sysLabel = (key, label) => <>{SYS_CN[key]} <small>{label}</small></>;
+
+function Console({ sim, view, setView, onResetView }) {
   return (
     <>
-      <section className="vn-inject">
-        <h3><b>天外之患</b><span>Outer hazards</span></h3>
-        <div className="vn-list">{OUTER.map((n) => <Item key={n} name={n} />)}</div>
-        <h3><b>舱内之危</b><span>Inner faults</span></h3>
-        <div className="vn-list">{INNER.map((n) => <Item key={n} name={n} />)}</div>
-        <button className="vn-reset" onClick={sim.clear}><b>复归平静</b><span>Reset</span></button>
+      <section className="vn-inject vn-scroll">
+        <HazardControls sim={sim} H={H} label={hazardLabel} />
+        <RockControls sim={sim} H={H} />
+        <PropulsionControls sim={sim} H={H} />
+        <AiControls sim={sim} H={H} />
       </section>
-      <aside className="vn-colophon">
+      <aside className="vn-colophon vn-scroll">
         <div className="vn-meta">
           <span>MET {sim.met}</span>
           <span>第{sim.day}日</span>
           <span>{sim.nav.origin} → {sim.nav.destination} · {Math.round(sim.nav.progress * 100)}%</span>
           <span>{sim.velocity} km/s</span>
         </div>
-        <h3><b>舟况</b><span>Systems</span></h3>
-        {sim.systems.map((s) => (
-          <div key={s.key} className={`vn-sys ${s.value < 80 ? 'low' : ''}`}>
-            <b>{SYS_CN[s.key]}</b>
-            <span>{s.label}</span>
-            <i style={{ '--v': `${s.value}%` }} />
-            <em>{s.value}</em>
-          </div>
-        ))}
-        <h3><b>智能</b><span>AI agents</span></h3>
-        {sim.agents.map((a) => (
-          <div key={a.name} className={`vn-agent ${a.ok ? '' : 'warn'}`}>
-            <i />
-            <b>{a.name}</b>
-            <span>{a.state}</span>
-          </div>
-        ))}
-        <h3><b>记事</b><span>Log</span></h3>
-        <ol className="vn-log">
-          {sim.logs.slice(0, 3).map((l, i) => (
-            <li key={`${l.t}-${i}`} className={l.alert ? 'alert' : ''}>{l.text}</li>
-          ))}
-        </ol>
+        <Telemetry sim={sim} H={H} sysLabel={sysLabel} />
+        <EventLog sim={sim} H={H} limit={20} />
       </aside>
+      <div className="vn-transport">
+        <Transport sim={sim} view={view} setView={setView} onResetView={onResetView} names={['Ink 墨', 'Physics 实']} />
+      </div>
+      <ArmedHint sim={sim} className="vn-armed" />
     </>
   );
 }
 
-export default function VariantN({ page, tab, onTab, sim }) {
+function Pages({ tab, sim, onTab }) {
+  const traj = tab === 'Planetary Trajectories';
+  return (
+    <div className={`vn-page ${traj ? 'vn-page-traj' : ''}`}>
+      <div className={`vn-scrollmount mno-embed ${tab === 'Spacecraft' ? 'vn-dark' : ''} ${traj ? 'vn-map' : ''}`}>
+        <div className="vn-mount-in">
+          {traj && <TrajectoriesView sim={sim} />}
+          {tab === 'AI Logs' && <AiLogsView sim={sim} onShowLiveShip={() => onTab('Spacecraft')} />}
+          {tab === 'AI API' && <AiApiView sim={sim} onOpenControls={() => onTab('AI Logs')} />}
+          {tab === 'Spacecraft' && <SpacecraftView sim={sim} />}
+        </div>
+        <Seal chars={[TAB_CN[tab][0], TAB_CN[tab][1]]} className="vn-mount-seal" />
+      </div>
+      {traj && <aside className="vn-colophon vn-scroll vn-traj-info"><MissionInfo sim={sim} H={H} /></aside>}
+    </div>
+  );
+}
+
+export default function VariantN({ tab, onTab, sim }) {
   const [demo, setDemo] = useState(null);
+  const [view, setView] = useState('scene');
+  const [resetCount, resetView] = useViewReset();
+  const [failed, onCreated] = useShaderGuard('Ink Cosmos');
+  const [noGL, setNoGL] = useState(false);
+  const page = tab === 'Home' ? 'home' : 'console';
+  const gen = tab === 'Generator';
 
   // Home autoplay: an emergency every 13 s (active for 8 s), cycling through the outer hazards.
   useEffect(() => {
@@ -770,21 +812,50 @@ export default function VariantN({ page, tab, onTab, sim }) {
     }, 1000);
     return () => clearInterval(id);
   }, [page]);
+  useArmedSwitch(sim, setView);
+
+  // Real state the ink painting reads every frame.
+  const R = useRef({}).current;
+  const p = sim.demo.physics;
+  const name = sim.event?.name;
+  Object.assign(R, {
+    hole: sim.demo.blackHole,
+    storm: sim.demo.solarStorm || name === 'Solar Storm',
+    meteor: p.objects.some((o) => o.closingM_s > 0.05) || sim.demo.hazards.some((h) => h.name !== 'Alien Encounter'),
+    alien: sim.demo.hazards.some((h) => h.name === 'Alien Encounter') || name === 'Alien Encounter',
+    fire: FIRE.has(name) || sim.demo.activeFaults.some((f) => FIRE.has(f)),
+    inner: sim.demo.activeFaults.length > 0,
+    burn: p.mode === 'burn',
+    correcting: p.mode === 'course correction',
+    thrusting: p.mode !== 'coast',
+    damaged: p.detached.length > 0 || p.integrity < 85,
+    impact: impactKey(sim),
+  });
 
   const shown = page === 'home' ? sim.event || demo : sim.event;
+  const physics = gen && view === 'physics';
+  const showScene = tab !== 'Spacecraft' && !physics && !noGL;
 
   return (
-    <div className={`vn vn-${page} ${shown ? 'vn-alert' : ''}`}>
+    <div className={`vn mk-root vn-${page} vn-tab-${tab.replace(/\s+/g, '-').toLowerCase()} ${shown ? 'vn-alert' : ''} ${physics ? 'vn-physics' : ''} ${failed || noGL ? 'vn-lowfx' : ''}`}>
       <Filters />
+      <div className="vn-paperbg" aria-hidden="true" />
       <div className="vn-canvas">
-        <Canvas flat dpr={[1, 1.5]} camera={{ position: [0, 0, 10], fov: 40 }} gl={{ antialias: true }}>
-          <World event={shown} page={page} />
-        </Canvas>
+        {physics ? (
+          <DemoViewport sim={sim} resetCount={resetCount} className="vn-viewport" />
+        ) : showScene ? (
+          <SceneBoundary onError={() => setNoGL(true)}>
+            <Canvas flat dpr={[1, 1.5]} camera={{ position: [0, 0, 10], fov: 40 }} gl={{ antialias: true, alpha: true }} onCreated={onCreated}>
+              <World event={shown} page={page} R={R} lowfx={failed} />
+            </Canvas>
+          </SceneBoundary>
+        ) : null}
       </div>
+      {physics && <div className="vn-physfx" aria-hidden="true" />}
       <div className="vn-grain" aria-hidden="true" />
       <Nav tab={tab} onTab={onTab} sim={sim} />
-      <Alarm event={shown} page={page} />
-      {page === 'home' ? <Home sim={sim} onTab={onTab} shown={shown} /> : <Console sim={sim} />}
+      {(page === 'home' || gen) && <Alarm event={shown} page={page} />}
+      {page === 'home' ? <Home sim={sim} onTab={onTab} shown={shown} /> : gen ? <Console sim={sim} view={view} setView={setView} onResetView={resetView} /> : <Pages tab={tab} sim={sim} onTab={onTab} />}
     </div>
   );
 }

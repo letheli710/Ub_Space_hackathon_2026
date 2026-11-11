@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=Caveat:wght@500;700&display=swap');
 
-/* PROTOTYPE — Variant I "Incident File". Everything scoped under .vi */
+/* Variant I "Incident File". Everything scoped under .vi */
 .vi {
   --desk: #2a1d15;
   --desk2: #1b120c;
@@ -378,12 +378,12 @@
 .vi-routing span { display: inline-block; width: 74px; font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 0.2em; opacity: 0.7; }
 
 /* ---------- CONSOLE: open file ---------- */
-.vi-desk-console { height: 100vh; min-height: 640px; padding: 50px 22px 86px; }
+.vi-desk-console { height: 100vh; min-height: 640px; padding: 50px 22px 70px; }
 .vi-open { height: 100%; max-width: 1480px; padding: 16px; }
 .vi-open-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: 330px minmax(0, 1fr) 390px;
+  grid-template-columns: 340px minmax(0, 1fr) 380px;
   gap: 18px;
 }
 .vi-page { position: relative; padding: 16px 18px; overflow: auto; min-height: 0; scrollbar-width: thin; }
@@ -473,7 +473,7 @@
   overflow: hidden;
   filter: grayscale(0.55) contrast(1.15);
 }
-.vi-desk-console.alert .vi-monitor { filter: grayscale(0.2) contrast(1.2) sepia(0.15); }
+.vi-open-grid.alert .vi-monitor { filter: grayscale(0.2) contrast(1.2) sepia(0.15); }
 .vi-scan {
   position: absolute;
   inset: 0;
@@ -491,12 +491,13 @@
   color: #e8f3e0;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
   z-index: 2;
+  pointer-events: none;
 }
 .vi-osd.tl { top: 10px; left: 12px; }
 .vi-osd.tr { top: 10px; right: 12px; }
 .vi-osd.bl { bottom: 10px; left: 12px; }
 .vi-osd.br { bottom: 10px; right: 12px; }
-.vi-desk-console.alert .vi-osd.br { color: #ff5a4e; animation: vi-blink 1s steps(2) infinite; }
+.vi-open-grid.alert .vi-osd.br { color: #ff5a4e; animation: vi-blink 1s steps(2) infinite; }
 @keyframes vi-blink { 50% { opacity: 0.25; } }
 .vi-crosshair {
   position: absolute;
@@ -552,8 +553,8 @@
 }
 .vi-filed {
   position: absolute;
-  right: 18px;
-  bottom: 96px;
+  left: 26px;
+  top: -12px;
   z-index: 6;
   pointer-events: none;
   font-size: 16px;
@@ -626,3 +627,84 @@
   .vi-tabs { overflow-x: auto; }
   .vi-label h1 { font-size: 36px; }
 }
+
+/* ---------- real DEMO console additions ---------- */
+.vi.ikl-scope {
+  --k-fg: var(--ink);
+  --k-dim: var(--ink-soft);
+  --k-line: rgba(35, 32, 27, 0.25);
+  --k-accent: var(--blue);
+  --k-hot: var(--red);
+  --k-ok: #2f6b3c;
+  --k-btn-bg: rgba(255, 255, 255, 0.35);
+  --k-btn-fg: var(--ink);
+  --k-btn-line: rgba(35, 32, 27, 0.45);
+  --k-on-bg: var(--blue);
+  --k-on-fg: #f8f3e6;
+  --k-input-bg: rgba(255, 255, 255, 0.55);
+  --k-font: var(--type);
+  --k-mono: var(--mono);
+  --k-radius: 2px;
+  --k-panel-bg: rgba(247, 242, 230, 0.92);
+}
+.vi .ikl-btn { font-family: var(--cond); font-weight: 600; letter-spacing: 0.05em; }
+.vi .ikl-note, .vi .ikl-warn, .vi .ikl-err { font-family: var(--type); }
+.vi .ikl-warn { color: var(--red); }
+.vi-hz.armed { background: rgba(255, 230, 120, 0.45); }
+.vi-hz em { margin-left: auto; font-size: 15px; font-style: normal; }
+.vi-hint { margin-top: 6px; font-family: var(--type); font-size: 12px; line-height: 1.35; color: var(--ink-soft); }
+.vi-hint.on { color: var(--red); font-weight: 700; }
+.vi-sub { padding-bottom: 8px !important; }
+.vi-sub .ikl-rock { margin-top: 4px; }
+.vi-sub .ikl-primary { font-size: 14px; letter-spacing: 0.16em; margin-top: 4px; }
+.vi-slip {
+  position: relative;
+  margin-top: 12px;
+  padding: 8px 10px 6px;
+  background: #fbf3c9;
+  border: 1px solid rgba(120, 100, 40, 0.3);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  transform: rotate(0.6deg);
+}
+.vi-slip:nth-of-type(2n) { background: #e4eef7; transform: rotate(-0.5deg); }
+.vi-slip-head { font-family: var(--cond); font-weight: 700; font-size: 10.5px; letter-spacing: 0.18em; color: var(--ink-soft); border-bottom: 1px dashed rgba(0, 0, 0, 0.3); padding-bottom: 3px; margin-bottom: 4px; }
+.vi-close { flex: none; }
+.vi-armed { top: 36px; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-weight: 700; background: rgba(250, 240, 228, 0.9); color: var(--red); border-color: var(--red); }
+.vi-print-cap { flex-wrap: wrap; row-gap: 4px; }
+.vi-print-cap .ikl-transport { margin-left: auto; }
+.vi-print-cap .ikl-btn { padding: 3px 8px; font-size: 12px; }
+.vi-evidence .ikl-dl dd { font-family: var(--type); }
+.vi-evidence .ikl-bonds li { grid-template-columns: 70px 1fr 64px; }
+.vi-log li { padding-left: 72px; }
+
+/* other tabs */
+.vi-tab-grid { height: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.vi-tab-grid-2 { grid-template-columns: minmax(0, 1fr) 380px; }
+.vi-print-big { height: 100%; transform: rotate(0.25deg); }
+.vi-monitor-map, .vi-monitor-craft { filter: sepia(0.18) contrast(1.05); }
+.vi-monitor-craft .spacecraft-panel {
+  background: var(--grain), linear-gradient(170deg, var(--paper), var(--paper-2)) !important;
+  color: var(--ink);
+  border: 0 !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  font-family: var(--type);
+  transform: rotate(-0.8deg);
+}
+.vi-monitor-craft .spacecraft-title { font-family: var(--type); font-weight: 400; border-bottom: 3px double var(--ink); padding-bottom: 3px; }
+.vi-monitor-craft .spacecraft-mode button { font-family: var(--cond); font-weight: 700; letter-spacing: 0.08em; background: rgba(250, 240, 228, 0.92); color: var(--blue); border: 2px solid var(--blue); }
+.vi-monitor-map .map-toolbar { background: rgba(247, 242, 230, 0.9); }
+.vi-monitor-map .map-toolbar button { background: rgba(255, 255, 255, 0.6); font-family: var(--cond); font-weight: 600; }
+.vi-table-kv td:first-child { font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 0.1em; color: var(--ink-soft); text-transform: uppercase; }
+.vi-table-kv td:nth-child(2) { text-align: right; }
+.vi-paper { display: flex; flex-direction: column; overflow: hidden; transform: rotate(-0.25deg); }
+.vi-paper-narrow { width: min(760px, 100%); justify-self: center; }
+.vi-paper-body { flex: 1; min-height: 0; overflow: auto; margin-top: 8px; font-family: var(--type); }
+.vi-paper-body .ai-logs-page { height: 100%; }
+.vi-paper-body .panel { background: transparent; border: 1px solid rgba(0, 0, 0, 0.25); }
+.vi-paper-body .ai-system-tabs button { font-family: var(--cond); font-weight: 600; letter-spacing: 0.08em; }
+.vi-paper-body .ai-logs-status { background: rgba(255, 250, 225, 0.6); }
+
+.vi-print-big .vi-clip-print { right: 46%; }
+/* the slammed stamp fades back after a moment so the live feed stays readable */
+.vi-slam { animation: vi-slam 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.25), vi-stamp-rest 1.2s ease 3s forwards; }
+@keyframes vi-stamp-rest { to { opacity: 0.28; } }

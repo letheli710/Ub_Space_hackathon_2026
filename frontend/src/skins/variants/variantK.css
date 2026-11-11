@@ -168,3 +168,121 @@
   .vk-right { top: 110px; max-height: 22vh; }
   .vk-label { display: none; }
 }
+
+/* ---------- real DEMO console additions ---------- */
+.vk.ikl-scope {
+  --k-fg: var(--cream);
+  --k-dim: var(--cream-2);
+  --k-line: rgba(241, 230, 200, 0.2);
+  --k-accent: var(--chrome);
+  --k-hot: #ff9a76;
+  --k-ok: #a9d8c0;
+  --k-btn-bg: rgba(6, 12, 36, 0.35);
+  --k-btn-fg: var(--cream);
+  --k-btn-line: rgba(241, 230, 200, 0.3);
+  --k-on-bg: var(--vermilion);
+  --k-on-fg: #fff6e6;
+  --k-input-bg: rgba(6, 12, 36, 0.5);
+  --k-mono: var(--sc);
+  --k-panel-bg: rgba(8, 14, 40, 0.78);
+}
+.vk .ikl-btn { font: italic 400 13.5px var(--serif); }
+.vk .ikl-note, .vk .ikl-warn, .vk .ikl-err { font: italic 400 13px/1.35 var(--serif); }
+.vk .ikl-dl dd, .vk .ikl-bonds em, .vk .ikl-near em { font: 500 12px var(--sc); letter-spacing: 0.04em; }
+
+/* CSS painting: shown behind the ship when the WebGL pass is unavailable, and on the gallery tabs */
+.vk-paintbg {
+  background:
+    radial-gradient(circle at 78% 26%, #fff7cf 0 0.9%, #f6cf47 1.6%, rgba(240, 195, 60, 0.42) 3.6%, rgba(240, 195, 60, 0.12) 7%, transparent 11%),
+    radial-gradient(circle at 12% 18%, #fff3c4 0 0.35%, rgba(240, 210, 110, 0.35) 1%, transparent 2.6%),
+    radial-gradient(circle at 33% 9%, #fff3c4 0 0.4%, rgba(240, 210, 110, 0.35) 1.1%, transparent 2.8%),
+    radial-gradient(circle at 58% 12%, #fff3c4 0 0.3%, rgba(240, 210, 110, 0.3) 0.9%, transparent 2.4%),
+    radial-gradient(circle at 90% 46%, #fff3c4 0 0.3%, rgba(240, 210, 110, 0.3) 0.9%, transparent 2.4%),
+    repeating-linear-gradient(172deg, rgba(40, 80, 160, 0.25) 0 9px, rgba(15, 35, 95, 0.15) 9px 21px, rgba(70, 120, 190, 0.18) 21px 27px),
+    radial-gradient(ellipse at 6% 86%, rgba(30, 90, 70, 0.55), transparent 22%),
+    linear-gradient(180deg, #0e2160 0%, #19408a 42%, #10275e 75%, #08132f 100%) !important;
+}
+.vk-paintbg::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 50%, rgba(4, 8, 24, 0.55)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+}
+.vk-paintbg::after {
+  content: ""; position: absolute; left: 44%; top: 26%; width: 56vmin; height: 56vmin; margin: -28vmin 0 0 -28vmin;
+  border-radius: 50%; pointer-events: none;
+  background:
+    repeating-radial-gradient(circle, rgba(170, 210, 240, 0.22) 0 4px, transparent 4px 11px),
+    repeating-conic-gradient(from 0deg, rgba(170, 210, 240, 0.18) 0 7deg, transparent 7deg 16deg);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  animation: vk-swirl 60s linear infinite;
+}
+@keyframes vk-swirl { to { transform: rotate(360deg); } }
+.vk-stage canvas { position: relative; z-index: 1; }
+
+/* Painting / Physics toggle */
+.vk-toggle {
+  position: absolute; top: 62px; left: 50%; transform: translateX(-50%); z-index: 4;
+  display: flex; border: 1px solid rgba(241, 230, 200, 0.4); background: rgba(6, 12, 36, 0.6);
+}
+.vk-toggle button { padding: 3px 16px; font: 600 13px var(--sc) !important; letter-spacing: 0.16em; color: var(--cream-2) !important; }
+.vk-toggle button.on { background: var(--cream) !important; color: var(--ink) !important; }
+.vk-console .vk-caption { top: 98px; }
+
+.vk-chips button.armed { background: var(--chrome); border-color: var(--chrome); color: var(--ink); animation: vk-pulse 1.2s ease-in-out infinite; }
+@keyframes vk-pulse { 50% { box-shadow: 0 0 12px rgba(240, 195, 60, 0.7); } }
+.vk-hint { margin-top: 8px; font: italic 400 13px/1.35 var(--serif); color: var(--cream-3); }
+.vk-hint.on { color: var(--chrome); }
+.vk-sec { margin-top: 10px; border-top: 1px solid rgba(241, 230, 200, 0.16); padding-top: 6px; }
+.vk-sec summary { cursor: pointer; font: 600 12px var(--sc); letter-spacing: 0.22em; color: var(--chrome); list-style: none; }
+.vk-sec summary::-webkit-details-marker { display: none; }
+.vk-sec summary::before { content: "+ "; color: var(--cream-3); }
+.vk-sec[open] summary::before { content: "\2212  "; }
+.vk-sec[open] summary { margin-bottom: 6px; }
+.vk-panel { width: 292px; top: 92px; max-height: calc(100vh - 190px); background: rgba(8, 14, 40, 0.66); }
+.vk-log time { font: 500 11px var(--sc); color: var(--cream-3); font-style: normal; }
+.vk-transport {
+  position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); z-index: 3;
+  padding: 6px 10px; background: rgba(8, 14, 40, 0.66); border: 1px solid rgba(241, 230, 200, 0.18); backdrop-filter: blur(3px);
+}
+.vk-console .vk-label { bottom: 18px; }
+
+/* Physics view: the real DEMO scene, varnished */
+.vk-phys-stage { background: #07102c; }
+.vk-phys-varnish {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(10, 8, 30, 0.6)),
+    repeating-linear-gradient(45deg, rgba(255, 240, 200, 0.03) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(60, 90, 200, 0.08), rgba(240, 195, 60, 0.05));
+}
+.vk-physics .skin-viewport canvas { filter: saturate(1.15) contrast(1.05); }
+.vk-armed { top: 128px; left: 50%; transform: translateX(-50%); font: italic 400 15px var(--serif); }
+
+/* Gallery tabs: gilded frame */
+.vk-gallery-body { position: absolute; inset: 76px 32px 84px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; z-index: 2; }
+.vk-gallery-body.with-aside { grid-template-columns: minmax(0, 1fr) 340px; }
+.vk-frame {
+  position: relative; min-height: 0; padding: 16px;
+  background: linear-gradient(135deg, #8a6420, #e8c867 18%, #a07824 35%, #f3d77d 52%, #8d6522 70%, #dcb95a 86%, #7b5718);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(60, 40, 10, 0.6), inset 0 0 0 6px rgba(255, 230, 150, 0.25);
+}
+.vk-frame.narrow { width: min(720px, 100%); justify-self: center; }
+.vk-frame-in {
+  position: absolute; inset: 16px; overflow: hidden;
+  background: #0b1638; box-shadow: inset 0 0 0 2px rgba(40, 25, 5, 0.8), inset 0 0 30px rgba(0, 0, 0, 0.6);
+  font-family: var(--serif); font-size: 14px;
+}
+.vk-frame-in .muted { font-size: 13px; }
+.vk-frame-in .ai-system-tabs button, .vk-frame-in .map-toolbar button { font: italic 400 14px var(--serif); }
+.vk-frame-in .ai-system-tabs button.active { background: var(--vermilion); border-color: var(--vermilion); color: #fff6e6; }
+.vk-frame-in .spacecraft-panel { background: #efe5cc !important; color: var(--ink); --k-fg: var(--ink); --k-dim: var(--ink-2); --k-line: rgba(60, 45, 25, 0.25); --k-accent: var(--ultra); --k-btn-fg: var(--ink); --k-btn-bg: rgba(255, 255, 255, 0.4); --k-input-bg: rgba(255, 255, 255, 0.5); }
+.vk-frame-in .spacecraft-mode button { font: 600 13px var(--sc); letter-spacing: 0.1em; background: var(--ultra); color: var(--cream); border: 1px solid var(--cream-3); }
+.vk-scroll { position: absolute; inset: 0; overflow: auto; padding: 10px; }
+.vk-placard-side { position: relative; left: auto; bottom: auto; width: auto; align-self: start; max-height: 100%; overflow: auto; }
+.vk-kv { margin: 10px 0 0; border-top: 1px solid rgba(60, 45, 25, 0.2); }
+.vk-kv div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px dotted rgba(60, 45, 25, 0.2); }
+.vk-kv dt { font: 500 12px var(--sc); letter-spacing: 0.08em; color: var(--ink-2); }
+.vk-kv dd { margin: 0; font: italic 400 14px var(--serif); text-align: right; }

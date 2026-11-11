@@ -1,13 +1,22 @@
-// PROTOTYPE — Variant M: Meteor Storm. A chase-cam action sequence: the ship threads a dense asteroid
-// storm near the main belt with Jupiter looming, while the AI's avoidance solution is drawn in the scene
-// (target brackets with time-to-impact, a glowing evasion ribbon, RCS burns, slow-mo near misses, impacts).
+// Variant M: Meteor Storm. A chase-cam action scene: the ship threads an asteroid storm near the main
+// belt with Jupiter looming. On the Generator it is driven by the REAL demo session: the threat board
+// and target brackets track the real nearby rocks/debris (distance, closing speed, time to contact),
+// inbound hazards, the black hole and solar storm; real burns light the engine and real impacts trigger
+// the strike effect. "Action / Physics" swaps in the real DemoViewport inside the same frame.
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Billboard, Stars } from '@react-three/drei';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import StationShip from '../../components/station/StationShip.jsx';
-import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
+import {
+  AiApiView, AiLogsView, DemoViewport, FEATURES, INNER, LEAD, SpacecraftView, TABS, TAGLINE, TrajectoriesView, logo, useViewReset,
+} from '../demoSkin.jsx';
+import {
+  AiControls, ArmedHint, EventLog, HazardControls, MissionInfo, PropulsionControls, RockControls, SceneBoundary, Telemetry, Transport,
+  realThreats, useArmedSwitch, useOnImpact, useShaderGuard,
+} from './variantMNOKit.jsx';
+import './variantMNOKit.css';
 import './variantM.css';
 
 const V = 30; // world closing speed (units / sim-second)
@@ -85,29 +94,29 @@ function dot() {
 
 function makeState() {
   return {
-    phase: 'cruise', timer: 1.4, cycle: 0, outcome: 'nearmiss', forceImpact: false, missDist: 0,
+    phase: 'cruise', timer: 1.4, cycle: 0, outcome: 'nearmiss', missDist: 0, lastD: 0,
     ts: 1, tsTarget: 1, sdt: 0, time: 0, frame: 0, shake: 0,
     ship: { x: 0, y: 0, vx: 0, vy: 0, ax: 0, ay: 0, tx: 0, ty: 0, roll: 0, kick: 0 },
-    threat: { active: false, pos: new THREE.Vector3(0, 0, 300), side: 1, speed: 36, rot: 0 },
+    threat: { active: false, id: null, pos: new THREE.Vector3(0, 0, 300), side: 1, speed: 36, rot: 0 },
     impact: { seq: 0, p: new THREE.Vector3() },
-    rocks: [], list: [], brEls: [], alienP: null, event: null, page: 'home', flash: null,
+    proxies: Array.from({ length: 3 }, () => ({ on: false, id: null, o: null, pos: new THREE.Vector3(0, 0, 200) })),
+    real: { main: null, others: [], thrusting: false, burn: false, correcting: false, bh: false, storm: false, alien: false, alienLabel: '', damaged: false },
+    rocks: [], brEls: [], alienP: null, page: 'home', flash: null,
   };
 }
 
-// ---------- director: the scripted-but-reactive emergency loop ----------
-function Director({ S, page, event, onPhase, onImpact }) {
-  S.page = page;
-  S.event = event?.name || null;
-  useEffect(() => {
-    if (event?.name === 'Asteroid Collision') {
-      S.forceImpact = true;
-      if (S.phase === 'cruise' || S.phase === 'recover') {
-        S.phase = 'cruise';
-        S.timer = 0.4;
-      }
-    }
-  }, [event, S]);
 
+const ZS = 0.22; // metres of real distance → scene units along the approach axis
+const idHash = (id) => {
+  let h = 0;
+  for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return (h % 1000) / 1000;
+};
+
+// ---------- director ----------
+// Home: the scripted-but-reactive emergency reel. Generator: follows the real physics objects in S.real.
+function Director({ S, page, onPhase }) {
+  S.page = page;
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05);
     S.ts += (S.tsTarget - S.ts) * Math.min(1, dt * 5);
@@ -116,95 +125,15 @@ function Director({ S, page, event, onPhase, onImpact }) {
     S.time += sdt;
     S.frame++;
     S.shake *= Math.exp(-dt * 2.4);
-    const sh = S.ship, T = S.threat;
+    const sh = S.ship;
     const go = (p, timer) => {
       S.phase = p;
       if (timer != null) S.timer = timer;
       onPhase(p);
     };
-    if (T.active) {
-      T.pos.z -= T.speed * sdt;
-      T.rot += sdt * 0.8;
-    }
-    switch (S.phase) {
-      case 'cruise': {
-        S.timer -= sdt;
-        sh.tx = Math.sin(S.time * 0.45) * 0.7;
-        sh.ty = Math.sin(S.time * 0.31) * 0.35;
-        if (S.timer <= 0) {
-          const ast = S.event === 'Asteroid Collision';
-          S.outcome = S.forceImpact ? 'impact' : page === 'home' ? (S.cycle % 3 === 2 ? 'impact' : 'nearmiss') : ast ? (S.cycle % 2 ? 'nearmiss' : 'impact') : 'nearmiss';
-          S.cycle++;
-          S.forceImpact = false;
-          T.active = true;
-          T.side = Math.random() < 0.5 ? -1 : 1;
-          T.pos.set(sh.x + T.side * 0.5, sh.y + (Math.random() - 0.5) * 0.6, 112);
-          T.speed = 36;
-          go('threat');
-        }
-        break;
-      }
-      case 'threat': {
-        if (T.pos.z / T.speed < 1.95) {
-          const imp = S.outcome === 'impact';
-          sh.tx = sh.x - T.side * (imp ? 1.7 : 4.6);
-          sh.ty = sh.y + (imp ? 0.2 : -0.9);
-          go('evade');
-        }
-        break;
-      }
-      case 'evade': {
-        if (S.outcome === 'impact') {
-          if (T.pos.z < 34) {
-            const k = Math.min(1, sdt * 3.2);
-            T.pos.x += (sh.x + T.side * 1.15 - T.pos.x) * k;
-            T.pos.y += (sh.y + 0.15 - T.pos.y) * k;
-          }
-          if (T.pos.z < 1.6) {
-            T.active = false;
-            S.impact.p.set(sh.x + T.side * 0.9, sh.y + 0.2, 0.9);
-            S.impact.seq++;
-            S.shake = 1.4;
-            sh.kick += -T.side * 0.55;
-            sh.vx += -T.side * 3.5;
-            S.flash?.();
-            onImpact();
-            go('impact', 1.7);
-          }
-        } else if (T.pos.z < 8) {
-          S.missDist = Math.hypot(T.pos.x - sh.x, T.pos.y - sh.y);
-          S.tsTarget = 0.16;
-          go('nearmiss');
-        }
-        break;
-      }
-      case 'nearmiss': {
-        if (T.pos.z < -6) {
-          S.tsTarget = 1;
-          sh.tx = 0;
-          sh.ty = 0;
-          go('recover', 1.9);
-        }
-        break;
-      }
-      case 'impact': {
-        S.timer -= dt;
-        if (S.timer <= 0) {
-          sh.tx = 0;
-          sh.ty = 0;
-          go('recover', 1.9);
-        }
-        break;
-      }
-      case 'recover': {
-        S.timer -= sdt;
-        if (S.timer <= 0) go('cruise', page === 'home' ? 2.0 : S.event === 'Asteroid Collision' ? 2.6 : 6.5);
-        break;
-      }
-      default:
-    }
-    if (T.active && T.pos.z < -40) T.active = false;
-    // ship: damped spring toward the AI's lateral target
+    if (page === 'home') scripted(S, sdt, dt, go);
+    else realStep(S, sdt, dt, go);
+    // ship: damped spring toward the lateral target
     const k = 7, c = 4.6;
     sh.ax = k * (sh.tx - sh.x) - c * sh.vx;
     sh.ay = k * (sh.ty - sh.y) - c * sh.vy;
@@ -216,6 +145,153 @@ function Director({ S, page, event, onPhase, onImpact }) {
     sh.roll += (-sh.vx * 0.14 + sh.kick - sh.roll) * Math.min(1, sdt * 4);
   });
   return null;
+}
+
+/** Home reel: a threat every few seconds, alternating near misses and glancing strikes. */
+function scripted(S, sdt, dt, go) {
+  const sh = S.ship, T = S.threat;
+  if (T.active) {
+    T.pos.z -= T.speed * sdt;
+    T.rot += sdt * 0.8;
+  }
+  switch (S.phase) {
+    case 'cruise': {
+      S.timer -= sdt;
+      sh.tx = Math.sin(S.time * 0.45) * 0.7;
+      sh.ty = Math.sin(S.time * 0.31) * 0.35;
+      if (S.timer <= 0) {
+        S.outcome = S.cycle % 3 === 2 ? 'impact' : 'nearmiss';
+        S.cycle++;
+        T.active = true;
+        T.id = 'TH-01';
+        T.side = Math.random() < 0.5 ? -1 : 1;
+        T.pos.set(sh.x + T.side * 0.5, sh.y + (Math.random() - 0.5) * 0.6, 112);
+        T.speed = 36;
+        go('threat');
+      }
+      break;
+    }
+    case 'threat':
+      if (T.pos.z / T.speed < 1.95) {
+        const imp = S.outcome === 'impact';
+        sh.tx = sh.x - T.side * (imp ? 1.7 : 4.6);
+        sh.ty = sh.y + (imp ? 0.2 : -0.9);
+        go('evade');
+      }
+      break;
+    case 'evade':
+      if (S.outcome === 'impact') {
+        if (T.pos.z < 34) {
+          const k = Math.min(1, sdt * 3.2);
+          T.pos.x += (sh.x + T.side * 1.15 - T.pos.x) * k;
+          T.pos.y += (sh.y + 0.15 - T.pos.y) * k;
+        }
+        if (T.pos.z < 1.6) {
+          T.active = false;
+          strike(S, T.side);
+          go('impact', 1.7);
+        }
+      } else if (T.pos.z < 8) {
+        S.missDist = Math.max(4, Math.round((Math.hypot(T.pos.x - sh.x, T.pos.y - sh.y) - 2.6) * 10));
+        S.tsTarget = 0.16;
+        go('nearmiss');
+      }
+      break;
+    case 'nearmiss':
+      if (T.pos.z < -6) {
+        S.tsTarget = 1;
+        sh.tx = 0;
+        sh.ty = 0;
+        go('recover', 1.9);
+      }
+      break;
+    case 'impact':
+      S.timer -= dt;
+      if (S.timer <= 0) {
+        sh.tx = 0;
+        sh.ty = 0;
+        go('recover', 1.9);
+      }
+      break;
+    case 'recover':
+      S.timer -= sdt;
+      if (S.timer <= 0) go('cruise', 2.0);
+      break;
+    default:
+  }
+  if (T.active && T.pos.z < -40) T.active = false;
+}
+
+/** Generator: the nearest real closing rock is the threat; real thrust drives the dodge. */
+function realStep(S, sdt, dt, go) {
+  const sh = S.ship, T = S.threat, R = S.real;
+  const main = R.main;
+  S.tsTarget = S.phase === 'nearmiss' ? 0.2 : 1;
+  if (S.phase === 'impact') {
+    S.timer -= dt;
+    if (S.timer <= 0) go(main ? 'threat' : 'recover', 1.6);
+  } else if (main) {
+    if (!T.active || T.id !== main.id) {
+      T.active = true;
+      T.id = main.id;
+      T.side = idHash(main.id) < 0.5 ? -1 : 1;
+      T.pos.set(sh.x + T.side * 3.2, sh.y + 0.4, Math.min(112, main.d * ZS));
+    }
+    S.lastD = main.d;
+    const zt = Math.min(112, Math.max(0.8, main.d * ZS));
+    T.pos.z += (zt - T.pos.z) * Math.min(1, dt * 6);
+    const far = Math.min(1, T.pos.z / 40);
+    T.pos.x += (sh.x + T.side * (0.9 + 2.3 * far) - T.pos.x) * Math.min(1, dt * 2);
+    T.pos.y += (sh.y + 0.2 - T.pos.y) * Math.min(1, dt * 2);
+    T.rot += dt * 0.8;
+    const soon = main.tti != null && main.tti < 4;
+    if (soon && R.thrusting) {
+      sh.tx = -T.side * 2.6;
+      sh.ty = -0.5;
+    } else {
+      sh.tx = Math.sin(S.time * 0.45) * 0.4;
+      sh.ty = Math.sin(S.time * 0.31) * 0.2;
+    }
+    const ph = main.tti != null && main.tti < 2.5 ? 'evade' : 'threat';
+    if (S.phase !== ph) go(ph);
+  } else {
+    if (T.active) {
+      T.active = false;
+      T.id = null;
+      if (S.phase === 'threat' || S.phase === 'evade') go('nearmiss', 1.1);
+    }
+    if (S.phase === 'nearmiss' || S.phase === 'recover') {
+      S.timer -= dt;
+      if (S.timer <= 0) go(S.phase === 'nearmiss' ? 'recover' : 'cruise', 1.6);
+    } else if (S.phase !== 'cruise') go('cruise');
+    sh.tx = Math.sin(S.time * 0.45) * 0.7;
+    sh.ty = Math.sin(S.time * 0.31) * 0.35;
+  }
+  // Secondary real objects (other rocks, debris) are drawn as proxy rocks at their real distance.
+  R.others.forEach((o, i) => {
+    const P = S.proxies[i];
+    if (!P) return;
+    const h = idHash(o.id), z = Math.min(120, Math.max(2, o.d * ZS));
+    if (P.id !== o.id) {
+      P.id = o.id;
+      P.pos.set(sh.x + (h - 0.5) * 16, (idHash(`${o.id}y`) - 0.5) * 7, z);
+    }
+    P.pos.z += (z - P.pos.z) * Math.min(1, dt * 5);
+    P.on = true;
+    P.o = o;
+  });
+  for (let i = R.others.length; i < S.proxies.length; i++) S.proxies[i].on = false;
+}
+
+/** Strike effect at the ship: sparks, debris, shake and the red flash. */
+function strike(S, side = 1) {
+  const sh = S.ship;
+  S.impact.p.set(sh.x + side * 0.9, sh.y + 0.2, 0.9);
+  S.impact.seq++;
+  S.shake = 1.4;
+  sh.kick += -side * 0.55;
+  sh.vx += -side * 3.5;
+  S.flash?.();
 }
 
 // ---------- rocks ----------
@@ -267,7 +343,7 @@ function RockField({ S, count = 440 }) {
 
   useFrame(() => {
     const sdt = S.sdt;
-    const bh = S.event === 'Black Hole Encounter';
+    const bh = S.real.bh;
     for (const o of rocks) {
       o.p.z -= V * sdt;
       if (bh) o.p.x -= sdt * (3 + 6 / (1 + o.s));
@@ -294,6 +370,7 @@ function RockField({ S, count = 440 }) {
   );
 }
 
+/** The main threat: the scripted rock on Home, the nearest real closing rock on the Generator. */
 function ThreatRock({ S }) {
   const geo = useMemo(() => rockGeometry(23, 'ico', 3), []);
   const ref = useRef();
@@ -326,6 +403,25 @@ function ThreatRock({ S }) {
   );
 }
 
+/** Up to three more real objects (rocks / wreckage) at their real distance. */
+function Proxies({ S }) {
+  const geo = useMemo(() => rockGeometry(57, 'dode', 1), []);
+  const refs = useRef([]);
+  useFrame(() => {
+    S.proxies.forEach((P, i) => {
+      const m = refs.current[i];
+      if (!m) return;
+      m.visible = P.on && S.page !== 'home';
+      m.position.copy(P.pos);
+      m.rotation.set(S.time * 0.5 + i, S.time * 0.7, 0);
+    });
+  });
+  return S.proxies.map((_, i) => (
+    <mesh key={i} ref={(el) => (refs.current[i] = el)} geometry={geo} scale={1.1} visible={false}>
+      <meshStandardMaterial color={i ? '#7d6f62' : '#9a8877'} roughness={0.9} flatShading />
+    </mesh>
+  ));
+}
 // ---------- streaks, dust ----------
 function Streaks({ S, count, color, dir, box, len, speed, opacity = 1, hole = true }) {
   const d = useMemo(() => new THREE.Vector3(...dir).normalize(), [dir]);
@@ -439,8 +535,9 @@ const jupFrag = /* glsl */ `
     gl_FragColor = vec4(c, 1.0);
   }`;
 
-function Jupiter() {
+function Jupiter({ lowfx }) {
   const ref = useRef();
+  const flat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#c9a27c', roughness: 1 }), []);
   const mat = useMemo(
     () => new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 }, uSun: { value: new THREE.Vector3(SUN[0] - JUP[0], SUN[1] - JUP[1], SUN[2] - JUP[2]).normalize() } },
@@ -454,7 +551,7 @@ function Jupiter() {
   });
   return (
     <group position={JUP} rotation={[0.18, 0, 0.06]}>
-      <mesh ref={ref} material={mat}>
+      <mesh ref={ref} material={lowfx ? flat : mat}>
         <sphereGeometry args={[150, 96, 64]} />
       </mesh>
     </group>
@@ -521,7 +618,6 @@ function Alien({ S }) {
     </sprite>
   );
 }
-
 // ---------- the ship ----------
 const plumeVert = /* glsl */ `varying float vY; void main(){ vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
 const plumeFrag = /* glsl */ `
@@ -555,6 +651,7 @@ const VENTS = {
   'Robotic Arm Malfunction': { o: [0.5, -0.4, 1.2], c: '#ffd36b', add: true, spread: [1.6, 1.6], size: 0.12 },
   'Solar Panel Power Crisis': { o: [1.4, 0.2, 0], c: '#ffd36b', add: true, spread: [1.6, 1.6], size: 0.12 },
   'AI System Malfunction': { o: [0, 0.5, 0.4], c: '#ffffff', add: true, spread: [1.2, 1.2], size: 0.08 },
+  damage: { o: [0.45, 0.25, 0.2], c: '#ffb066', add: true, spread: [1.3, 1.3], size: 0.1 },
 };
 
 function Vent({ S, cfg }) {
@@ -587,25 +684,31 @@ function Vent({ S, cfg }) {
 function Ship({ S, event }) {
   const rig = useRef();
   const glow = useRef();
+  const plume = useRef();
   const main = useMemo(() => makePlume('#a9c8ff'), []);
   const core = useMemo(() => makePlume('#ffffff'), []);
   const jets = useMemo(() => RCS.map(() => makePlume('#ffffff')), []);
   const engineOut = event?.name === 'Engine Failure' || event?.name === 'Thruster Failure';
   const vent = VENTS[event?.name];
+  const damaged = S.real.damaged;
   useFrame((s) => {
     const sh = S.ship;
     const t = s.clock.elapsedTime;
     rig.current.position.set(sh.x, sh.y, 0);
     rig.current.rotation.set(-sh.vy * 0.05 + Math.sin(t * 0.7) * 0.01, sh.vx * 0.045, sh.roll);
     const sputter = engineOut ? (Math.random() < 0.25 ? 0.5 : 0.05) : 1;
-    const burn = S.phase === 'evade' ? 1.25 : 1;
-    main.uniforms.uOpacity.value = 0.55 * sputter;
+    // A real main-engine burn (physics mode 'burn') lights the full plume.
+    const real = S.page !== 'home';
+    const burn = real ? (S.real.burn ? 1.9 : S.real.correcting ? 1.15 : 0.8) : S.phase === 'evade' ? 1.25 : 1;
+    plume.current.scale.set(1, 1, burn);
+    main.uniforms.uOpacity.value = 0.55 * sputter * Math.min(1.4, burn);
     core.uniforms.uOpacity.value = 0.9 * sputter;
     main.uniforms.uTime.value = core.uniforms.uTime.value = t;
     glow.current.material.opacity = 0.9 * sputter;
     glow.current.scale.setScalar((1.6 + Math.sin(t * 50) * 0.1) * burn);
     jets.forEach((m, i) => {
-      const want = Math.max(0, Math.min(1, (-RCS[i].sx * sh.ax - 1.2) / 5));
+      const rcs = S.real.correcting && S.page !== 'home' && Math.sin(t * 9 + i * 2.1) > 0.4 ? 0.7 : 0;
+      const want = Math.max(rcs, Math.min(1, (-RCS[i].sx * sh.ax - 1.2) / 5));
       m.uniforms.uOpacity.value += (want - m.uniforms.uOpacity.value) * 0.4;
       m.uniforms.uTime.value = t;
     });
@@ -617,7 +720,7 @@ function Ship({ S, event }) {
           <StationShip event={event} />
         </group>
       </group>
-      <group position={[0, 0, -2.9]}>
+      <group ref={plume} position={[0, 0, -2.9]}>
         <mesh geometry={plumeGeo} material={main} rotation={[-Math.PI / 2, 0, 0]} scale={[0.42, 3.4, 0.42]} />
         <mesh geometry={plumeGeo} material={core} rotation={[-Math.PI / 2, 0, 0]} scale={[0.16, 1.6, 0.16]} />
         <sprite ref={glow}>
@@ -628,6 +731,7 @@ function Ship({ S, event }) {
         <mesh key={i} geometry={plumeGeo} material={jets[i]} position={j.p} rotation={[0, 0, j.rz]} scale={[0.09, 1.0, 0.09]} />
       ))}
       {vent && <Vent S={S} cfg={vent} />}
+      {damaged && S.page !== 'home' && <Vent S={S} cfg={VENTS.damage} />}
     </group>
   );
 }
@@ -722,7 +826,6 @@ function Ribbon({ S }) {
   });
   return <mesh geometry={geo} material={mat} frustumCulled={false} />;
 }
-
 // ---------- impact: sparks + debris ----------
 function ImpactFx({ S }) {
   const NS = 180, ND = 28;
@@ -790,6 +893,7 @@ function ImpactFx({ S }) {
 }
 
 // ---------- camera + 3D->2D HUD ----------
+// ---------- camera + 3D->2D HUD ----------
 function ChaseCam({ S, page }) {
   const { camera } = useThree();
   const pos = useRef(new THREE.Vector3(1.2, 1.6, -9.5));
@@ -828,27 +932,36 @@ function Brackets({ S }) {
     const els = S.brEls;
     const sh = S.ship;
     ship.set(sh.x, sh.y, 0);
-    const items = [];
+    const shown = [];
     const T = S.threat;
+    const home = S.page === 'home';
     if (T.active && T.pos.z > -4) {
-      const d = T.pos.distanceTo(ship);
-      const tti = Math.max(0, T.pos.z / T.speed);
       const miss = S.phase === 'nearmiss';
-      items.push({ p: T.pos, r: 2.1, cls: miss ? 'main miss' : 'main', id: 'TH-01', d, tti, label: miss ? `CLEARANCE ${clearM(S)} M` : `IMPACT T−${tti.toFixed(2)}s · ${Math.round(d * 10)} M` });
+      let label;
+      if (home) {
+        const tti = Math.max(0, T.pos.z / T.speed);
+        label = miss ? `CLEARANCE ${S.missDist} M` : `IMPACT T−${tti.toFixed(2)}s · ${Math.round(T.pos.distanceTo(ship) * 10)} M`;
+      } else {
+        const m = S.real.main;
+        label = m ? `${m.id} · ${Math.round(m.d)} M${m.tti != null ? ` · T−${m.tti.toFixed(1)}s` : ''}` : T.id;
+      }
+      shown.push({ p: T.pos, r: 2.1, cls: miss ? 'main miss' : 'main', label });
     }
-    if (S.alienP && S.event === 'Alien Encounter') items.push({ p: S.alienP, r: 1.4, cls: 'alien', id: 'UNK-1', d: S.alienP.distanceTo(ship), tti: null, label: 'UNKNOWN CONTACT' });
-    const cands = [];
-    for (const o of S.rocks) {
-      if (o.p.z < 4 || o.p.z > 85) continue;
-      if (Math.abs(o.p.x - sh.x) > 9 || Math.abs(o.p.y - sh.y) > 5) continue;
-      cands.push(o);
+    if (S.alienP && S.real.alien) shown.push({ p: S.alienP, r: 1.4, cls: 'alien', label: S.real.alienLabel });
+    if (home) {
+      const cands = [];
+      for (const o of S.rocks) {
+        if (o.p.z < 4 || o.p.z > 85) continue;
+        if (Math.abs(o.p.x - sh.x) > 9 || Math.abs(o.p.y - sh.y) > 5) continue;
+        cands.push(o);
+      }
+      cands.sort((a, b) => a.p.z - b.p.z);
+      for (const o of cands.slice(0, 3)) shown.push({ p: o.p, r: o.s * 1.2, cls: 'rock', label: `R-${o.id} · ${Math.round(o.p.distanceTo(ship) * 10)} M` });
+    } else {
+      for (const P of S.proxies) {
+        if (P.on) shown.push({ p: P.pos, r: 1.3, cls: P.o.kind === 'debris' ? 'rock debris' : 'rock', label: `${P.o.id} · ${Math.round(P.o.d)} M${P.o.closing > 0.05 ? ` · ${P.o.closing.toFixed(1)} M/S` : ''}` });
+      }
     }
-    cands.sort((a, b) => a.p.z - b.p.z);
-    const rocks = cands.slice(0, 5).map((o) => {
-      const d = o.p.distanceTo(ship);
-      return { p: o.p, r: o.s * 1.2, cls: 'rock', id: `R-${o.id}`, d, tti: o.p.z / V, label: `R-${o.id} · ${Math.round(d * 10)} M` };
-    });
-    const shown = items.concat(rocks.slice(0, 3));
     const tanH = Math.tan((camera.fov * Math.PI) / 360);
     for (let k = 0; k < els.length; k++) {
       const el = els[k];
@@ -874,35 +987,34 @@ function Brackets({ S }) {
       if (el.className !== cls) el.className = cls;
       if ((S.frame & 3) === 0) el.lastChild.textContent = it.label;
     }
-    if (S.frame % 8 === 0) S.list = items.concat(rocks).map(({ id, d, tti, cls }) => ({ id, d, tti, cls }));
   });
   return null;
 }
 
-const clearM = (S) => Math.max(4, Math.round((S.missDist - 2.6) * 10));
-
-function Scene({ S, page, event, onPhase, onImpact }) {
+function Scene({ S, page, event, onPhase, lowfx }) {
   const name = event?.name;
   const inner = INNER.includes(name);
+  const R = S.real;
   return (
     <>
       <color attach="background" args={['#040305']} />
       <fog attach="fog" args={['#0c0907', 40, 185]} />
-      <Director S={S} page={page} event={event} onPhase={onPhase} onImpact={onImpact} />
+      <Director S={S} page={page} onPhase={onPhase} />
       <Lights S={S} inner={inner} />
       <Stars radius={600} depth={80} count={2600} factor={7} saturation={0} fade speed={0.2} />
-      <Jupiter />
+      <Jupiter lowfx={lowfx} />
       <SunFlare />
-      {name === 'Black Hole Encounter' && <BlackHoleFx />}
+      {R.bh && !lowfx && <BlackHoleFx />}
       <RockField S={S} />
       <ThreatRock S={S} />
+      <Proxies S={S} />
       <Streaks S={S} count={240} color="#fff6ea" dir={[0, 0, -1]} box={SPEED_BOX} len={3.2} speed={V * 1.15} opacity={0.75} />
-      {name === 'Solar Storm' && <Streaks S={S} count={700} color="#ffc94a" dir={[-0.55, -0.18, -0.8]} box={STORM_BOX} len={4} speed={70} opacity={0.9} hole={false} />}
+      {R.storm && <Streaks S={S} count={700} color="#ffc94a" dir={[-0.55, -0.18, -0.8]} box={STORM_BOX} len={4} speed={70} opacity={0.9} hole={false} />}
       <Dust S={S} />
       <Ship S={S} event={page === 'console' ? event : null} />
-      <Ribbon S={S} />
+      {!lowfx && <Ribbon S={S} />}
       <ImpactFx S={S} />
-      {name === 'Alien Encounter' && <Alien S={S} />}
+      {R.alien && <Alien S={S} />}
       <ChaseCam S={S} page={page} />
       <Brackets S={S} />
     </>
@@ -910,31 +1022,52 @@ function Scene({ S, page, event, onPhase, onImpact }) {
 }
 
 // ---------- 2D overlay ----------
-const CAPS = {
-  threat: { k: 'red', big: 'Collision course', sub: 'TH-01 acquired · solving avoidance · 4 candidate paths', small: true },
-  evade: { k: 'amber', big: 'Evasive manoeuvre · AI', sub: 'RCS lateral burn · path solved in 38 ms · Main Judging approved' },
-  nearmiss: { k: 'white', big: 'Near miss', sub: null },
-  impact: { k: 'red', big: 'Impact', sub: 'Glancing strike · structural −18% · damage control dispatched' },
-  recover: { k: 'white', big: 'Course restored', sub: 'Rejoining transfer corridor · Earth → Mars', small: true },
-};
 const EV_CAPS = {
-  'Solar Storm': ['Solar storm · shielding', 'Proton flux ×40 · hull-to-sun attitude · non-essential loads shed'],
-  'Black Hole Encounter': ['Gravitational shear', 'Tidal drift on debris field · AI holding thrust vector'],
-  'Alien Encounter': ['Unknown contact', 'Passive track · no transmission · comms on standby'],
+  'Solar Storm': ['Solar storm · shielding', 'Proton flux rising · hull-to-sun attitude · non-essential loads shed'],
+  'Black Hole Encounter': ['Gravitational shear', 'Tidal drift on the debris field · watch the trajectory'],
+  'Alien Encounter': ['Unknown contact', 'Passive track · no transmission'],
 };
 const evClass = (name) =>
   ({ 'Solar Storm': 'storm', 'Black Hole Encounter': 'bh', 'Alien Encounter': 'alien', 'Asteroid Collision': 'ast' })[name] || (INNER.includes(name) ? 'inner' : '');
+const words = (id) => String(id).replaceAll('_', ' ');
 
-function Caption({ phase, S, event }) {
-  let c = CAPS[phase];
-  if ((phase === 'cruise' || !c) && event && EV_CAPS[event.name]) c = { k: 'amber', big: EV_CAPS[event.name][0], sub: EV_CAPS[event.name][1], small: true };
-  if ((phase === 'cruise' || !c) && event && INNER.includes(event.name)) c = { k: 'red', big: `Damage control · ${event.name}`, sub: 'AI isolating compartment · crew to safe module', small: true };
+function caption(phase, S, sim, home) {
+  const R = S.real;
+  const m = R.main;
+  const event = sim.event;
+  const imp = sim.demo.physics.lastImpact;
+  if (home) {
+    return {
+      threat: { k: 'red', big: 'Collision course', sub: 'Threat acquired · plotting avoidance', small: true },
+      evade: { k: 'amber', big: 'Evasive manoeuvre', sub: 'RCS lateral burn' },
+      nearmiss: { k: 'white', big: 'Near miss', sub: `Clearance ${S.missDist} m · time dilated ×0.16` },
+      impact: { k: 'red', big: 'Impact', sub: 'Glancing strike · damage control dispatched' },
+      recover: { k: 'white', big: 'Course restored', sub: `${sim.nav.origin} → ${sim.nav.destination}`, small: true },
+    }[phase];
+  }
+  if (phase === 'impact' && imp) return { k: 'red', big: 'Impact', sub: `${words(imp.part)} · ${imp.impulseNs.toFixed(0)} N·s · ${(imp.utilization * 100).toFixed(0)}% attachment capacity` };
+  if (phase === 'threat' && m) return { k: 'red', big: 'Collision course', sub: `${m.id} · ${Math.round(m.d)} m · closing ${m.closing.toFixed(1)} m/s${m.tti != null ? ` · T−${m.tti.toFixed(1)} s` : ''}`, small: true };
+  if (phase === 'evade' && m) {
+    return R.thrusting
+      ? { k: 'amber', big: 'Evasive manoeuvre', sub: `${sim.demo.physics.mode} · ${m.id} T−${m.tti.toFixed(1)} s` }
+      : { k: 'red', big: 'Brace for impact', sub: `${m.id} T−${m.tti.toFixed(1)} s · no thrust commanded` };
+  }
+  if (phase === 'nearmiss') return { k: 'white', big: 'Near miss', sub: `Closest approach ≈ ${Math.round(S.lastD ?? 0)} m · no contact` };
+  if (phase === 'recover') return { k: 'white', big: 'Corridor clear', sub: `${sim.nav.origin} → ${sim.nav.destination} · ${sim.nav.phase}`, small: true };
+  if (event && EV_CAPS[event.name]) return { k: 'amber', big: EV_CAPS[event.name][0], sub: EV_CAPS[event.name][1], small: true };
+  if (sim.demo.solarStorm) return { k: 'amber', big: 'Solar flare inbound', sub: 'Particle wave leaving the Sun', small: true };
+  if (sim.demo.blackHole) return { k: 'amber', big: EV_CAPS['Black Hole Encounter'][0], sub: EV_CAPS['Black Hole Encounter'][1], small: true };
+  if (event && INNER.includes(event.name)) return { k: 'red', big: `Damage control · ${event.name}`, sub: 'Fault active until the AI resolves it', small: true };
+  return null;
+}
+
+function Caption({ phase, S, sim, home }) {
+  const c = caption(phase, S, sim, home);
   if (!c) return <div className="vm-cap" />;
-  const sub = phase === 'nearmiss' ? `Clearance ${clearM(S)} m · time dilated ×0.16 · no contact` : c.sub;
   return (
-    <div className={`vm-cap on ${c.k} ${c.small ? 'small' : ''}`} key={phase + (event?.name || '')}>
+    <div className={`vm-cap on ${c.k} ${c.small ? 'small' : ''}`} key={phase + (sim.event?.name || '')}>
       <h2>{c.big}</h2>
-      {sub && <p>{sub}</p>}
+      {c.sub && <p>{c.sub}</p>}
     </div>
   );
 }
@@ -942,14 +1075,14 @@ function Caption({ phase, S, event }) {
 function Threats({ list }) {
   return (
     <div className="vm-panel vm-threats">
-      <h4>Threat board <span>{list.length} tracked</span></h4>
+      <h4>Threat board <span>{list.length} tracked · live</span></h4>
       <ul>
         {list.length === 0 && <li className="none">Corridor clear</li>}
         {list.slice(0, 6).map((t) => (
-          <li key={t.id} className={t.cls.split(' ')[0]}>
+          <li key={t.id} className={t.tti != null && t.tti < 4 ? 'main' : t.kind}>
             <b>{t.id}</b>
-            <i style={{ '--w': `${Math.max(4, 100 - t.d * 1.1)}%` }} />
-            <span>{Math.round(t.d * 10)} m</span>
+            <i style={{ '--w': t.d != null ? `${Math.max(4, 100 - t.d / 6)}%` : '100%' }} />
+            <span>{t.d != null ? `${Math.round(t.d)} m` : t.name}</span>
             <em>{t.tti != null ? `${t.tti.toFixed(1)}s` : '—'}</em>
           </li>
         ))}
@@ -958,8 +1091,9 @@ function Threats({ list }) {
   );
 }
 
-function Top({ tab, onTab, sim, phase }) {
-  const hot = phase === 'evade' || phase === 'impact' || phase === 'threat' || sim.event;
+const H = ({ title }) => <h4 className="mk-h vm-h">{title}</h4>;
+
+function Top({ tab, onTab, sim, hot }) {
   return (
     <header className="vm-top">
       <div className="vm-brand">
@@ -973,22 +1107,91 @@ function Top({ tab, onTab, sim, phase }) {
       </nav>
       <div className={`vm-status ${hot ? 'hot' : ''}`}>
         <i />
-        {hot ? 'EMERGENCY' : 'NOMINAL'}
+        {hot ? 'EMERGENCY' : sim.status}
         <span>MET {sim.met}</span>
       </div>
     </header>
   );
 }
 
-export default function VariantM({ page, tab, onTab, sim }) {
+function Generator({ sim, threats, view, setView, onResetView }) {
+  return (
+    <>
+      <aside className="vm-left vm-col">
+        <div className="vm-panel"><HazardControls sim={sim} H={H} /></div>
+        <div className="vm-panel"><RockControls sim={sim} H={H} /></div>
+        <div className="vm-panel"><PropulsionControls sim={sim} H={H} /></div>
+        <div className="vm-panel"><AiControls sim={sim} H={H} /></div>
+      </aside>
+      <aside className="vm-right vm-col">
+        <Threats list={threats} />
+        <div className="vm-panel vm-scroll"><Telemetry sim={sim} H={H} /></div>
+        <div className="vm-panel vm-logp"><EventLog sim={sim} H={H} /></div>
+      </aside>
+      <div className="vm-transport vm-panel">
+        <Transport sim={sim} view={view} setView={setView} onResetView={onResetView} names={['Action', 'Physics']} />
+      </div>
+    </>
+  );
+}
+
+function Pages({ tab, sim, onTab }) {
+  if (tab === 'Planetary Trajectories') {
+    return (
+      <div className="vm-page vm-page-traj">
+        <div className="vm-frame mno-embed"><div className="vm-frame-in"><TrajectoriesView sim={sim} /></div><i className="vm-corner" /></div>
+        <aside className="vm-panel vm-scroll"><MissionInfo sim={sim} H={H} /></aside>
+      </div>
+    );
+  }
+  return (
+    <div className="vm-page">
+      <div className={`vm-frame mno-embed ${tab === 'Spacecraft' ? 'vm-frame-ship' : 'vm-frame-doc'}`}>
+        <div className="vm-frame-in">
+          {tab === 'AI Logs' && <AiLogsView sim={sim} onShowLiveShip={() => onTab('Spacecraft')} />}
+          {tab === 'AI API' && <AiApiView sim={sim} onOpenControls={() => onTab('AI Logs')} />}
+          {tab === 'Spacecraft' && <SpacecraftView sim={sim} />}
+        </div>
+        <i className="vm-corner" />
+      </div>
+    </div>
+  );
+}
+
+export default function VariantM({ tab, onTab, sim }) {
   const ref = useRef(null);
   if (!ref.current) ref.current = makeState();
   const S = ref.current;
   const flashEl = useRef();
   const [phase, setPhase] = useState('cruise');
-  const [threats, setThreats] = useState([]);
-  const [dmg, setDmg] = useState(0);
+  const [view, setView] = useState('scene');
+  const [resetCount, resetView] = useViewReset();
   const [hits, setHits] = useState(0);
+  const [failed, onCreated] = useShaderGuard('Meteor Storm');
+  const [noGL, setNoGL] = useState(false);
+  const home = tab === 'Home';
+  const gen = tab === 'Generator';
+  const page = home ? 'home' : 'console';
+
+  // Real state the 3D director reads every frame.
+  const threats = realThreats(sim);
+  const closing = threats.filter((t) => t.tti != null && t.d != null);
+  const main = closing[0] ?? null;
+  const objects = threats.filter((t) => t.d != null && t !== main).slice(0, S.proxies.length);
+  const alienHz = sim.demo.hazards.find((h) => h.name === 'Alien Encounter');
+  const alienT = threats.find((t) => t.kind === 'alien');
+  const mode = sim.demo.physics.mode;
+  S.real = {
+    main, others: objects,
+    thrusting: mode !== 'coast',
+    burn: mode === 'burn',
+    correcting: mode === 'course correction',
+    bh: sim.demo.blackHole,
+    storm: sim.demo.solarStorm || sim.event?.name === 'Solar Storm',
+    alien: Boolean(alienHz) || sim.event?.name === 'Alien Encounter',
+    alienLabel: alienT ? `${alienT.id} · T−${alienT.tti.toFixed(1)}s` : 'UNKNOWN CONTACT',
+    damaged: sim.demo.physics.detached.length > 0 || sim.demo.physics.integrity < 85,
+  };
 
   useEffect(() => {
     S.flash = () => {
@@ -998,35 +1201,45 @@ export default function VariantM({ page, tab, onTab, sim }) {
       void el.offsetWidth;
       el.classList.add('on');
     };
-    const a = setInterval(() => setThreats(S.list.slice()), 250);
-    const b = setInterval(() => setDmg((d) => (d > 0 ? Math.max(0, d - 1) : d)), 450);
-    return () => {
-      clearInterval(a);
-      clearInterval(b);
-    };
   }, [S]);
-
-  const onImpact = useMemo(() => () => {
-    setDmg((d) => Math.min(40, d + 18));
+  useArmedSwitch(sim, setView);
+  // A real contact: sparks + shake in the action scene, the red flash in either view.
+  useOnImpact(sim, () => {
     setHits((h) => h + 1);
-  }, []);
+    const side = S.threat.side || 1;
+    S.threat.active = false;
+    strike(S, side);
+    S.phase = 'impact';
+    S.timer = 1.7;
+    setPhase('impact');
+  });
+  useEffect(() => {
+    if (sim.demo.stormFlash) S.flash?.();
+  }, [sim.demo.stormFlash, S]);
 
-  const systems = sim.systems.map((s) => ({
-    ...s,
-    value: Math.max(0, Math.round(s.value - (s.key === 'Structure' ? dmg : s.key === 'Solar' ? dmg * 0.6 : s.key === 'Power' ? dmg * 0.4 : 0))),
-  }));
   const name = sim.event?.name;
-  const action = phase === 'evade' || phase === 'nearmiss' || phase === 'impact';
+  const physics = gen && view === 'physics';
+  const showScene = tab !== 'Spacecraft' && !physics && !noGL;
+  const action = !physics && (phase === 'evade' || phase === 'nearmiss' || phase === 'impact');
+  const hot = Boolean(main && main.tti < 6) || phase === 'impact' || Boolean(name) || sim.demo.blackHole || sim.demo.solarStorm;
+  const evc = name ? evClass(name) : sim.demo.solarStorm ? 'storm' : sim.demo.blackHole ? 'bh' : '';
 
   return (
-    <div className={`vm vm-${page} vm-ph-${phase} ${action ? 'vm-action' : ''} ${name ? `vm-ev vm-ev-${evClass(name)}` : ''}`}>
+    <div className={`vm mk-root vm-${page} vm-tab-${tab.replace(/\s+/g, '-').toLowerCase()} vm-ph-${physics ? 'phys' : phase} ${action ? 'vm-action' : ''} ${evc ? `vm-ev vm-ev-${evc}` : ''} ${physics ? 'vm-physics' : ''} ${failed || noGL ? 'vm-lowfx' : ''}`}>
       <div className="vm-stage">
-        <Canvas dpr={[1, 1.75]} camera={{ fov: 52, near: 0.1, far: 3000, position: [1.2, 1.6, -9.5] }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-          <Scene S={S} page={page} event={sim.event} onPhase={setPhase} onImpact={onImpact} />
-        </Canvas>
+        {physics ? (
+          <DemoViewport sim={sim} resetCount={resetCount} className="vm-viewport" />
+        ) : showScene ? (
+          <SceneBoundary onError={() => setNoGL(true)}>
+            <Canvas dpr={[1, 1.75]} camera={{ fov: 52, near: 0.1, far: 3000, position: [1.2, 1.6, -9.5] }} gl={{ antialias: true, powerPreference: 'high-performance' }} onCreated={onCreated}>
+              <Scene S={S} page={page} event={sim.event} onPhase={setPhase} lowfx={failed} />
+            </Canvas>
+          </SceneBoundary>
+        ) : null}
       </div>
 
       <div className="vm-fx" aria-hidden="true">
+        {physics && <div className="vm-grade" />}
         <div className="vm-vignette" />
         <div className="vm-storm" />
         <div className="vm-lens" />
@@ -1036,25 +1249,26 @@ export default function VariantM({ page, tab, onTab, sim }) {
         <div className="vm-bar b" />
       </div>
 
-      <div className="vm-brk" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, i) => (
+      <div className="vm-brk" aria-hidden="true" style={{ display: showScene && (home || gen) ? undefined : 'none' }}>
+        {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="vm-br" ref={(el) => (S.brEls[i] = el)}>
             <i /><i /><i /><i /><b />
           </div>
         ))}
       </div>
 
-      <Top tab={tab} onTab={onTab} sim={sim} phase={phase} />
-      <Caption phase={phase} S={S} event={sim.event} />
+      <Top tab={tab} onTab={onTab} sim={sim} hot={hot} />
+      {(home || gen) && !physics && <Caption phase={phase} S={S} sim={sim} home={home} />}
+      {gen && <ArmedHint sim={sim} className="vm-armed" />}
 
-      {page === 'home' ? (
+      {home ? (
         <>
           <section className="vm-hero">
             <p className="vm-eyebrow">{TAGLINE}</p>
             <h1>Interstellar X<sup>4</sup></h1>
             <p className="vm-lead">{LEAD}</p>
             <div className="vm-ctas">
-              <button className="vm-cta" onClick={() => onTab('Spacecraft')}>Launch simulator <span>→</span></button>
+              <button className="vm-cta" onClick={() => onTab('Generator')}>Launch simulator <span>→</span></button>
               <button className="vm-ghost" onClick={() => onTab('AI Logs')}>Watch the AI decide</button>
             </div>
             <ul className="vm-feats">
@@ -1066,61 +1280,19 @@ export default function VariantM({ page, tab, onTab, sim }) {
           <aside className="vm-side">
             <Threats list={threats} />
             <div className="vm-panel vm-tele">
-              <div><small>Sector</small>Main belt · 2.9 AU</div>
+              <div><small>Route</small>{sim.nav.origin} → {sim.nav.destination}</div>
               <div><small>Velocity</small>{sim.velocity} km/s</div>
-              <div><small>Time scale</small>{phase === 'nearmiss' ? '×0.16' : '×1.00'}</div>
+              <div><small>Map scale</small>{sim.timeScale}</div>
               <div><small>Hits taken</small>{hits}</div>
+              <div><small>Integrity</small>{sim.systems[0].value}%</div>
+              <div><small>Day</small>{sim.day}</div>
             </div>
           </aside>
         </>
+      ) : gen ? (
+        <Generator sim={sim} threats={threats} view={view} setView={setView} onResetView={resetView} />
       ) : (
-        <>
-          <aside className="vm-left">
-            <Threats list={threats} />
-            <div className="vm-panel vm-sys">
-              <h4>Systems <span>{sim.nav.origin} → {sim.nav.destination}</span></h4>
-              {systems.map((s) => (
-                <div key={s.key} className={`vm-bar-row ${s.value < 70 ? 'red' : s.value < 88 ? 'amber' : ''}`}>
-                  <span>{s.label}</span>
-                  <i style={{ '--w': `${s.value}%` }} />
-                  <b>{s.value}</b>
-                </div>
-              ))}
-            </div>
-          </aside>
-          <aside className="vm-right">
-            <div className="vm-panel vm-inject">
-              <h4>Inject hazard <button onClick={sim.clear}>Reset</button></h4>
-              <small>Outer</small>
-              <div className="vm-grid">
-                {OUTER.map((n) => (
-                  <button key={n} className={name === n ? 'on' : ''} onClick={() => sim.trigger(n)}>{n}</button>
-                ))}
-              </div>
-              <small>Inner</small>
-              <div className="vm-grid">
-                {INNER.map((n) => (
-                  <button key={n} className={name === n ? 'on' : ''} onClick={() => sim.trigger(n)}>{n}</button>
-                ))}
-              </div>
-            </div>
-            <div className="vm-panel vm-agents">
-              <h4>AI agents <span>MET {sim.met}</span></h4>
-              {sim.agents.map((a) => (
-                <div key={a.name} className={a.ok ? '' : 'warn'}>
-                  <i />
-                  <b>{a.name}</b>
-                  <span>{a.name === 'Propelling' && action ? 'Evasive burn' : a.state}</span>
-                </div>
-              ))}
-            </div>
-            <div className="vm-panel vm-log">
-              {sim.logs.slice(0, 3).map((l, i) => (
-                <p key={i} className={l.alert ? 'alert' : ''}>{l.text}</p>
-              ))}
-            </div>
-          </aside>
-        </>
+        <Pages tab={tab} sim={sim} onTab={onTab} />
       )}
     </div>
   );
