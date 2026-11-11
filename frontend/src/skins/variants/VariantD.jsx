@@ -1,7 +1,7 @@
 // PROTOTYPE — Variant D: Immersive HUD. The 3D scene is the whole page; UI is frameless text floating on
 // vignettes, with corner brackets and thin cyan→violet hairlines taken from the logo. No panels, no cards.
 import { Pause, RotateCcw } from 'lucide-react';
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from './mock.jsx';
+import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantD.css';
 
 function Top({ tab, onTab, sim }) {

@@ -1,7 +1,7 @@
 // PROTOTYPE — Variant B: Flight Deck. Neutral near-black, warm white type, a single amber signal,
 // mono instrument readouts, square corners, left icon rail, dense instrument-tile layout.
 import { Bot, House, KeyRound, Orbit, Pause, RotateCcw, Rocket, ScrollText, Zap } from 'lucide-react';
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from './mock.jsx';
+import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantB.css';
 
 const ICONS = [House, Rocket, Zap, Orbit, ScrollText, KeyRound];

@@ -2,8 +2,8 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import StationShip from '../components/station/StationShip.jsx';
-import { logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from './mock.jsx';
+import StationShip from '../../components/station/StationShip.jsx';
+import { logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from '../shipCanvas.jsx';
 import './variantG.css';
 
 /* ---------- comic helpers ---------- */

@@ -1,6 +1,6 @@
 // PROTOTYPE — Variant A: Cryo Glass. Light frosted glass, cold white light, graphite type, clinical restraint.
 import { Pause, RotateCcw, Maximize2, Minus, Plus } from 'lucide-react';
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from './mock.jsx';
+import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantA.css';
 
 function Header({ tab, onTab, sim }) {

@@ -1,0 +1,17 @@
+/* Theme switcher pill — deliberately neutral so it reads as tooling, not part of any theme. */
+.skin-switch {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9999;
+  display: flex; align-items: center; gap: 4px; padding: 5px;
+  background: rgba(255, 255, 255, 0.94); color: #111; border: 1px solid rgba(0, 0, 0, 0.18); border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  font: 500 12px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  backdrop-filter: blur(8px);
+}
+.skin-switch button { font: inherit; color: inherit; background: #eee; border: 0; border-radius: 999px; padding: 7px 11px; cursor: pointer; }
+.skin-switch button:hover { background: #ddd; }
+.skin-switch .skin-switch-label { min-width: 210px; background: transparent; }
+.skin-switch b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%; background: #111; color: #fff; font-size: 11px; }
+.skin-switch-menu { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); display: grid; gap: 2px; width: 280px; max-height: 70vh; overflow: auto; padding: 6px; background: #fff; border: 1px solid rgba(0, 0, 0, 0.15); border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); }
+.skin-switch-menu button { display: flex; align-items: center; text-align: left; background: transparent; border-radius: 9px; padding: 7px 8px; }
+.skin-switch-menu button.on { background: #111; color: #fff; }
+.skin-switch-menu button.on b { background: #fff; color: #111; }

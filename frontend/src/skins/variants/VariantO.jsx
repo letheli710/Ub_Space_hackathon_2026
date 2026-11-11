@@ -4,8 +4,8 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import StationShip from '../components/station/StationShip.jsx';
-import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE } from './mock.jsx';
+import StationShip from '../../components/station/StationShip.jsx';
+import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE } from '../shipCanvas.jsx';
 import './variantO.css';
 
 /* ------------------------------------------------------------------ helpers */

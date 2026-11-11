@@ -6,8 +6,8 @@ import { Billboard, Stars } from '@react-three/drei';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import StationShip from '../components/station/StationShip.jsx';
-import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE, logo } from './mock.jsx';
+import StationShip from '../../components/station/StationShip.jsx';
+import { FEATURES, INNER, LEAD, OUTER, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantM.css';
 
 const V = 30; // world closing speed (units / sim-second)

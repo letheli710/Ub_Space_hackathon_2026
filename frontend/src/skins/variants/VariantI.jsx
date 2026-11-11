@@ -1,6 +1,6 @@
 // PROTOTYPE — throwaway. Variant I "Incident File · 事故档案": a mission-incident dossier on a desk.
 import { useRef } from 'react';
-import { ShipCanvas, logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from './mock.jsx';
+import { ShipCanvas, logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from '../shipCanvas.jsx';
 import './variantI.css';
 
 const NOMINAL = { Structure: 100, Solar: 100, Fuel: 87, Power: 92, Drive: 100, Energy: 96 };

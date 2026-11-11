@@ -1,6 +1,6 @@
 // PROTOTYPE — throwaway. Variant J "Cockpit · 驾驶舱视角": first-person command deck looking out a window.
 import { useRef, useState } from 'react';
-import { ShipCanvas, logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from './mock.jsx';
+import { ShipCanvas, logo, TABS, OUTER, INNER, FEATURES, TAGLINE, LEAD } from '../shipCanvas.jsx';
 import './variantJ.css';
 
 const FEATURE_TEXT = [

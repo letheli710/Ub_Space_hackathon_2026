@@ -1,6 +1,6 @@
 // PROTOTYPE — Variant C: Editorial. Black & bone-white, serif display type, hairline rules instead of boxes,
 // a single violet signal pulled from the logo. Reads like a mission dossier, not a dashboard.
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, logo } from './mock.jsx';
+import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, logo } from '../shipCanvas.jsx';
 import './variantC.css';
 
 function Masthead({ tab, onTab, sim }) {

@@ -1,6 +1,6 @@
 // PROTOTYPE — Variant E: Cryo Lens. The ship is huge and fills the viewport behind a graduated frost;
 // only one circular "lens" window is optically sharp, like looking through a clinical ophthalmoscope.
-import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from './mock.jsx';
+import { FEATURES, INNER, LEAD, OUTER, ShipCanvas, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantE.css';
 
 // Lens geometry per page: centre (vw / vh) and radius (vmin).

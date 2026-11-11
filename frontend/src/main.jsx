@@ -1,11 +1,19 @@
 import { createRoot } from 'react-dom/client';
-import App from './App.jsx';
 
 const root = createRoot(document.getElementById('root'));
+const params = new URLSearchParams(location.search);
 
-// PROTOTYPE — dev-only visual-direction variants: open /?variant=A (A–D). Remove with src/prototype/.
-if (import.meta.env.DEV && new URLSearchParams(location.search).has('variant')) {
-  import('./prototype/PrototypeRoot.jsx').then(({ default: PrototypeRoot }) => root.render(<PrototypeRoot />));
+// Themed frontends (?skin=A … O) all run on the real DEMO session; plain URL is the classic app.
+if (params.has('skin') || params.has('variant')) {
+  import('./skins/SkinRoot.jsx').then(({ default: SkinRoot }) => root.render(<SkinRoot />));
 } else {
-  import('./style.css').then(() => root.render(<App />));
+  Promise.all([import('./App.jsx'), import('./skins/SkinSwitcher.jsx'), import('./style.css')]).then(
+    ([{ default: App }, { default: SkinSwitcher }]) =>
+      root.render(
+        <>
+          <App />
+          <SkinSwitcher current="classic" onChange={(key) => { if (key !== 'classic') location.search = `?skin=${key}`; }} />
+        </>,
+      ),
+  );
 }

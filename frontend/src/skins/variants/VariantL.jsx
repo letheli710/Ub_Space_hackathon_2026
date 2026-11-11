@@ -6,8 +6,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import StationShip from '../components/station/StationShip.jsx';
-import { INNER, LEAD, OUTER, TABS, TAGLINE, logo } from './mock.jsx';
+import StationShip from '../../components/station/StationShip.jsx';
+import { INNER, LEAD, OUTER, TABS, TAGLINE, logo } from '../shipCanvas.jsx';
 import './variantL.css';
 
 /* ------------------------------------------------------------------ director */
