@@ -351,6 +351,7 @@ export default function App() {
         : 'LIVE';
   const navigation = simulation.state?.navigation;
   const planetTab = tab === 'Planetary Trajectories';
+  const demoNav = !simulation.scene && voyage.current.mission ? navigationState(voyage.current) : null;
   const mapLabel = id => simulation.scene?.map?.objects.find(item => item.entity_id === id)?.label ?? id?.replaceAll('_', ' ') ?? '—';
 
   return (
@@ -367,8 +368,8 @@ export default function App() {
         <div className={workspaceClass}>
           {planetTab ? (
             <MissionControl
-              origin={mapLabel(navigation?.origin ?? simulation.scene?.map?.origin_entity_id)}
-              destination={mapLabel(navigation?.destination ?? simulation.scene?.destination.entity_id)}
+              origin={demoNav ? demoNav.origin : mapLabel(navigation?.origin ?? simulation.scene?.map?.origin_entity_id)}
+              destination={demoNav ? demoNav.destination : mapLabel(navigation?.destination ?? simulation.scene?.destination.entity_id)}
               voyageLabel={
                 simulation.scene
                   ? navigation?.arrived
@@ -376,8 +377,9 @@ export default function App() {
                     : Number.isFinite(navigation?.distance_m)
                       ? `EN ROUTE · ${navigation.distance_m.toFixed(0)} m`
                       : '—'
-                  : 'WAITING FOR BACKEND'
+                  : `DEMO · ${voyageLabel}`
               }
+              demo={!simulation.scene}
               mapInfo={mapInfo}
               map={simulation.scene?.map}
               ready={simulation.ready}
@@ -471,7 +473,7 @@ export default function App() {
       <footer>
         INTERSTELLAR X⁴ / HACKATHON PROTOTYPE{' '}
         <span>
-          {planetTab ? `BACKEND MAP · ${status}` : live
+          {planetTab ? (simulation.scene ? `BACKEND MAP · ${status}` : 'DEMO MAP · BROWSER PHYSICS · NO BACKEND REQUIRED') : live
             ? 'LIVE SPACE ROS / GAZEBO ENVIRONMENT'
             : simulation.ready
               ? 'DEMO · BROWSER PHYSICS'
