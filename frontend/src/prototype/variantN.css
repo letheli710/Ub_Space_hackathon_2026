@@ -1,0 +1,328 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+/* PROTOTYPE — Variant N: Ink Cosmos · 水墨太空 */
+.vn {
+  --paper: #f1e9d8;
+  --ink: #161412;
+  --ink2: #4a453e;
+  --ink3: #8a8276;
+  --red: #b8321f;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  -webkit-font-smoothing: antialiased;
+}
+.vn *,
+.vn *::before,
+.vn *::after { box-sizing: border-box; }
+.vn button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.vn .vn-dim { color: var(--ink3); }
+
+.vn-canvas { position: absolute; inset: 0; }
+.vn-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.32  0 0 0 0 0.28  0 0 0 0 0.2  0 0 0 0.7 -0.18'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ---------------- top bar ---------------- */
+.vn-top {
+  position: absolute;
+  top: 22px;
+  left: 4vw;
+  right: 4vw;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  z-index: 3;
+}
+.vn-brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 500; letter-spacing: 0.02em; }
+.vn-brand img { width: 26px; height: 26px; object-fit: contain; filter: grayscale(1) contrast(1.3) brightness(0.4); mix-blend-mode: multiply; }
+.vn-brand em { font-style: italic; font-size: 14px; color: var(--ink3); margin-left: 8px; font-variant-numeric: tabular-nums; }
+.vn-top nav { display: flex; gap: 22px; }
+.vn-top nav button { display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: 0.62; transition: opacity 0.3s; position: relative; }
+.vn-top nav button:hover { opacity: 1; }
+.vn-top nav button b { font-family: 'Noto Serif SC', serif; font-weight: 600; font-size: 14px; letter-spacing: 0.15em; }
+.vn-top nav button span { font-size: 12px; font-style: italic; color: var(--ink2); }
+.vn-top nav button.on { opacity: 1; }
+.vn-top nav button.on::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  width: 6px;
+  height: 6px;
+  background: var(--red);
+  border-radius: 50% 40% 55% 45%;
+}
+
+/* ---------------- seal 印章 ---------------- */
+.vn-seal {
+  display: inline-grid;
+  grid-auto-flow: row;
+  place-items: center;
+  background: var(--red);
+  color: #f6eee0;
+  font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 5px;
+  gap: 1px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px #f1e9d8, inset 0 0 0 3.5px var(--red);
+  filter: url(#vn-rough);
+  transform: rotate(-4deg);
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+}
+
+/* ---------------- home hero ---------------- */
+.vn-hero {
+  position: absolute;
+  left: 5vw;
+  top: 14vh;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  z-index: 2;
+}
+.vn-vt {
+  writing-mode: vertical-rl;
+  font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  font-size: min(15vh, 128px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  filter: url(#vn-bleed);
+  color: var(--ink);
+}
+.vn-tcu {
+  text-combine-upright: all;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.62em;
+  display: inline-block;
+  margin-top: 0.12em;
+}
+.vn-vsub {
+  writing-mode: vertical-rl;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 19px;
+  letter-spacing: 0.42em;
+  padding-top: 18px;
+}
+.vn-vsub > span:first-child { font-weight: 600; }
+.vn-vsub .vn-dim { font-size: 13px; letter-spacing: 0.5em; }
+.vn-vsub .vn-seal { writing-mode: horizontal-tb; margin-top: 14px; font-size: 20px; }
+.vn-en { margin-top: 20vh; max-width: 330px; padding-left: 14px; }
+.vn-en h1 { margin: 0; font-weight: 400; font-style: italic; font-size: 54px; line-height: 1; letter-spacing: -0.01em; }
+.vn-en h1 sup { font-size: 0.5em; }
+.vn-tag { margin: 10px 0 0; font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink2); }
+.vn-lead { margin: 14px 0 0; font-size: 16px; line-height: 1.5; color: var(--ink2); }
+.vn-cta {
+  position: relative;
+  margin-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 30px 12px 22px;
+  color: #f3ecdc !important;
+  font-size: 18px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+.vn-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, #141210 0%, #1d1a17 70%, rgba(29, 26, 23, 0.55) 92%, rgba(29, 26, 23, 0) 100%);
+  border-radius: 40% 12% 30% 8% / 60% 30% 70% 40%;
+  filter: url(#vn-rough);
+  transition: transform 0.35s cubic-bezier(.2, .8, .2, 1);
+  transform-origin: left center;
+}
+.vn-cta:hover::before { transform: scaleX(1.08); }
+.vn-cta { isolation: isolate; }
+.vn-cta i {
+  font-style: normal;
+  font-family: 'Ma Shan Zheng', serif;
+  background: var(--red);
+  color: #f6eee0;
+  font-size: 15px;
+  padding: 3px 5px;
+  border-radius: 2px;
+  transform: rotate(-6deg);
+}
+
+.vn-features {
+  position: absolute;
+  left: 5vw;
+  bottom: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 14px;
+  color: var(--ink2);
+  font-style: italic;
+  z-index: 2;
+}
+.vn-features b { font-family: 'Noto Serif SC', serif; font-style: normal; font-weight: 400; color: var(--red); margin-right: 10px; font-size: 12px; }
+
+.vn-colophon-home {
+  position: absolute;
+  right: calc(4vw + 100px);
+  bottom: 40px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.vn-vcol {
+  writing-mode: vertical-rl;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  letter-spacing: 0.35em;
+  max-height: 46vh;
+}
+.vn-colophon-home .vn-vcol.vn-dim { font-size: 12px; font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; letter-spacing: 0.2em; }
+
+/* ---------------- alarm inscription ---------------- */
+.vn-alarm {
+  position: absolute;
+  top: 13vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  pointer-events: none;
+  animation: vn-ink-in 0.9s cubic-bezier(.2, .8, .2, 1) both;
+}
+.vn-alarm-home { right: 4vw; top: 11vh; }
+.vn-alarm-console { left: 27vw; }
+.vn-alarm-cn {
+  writing-mode: vertical-rl;
+  font-family: 'Ma Shan Zheng', serif;
+  font-size: min(9vh, 74px);
+  line-height: 1;
+  color: var(--ink);
+  filter: url(#vn-bleed);
+}
+.vn-alarm-en { font-size: 13px; font-style: italic; color: var(--red); letter-spacing: 0.05em; max-width: 9em; text-align: center; }
+.vn-seal-alarm { font-size: 26px; padding: 6px 7px; animation: vn-stamp 0.5s 0.5s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes vn-ink-in {
+  from { opacity: 0; filter: blur(8px); transform: translateY(-10px); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes vn-stamp {
+  from { opacity: 0; transform: rotate(-4deg) scale(2.2); }
+  to { opacity: 0.92; transform: rotate(-4deg) scale(1); }
+}
+
+/* ---------------- console: inject (left) ---------------- */
+.vn-inject {
+  position: absolute;
+  left: 4vw;
+  top: 13vh;
+  width: 230px;
+  z-index: 2;
+}
+.vn h3 {
+  margin: 18px 0 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-weight: 400;
+  border-bottom: 1px solid rgba(22, 20, 18, 0.25);
+  padding-bottom: 4px;
+}
+.vn h3 b { font-family: 'Noto Serif SC', serif; font-weight: 900; font-size: 15px; letter-spacing: 0.3em; }
+.vn h3 span { font-size: 12px; font-style: italic; color: var(--ink3); }
+.vn-inject h3:first-child { margin-top: 0; }
+.vn-list { display: flex; flex-direction: column; }
+.vn-list button,
+.vn-reset {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 0 3px 16px;
+  text-align: left;
+  position: relative;
+  transition: transform 0.25s, color 0.25s;
+}
+.vn-list button b,
+.vn-reset b { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 14px; letter-spacing: 0.12em; white-space: nowrap; }
+.vn-list button span,
+.vn-reset span { font-size: 12px; font-style: italic; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vn-list button::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.vn-list button:hover { transform: translateX(4px); }
+.vn-list button:hover::before { opacity: 0.5; }
+.vn-list button.on { color: var(--red); }
+.vn-list button.on::before { opacity: 1; background: var(--red); width: 9px; height: 9px; margin-top: -4.5px; border-radius: 2px; transform: rotate(-6deg); }
+.vn-reset { margin-top: 16px; padding: 7px 16px; border: 1px solid rgba(22, 20, 18, 0.5); border-radius: 2px 10px 3px 12px; }
+.vn-reset:hover { background: var(--ink); color: var(--paper); }
+.vn-reset:hover span { color: #cfc6b5; }
+
+/* ---------------- console: colophon (right) ---------------- */
+.vn-colophon {
+  position: absolute;
+  right: 4vw;
+  top: 13vh;
+  width: 250px;
+  z-index: 2;
+  font-size: 13px;
+}
+.vn-meta { display: flex; flex-wrap: wrap; gap: 2px 14px; font-style: italic; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.vn-sys { display: grid; grid-template-columns: 46px 1fr 30px; align-items: center; column-gap: 8px; padding: 2px 0; }
+.vn-sys b { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 13px; letter-spacing: 0.1em; }
+.vn-sys span { display: none; }
+.vn-sys i {
+  height: 5px;
+  background: linear-gradient(90deg, var(--ink) 0, var(--ink) calc(var(--v) - 6%), rgba(22, 20, 18, 0.35) var(--v), transparent calc(var(--v) + 2%));
+  border-radius: 3px 1px 4px 1px;
+  filter: url(#vn-rough);
+  transition: background 0.6s;
+}
+.vn-sys em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+.vn-sys.low i { background: linear-gradient(90deg, var(--red) 0, var(--red) calc(var(--v) - 6%), rgba(184, 50, 31, 0.35) var(--v), transparent calc(var(--v) + 2%)); }
+.vn-sys.low em { color: var(--red); }
+.vn-agent { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 6px; padding: 1px 0; }
+.vn-agent i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+.vn-agent b { font-weight: 500; }
+.vn-agent span { font-style: italic; color: var(--ink3); }
+.vn-agent.warn i { background: var(--red); animation: vn-pulse 1s infinite; }
+.vn-agent.warn span { color: var(--red); }
+@keyframes vn-pulse { 50% { opacity: 0.3; } }
+.vn-log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.vn-log li { font-style: italic; color: var(--ink2); line-height: 1.3; border-left: 2px solid rgba(22, 20, 18, 0.2); padding-left: 8px; }
+.vn-log li:first-child { color: var(--ink); }
+.vn-log li.alert { color: var(--red); border-left-color: var(--red); }
+
+@media (max-width: 900px) {
+  .vn-top nav { display: none; }
+  .vn-en { margin-top: 8vh; }
+  .vn-colophon { display: none; }
+}

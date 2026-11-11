@@ -1,0 +1,74 @@
+/* PROTOTYPE — Variant C: Editorial */
+.vc {
+  --bg: #0c0c0c;
+  --ink: #efebe3;
+  --ink-2: #a19d95;
+  --ink-3: #66635e;
+  --rule: #2a2927;
+  --violet: #9d8cff;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 0 40px 110px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.55 var(--sans);
+}
+.vc button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+.vc-mast { display: flex; align-items: center; gap: 32px; height: 72px; border-bottom: 1px solid var(--ink); }
+.vc-mast img { height: 40px; }
+.vc-mast nav { display: flex; gap: 22px; margin: 0 auto; }
+.vc-mast nav button { color: var(--ink-2); padding: 4px 0; border-bottom: 1px solid transparent; }
+.vc-mast nav button:hover { color: var(--ink); }
+.vc-mast nav button.on { color: var(--ink); border-color: var(--ink); }
+.vc-issue { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.vc-issue b { color: var(--violet); font-weight: 500; }
+
+/* Home */
+.vc-cover { position: relative; min-height: 62vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px 0 36px; border-bottom: 1px solid var(--rule); overflow: hidden; }
+.vc-ship { position: absolute; right: -6%; top: 0; bottom: 0; width: 64%; }
+.vc-kicker { position: relative; margin: 0 0 18px; font-size: 13px; color: var(--ink-2); }
+.vc-cover h1 { position: relative; max-width: 1050px; margin: 0; font: 400 clamp(56px, 8.4vw, 132px)/0.92 var(--serif); letter-spacing: -0.02em; pointer-events: none; }
+.vc-cover h1 i { color: var(--violet); }
+
+.vc-cols { display: grid; grid-template-columns: 1.2fr 1fr 1fr; }
+.vc-cols > div { padding: 22px 28px 0; border-left: 1px solid var(--rule); }
+.vc-cols > div:first-child { padding-left: 0; border-left: 0; }
+.vc h4 { margin: 0 0 14px; font: 500 11px var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.vc-gap { margin-top: 26px !important; }
+.vc-lead { margin: 0 0 22px; font: 400 22px/1.35 var(--serif); }
+.vc-actions { display: flex; align-items: center; gap: 22px; }
+.vc-cta { padding: 12px 20px !important; background: var(--ink) !important; color: var(--bg) !important; font-weight: 500 !important; }
+.vc-cta:hover { background: #fff !important; }
+.vc-link { border-bottom: 1px solid var(--ink-2) !important; color: var(--ink-2) !important; }
+.vc-num { margin: 0; padding: 0; list-style: none; counter-reset: n; }
+.vc-num li { counter-increment: n; display: flex; gap: 14px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 16px; }
+.vc-num li::before { content: counter(n, decimal-leading-zero); color: var(--ink-3); font-size: 12px; padding-top: 3px; }
+.vc-figs { margin: 0; }
+.vc-figs div { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-top: 1px solid var(--rule); }
+.vc-figs dt { color: var(--ink-2); font-size: 12px; }
+.vc-figs dd { margin: 0; font: 400 40px/1.1 var(--serif); font-variant-numeric: tabular-nums; }
+
+/* Console */
+.vc-view { position: relative; height: 58vh; min-height: 380px; border-bottom: 1px solid var(--ink); background: radial-gradient(ellipse at 50% 45%, #151515, var(--bg) 70%); }
+.vc-caption { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 10px 0; font-size: 12px; color: var(--ink-2); }
+.vc-caption button { text-decoration: underline; text-underline-offset: 3px; color: var(--ink); margin-left: 8px; }
+.vc-flash { position: absolute; top: 16px; left: 0; max-width: 520px; margin: 0; font: 400 28px/1.15 var(--serif); }
+.vc-flash b { color: var(--violet); font-weight: 400; font-style: italic; }
+.vc-small { margin: 14px 0 4px; font-size: 11px; color: var(--ink-3); }
+.vc-hazards { margin: 0; padding: 0; list-style: none; }
+.vc-hazards li { padding: 3px 0; font: 400 21px/1.2 var(--serif); color: var(--ink-2); cursor: pointer; transition: color 0.15s, padding 0.15s; }
+.vc-hazards li:hover { color: var(--ink); padding-left: 6px; }
+.vc-hazards li.on { color: var(--violet); font-style: italic; }
+.vc-hazards li.on::after { content: ' ●'; font-size: 12px; vertical-align: middle; }
+.vc-leaders { margin: 0; }
+.vc-leaders div { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; }
+.vc-leaders dt { color: var(--ink-2); }
+.vc-leaders i { flex: 1; border-bottom: 1px dotted var(--ink-3); transform: translateY(-4px); }
+.vc-leaders dd { margin: 0; font-variant-numeric: tabular-nums; }
+.vc-leaders .low dd { color: var(--violet); }
+.vc-log { margin: 0; padding: 0; list-style: none; }
+.vc-log li { padding: 8px 0; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
+.vc-log li.alert { color: var(--violet); }
+.vc-log time { display: block; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
