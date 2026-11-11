@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { materials } from './materials.js';
 import { DEFAULT_POSE, JOINT_LIMITS } from '../../simulation/demoArmKinematics.js';
+import { RepairSparks } from './ShipEffects.jsx';
 export { DEFAULT_POSE, JOINT_LIMITS };
 
 // A movable robotic arm: base yaw → shoulder → elbow → wrist → two-finger gripper.
@@ -21,7 +22,7 @@ export function idlePose(t, phase = 0) {
   };
 }
 
-export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.5, lower = 1.3, ...groupProps }) {
+export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.5, lower = 1.3, getRepairEffect, ...groupProps }) {
   const m = materials();
   const yaw = useRef();
   const shoulder = useRef();
@@ -101,6 +102,7 @@ export default function RoboticArm({ pose, animate = true, phase = 0, upper = 1.
               <mesh ref={fingerB} material={m.dark} position={[-0.1, 0.3, 0]}>
                 <boxGeometry args={[0.04, 0.24, 0.08]} />
               </mesh>
+              {getRepairEffect && <RepairSparks position={[0, .42, 0]} getEffect={getRepairEffect} />}
             </group>
           </group>
         </group>

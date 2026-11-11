@@ -136,11 +136,18 @@ export function navigationState(voyage) {
   const target = segment.to;
   const fraction=voyage.physics.cruiseVelocity.length()/GUIDANCE_SPEED_M_S;
   const eta=fraction>0 ? Math.max(0,segment.endTime-travelTime)/fraction : null;
-  return { phase: segment.type === 'arc' ? `${target.toUpperCase()} ORBIT` : `${segment.from.toUpperCase()} → ${target.toUpperCase()}`,
-    origin: segment.from, destination: target, in_orbit: segment.type === 'arc',
+  const error=voyage.mapPosition.distanceTo(point.position), inOrbit=segment.type==='arc' && error<1;
+  return { phase: segment.type === 'arc' ? `${target.toUpperCase()} ${inOrbit ? 'ORBIT' : 'PASS · OFF COURSE'}` : `${segment.from.toUpperCase()} → ${target.toUpperCase()}`,
+    origin: segment.from, destination: target, in_orbit: inOrbit,
     arrival_time_s: eta===null ? null : voyage.mapElapsed+eta, eta_s: eta,
     target_position_map_units: planetMapPosition(target, voyage.mapElapsed).toArray(),
     map_position_au: voyage.mapPosition.clone().divideScalar(MAP_UNITS_PER_AU).toArray(),
+    reference_position_map_units:point.position.toArray(),
+    route_error_map_units:error, eta_is_reference:true,
+    map_velocity_m_s: voyage.navigationBody?.velocity.toArray(),
+    navigation_force_world_n: voyage.navigationBody?.force.toArray(),
+    course_correction: voyage.physics.flightControl?.enabled ?? false,
+    tracking_model:'Free integrated navigation body plus SI rigid-body disturbances. The route is a controller reference, not a pose constraint.',
     target_orbital_speed_km_s: planetState(target, voyage.mapElapsed).velocity.length()/1000,
     planned_arrival_map_units: guidancePoint(segment, eta===null ? voyage.mapElapsed : voyage.mapElapsed+eta, undefined, undefined, null, segment.endTime).position.toArray(),
     cruise_speed_km_s: voyage.physics.cruiseVelocity.length()/1000,

@@ -63,7 +63,7 @@ export function buildDemoObservation(s, voyage = null) {
         phase: voyagePhase(voyage), origin: origin(voyage), destination: destination(voyage),
         in_orbit: voyage.dwell > 0, mission_time_s: voyage.mapElapsed, map_time_scale: voyage.timeScale,
         map_position_units: voyage.mapPosition.toArray(), physics_to_map_quaternion: voyage.frame.toArray(),
-        guidance: 'Continuously updated Earth-Mars tangent loop with far-side parking arcs around the current planets. Local burns and impacts add deviation. Encounters use the physical clock and body-frame measurements, not accelerated celestial time.',
+        guidance: 'The Earth-Mars tangent loop is a reference for a free integrated navigation body. Impacts and burns visibly displace the rigid body. Routine bounded course/attitude corrections are directly authorized for Propelling, without a Main Judging proposal or model call; they stop during propulsion outages and yield to deliberate/evasive maneuvers. Catalog collision-avoidance burns still require Main Judging. Encounters use the physical clock, independently of map time.',
       }, solar_system: {
         model: 'Fixed Kepler ellipses initialized from JPL elements; guided spacecraft transfers are not ballistic gravity solutions.',
         epoch: SOLAR_EPOCH, date: celestialDate(voyage.mapElapsed),

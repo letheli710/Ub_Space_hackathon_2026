@@ -2,6 +2,8 @@
 
 These rules apply to **Generator → DEMO** and its AI gateway on port 8001.
 Use the existing [Windows/macOS launch and AI instructions](demo-ai.md).
+The [free-flight controller](demo-free-flight.md) keeps an independent ship near
+the planned loop with bounded powered corrections; collisions can displace it.
 
 ## Solar storm
 
@@ -88,6 +90,20 @@ requirement, invent targets, or bypass Main Judging. Reconstruction creates new
 material as a simulation mechanic; it is not salvage, welding or a mass-conserving
 manufacturing model. Arm motion currently uses joint/extension limits and reach,
 not obstacle-avoiding robotic motion planning.
+
+## Ship effects
+
+The engine nozzle has a flickering blue-white flame with an amber outer plume.
+A small plume represents guided cruise; an approved/manual main +Z burn makes it
+longer and brighter. Its strength follows propulsion integrity, and it switches
+off during free coasting, a Propelling outage, engine/thruster failure, fuel exhaustion or engine
+detachment. This is a visual cue; it does not add thrust or consume extra fuel.
+
+An arm holding repair contact continuously emits white/yellow sparks and a small
+tool glow from its actual gripper tip. Sparks do not run while the arm is travelling
+to the socket, suspended or finished. Pause freezes the plume and spark animation.
+The same effect works for attached repairs and missing-component reconstruction,
+for all ten arms, without additional model API calls.
 
 ## Try the rules
 

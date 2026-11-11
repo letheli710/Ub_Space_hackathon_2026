@@ -24,7 +24,8 @@ export default function DemoPropulsionControls({ demo }) {
       ].map(([label, angular]) => <button key={label} disabled={!demo.playing || demo.physics.fuel <= 0 || demo.physics.faults.includes('Thruster Failure')} onClick={() => fire([0, 0, 0], angular)}>{label}</button>)}
     </div>
     <button onClick={demo.coast}>Cut thrust · coast</button>
-    <p className="muted">Coasting preserves velocity and spin. Counter-burns are required to slow down. Burns run at 1x while map travel continues; Reset demo restores the initial 7.9 km/s cruise.</p>
+    {demo.courseCorrection && <button onClick={()=>demo.courseCorrection(!demo.physics.flightControl.enabled)}>{demo.physics.flightControl.enabled ? 'Disable automatic course correction' : 'Enable automatic course correction'}</button>}
+    <p className="muted">Automatic course correction uses Propelling's standing authority and finite thrust, without Main Judging approval or model calls. It yields to deliberate maneuvers. Cut thrust also disables correction for free coasting; enable it again to recover the route. Burns and impacts run at 1x while map travel continues.</p>
     {error && <p role="alert">{error}</p>}
   </fieldset>;
 }

@@ -2,6 +2,7 @@ import { Vector3, Quaternion, Matrix3 } from 'three';
 import { DEMO_PARTS, DEMO_ARM_MOUNTS } from './demoShip.js';
 import { DEFAULT_POSE, ARM_CONTACT_TOLERANCE, advanceArmPose, armMount, armToolPoint, repairContactPlans } from './demoArmKinematics.js';
 import { ENERGY_PARTS, STORM_OUTAGE_SECONDS, SUBSYSTEM_IDS, energyIntegrity, mayRepair, propulsionIntegrity, subsystemStates } from './demoSystems.js';
+import { courseCorrection, localCourseError, navigationAuthority } from './demoFlightControl.js';
 
 const V = a => new Vector3(...(a ?? [0, 0, 0]));
 const Z = V([0, 0, 1]);
@@ -63,7 +64,8 @@ export function createDemoPhysics({ position = [0, 0, 0], direction = [0, 0, 1],
     runId: globalThis.crypto?.randomUUID() ?? `${Date.now()}-${Math.random()}`, epoch: 0,
     repairs: [], battery: 100, solarProtection: false,
     emergencyBattery: 20, stormUntil: {}, stormCount: 0, lastSubsystemModes: null,
-    cruiseVelocity: ship.v.clone(), cruiseDisplacement: V(), cruiseElapsed: 0, debrisSequence: 0,
+    cruiseVelocity: ship.v.clone(), cruiseDirection: ship.v.clone().normalize(), cruiseDisplacement: V(), cruiseElapsed: 0, debrisSequence: 0,
+    flightControl: null,
     armPoses: Object.fromEntries(Object.entries(DEMO_ARM_MOUNTS).map(([id,m]) => [id,{...DEFAULT_POSE,upper:m.upper ?? 1.5,lower:m.lower ?? 1.3}])),
     events: [], faults: [], lastImpact: null, initialVelocity: ship.v.clone(), initialPosition: ship.p.clone(),
   };
@@ -79,7 +81,7 @@ export function syncDemoSystems(s) {
   if (states.propelling.mode !== 'online') { s.burn = null; s.force.set(0,0,0); s.torque.set(0,0,0); }
   // The gameplay cruise reference changes for the entire local encounter frame;
   // relative collision velocities and physical maneuver offsets remain unchanged.
-  const cruise = s.initialVelocity.clone().multiplyScalar(propulsionIntegrity(s)/100), change = cruise.clone().sub(s.cruiseVelocity);
+  const cruise = s.cruiseDirection.clone().multiplyScalar(DEMO_CRUISE_M_S*propulsionIntegrity(s)/100), change = cruise.clone().sub(s.cruiseVelocity);
   if (change.lengthSq()>1e-16) for (const body of [s.ship,...s.fragments,...s.rocks]) body.v.add(change);
   s.cruiseVelocity.copy(cruise);
   return states;
@@ -107,10 +109,43 @@ export function commandDemoBurn(s, { linear = [0, 0, 0], angular = [0, 0, 0], se
   if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 10) throw new Error('Burn duration must be 0–10 seconds.');
   demoNormalTime(s);
   s.burn = { linear: V(linear), angular: V(angular), remaining: seconds };
+  if (s.flightControl) { s.flightControl.holdUntil = s.elapsed + seconds + 6; s.flightControl.maneuver = true; }
   s.epoch++;
   emit(s, { type: 'burn', text: `DEMO · body-frame burn for ${seconds}s` });
 }
-export function coastDemo(s) { s.burn = null; s.force.set(0, 0, 0); s.torque.set(0, 0, 0); s.epoch++; }
+export function setDemoCourseCorrection(s, enabled) {
+  if (!s.flightControl) return;
+  s.flightControl.enabled = Boolean(enabled); s.epoch++;
+  const authority=navigationAuthority(s);
+  s.flightControl.mode=authority.mode; s.flightControl.reason=authority.reason;
+  if (!enabled) {
+    s.flightControl.force.set(0,0,0); s.flightControl.torque.set(0,0,0);
+    if (!s.burn) { s.force.set(0,0,0); s.torque.set(0,0,0); }
+  }
+  emit(s, {type:'guidance',system_id:'propelling',text:`PROPELLING · automatic course correction ${enabled ? 'enabled · standing navigation authority' : 'off · free inertial coast'}`});
+}
+export function coastDemo(s) { s.burn = null; setDemoCourseCorrection(s,false); s.force.set(0, 0, 0); s.torque.set(0, 0, 0); s.epoch++; }
+export function spendDemoNavigationFuel(s, amount) {
+  if (!(amount > 0)) return;
+  s.fuel = Math.max(0, s.fuel - amount); refreshMass(s.ship, s.fuel);
+}
+
+/** A forecast owns every mutable body, tensor, contact map and maintenance job. */
+export function cloneDemoPhysics(s) {
+  const seen = new Map();
+  const copy = value => {
+    if (!value || typeof value !== 'object') return value;
+    if (seen.has(value)) return seen.get(value);
+    if (typeof value.clone === 'function') { const out=value.clone(); seen.set(value,out); return out; }
+    const out = value instanceof Map ? new Map() : value instanceof Set ? new Set() : Array.isArray(value) ? [] : {};
+    seen.set(value,out);
+    if (value instanceof Map) for (const [k,v] of value) out.set(copy(k),copy(v));
+    else if (value instanceof Set) for (const v of value) out.add(copy(v));
+    else for (const [k,v] of Object.entries(value)) out[k]=copy(v);
+    return out;
+  };
+  return copy(s);
+}
 
 /** Ballistic rock aimed once; it never follows a moving/turning target. */
 export function launchDemoRock(s, { target_id = 'command', mass_kg = 200, radius_m = .6, speed_m_s = 40, direction_body, start_body, start_world, warning_s = 12 } = {}) {
@@ -143,7 +178,7 @@ export function launchDemoRock(s, { target_id = 'command', mass_kg = 200, radius
 /** Inverse of the local display scale; offset is in world axes, not target axes. */
 export function launchDemoRockAtPointer(s, offsetFromShip, options = {}) {
   if (!Array.isArray(offsetFromShip) || offsetFromShip.length !== 3 || !offsetFromShip.every(Number.isFinite)) throw new Error('Invalid pointer position.');
-  const start = modelOrigin(s.ship).add(V(offsetFromShip).divideScalar(DEMO_RENDER_SCALE));
+  const start = s.ship.p.clone().add(V(offsetFromShip).divideScalar(DEMO_RENDER_SCALE));
   return launchDemoRock(s, { ...options, start_body: undefined, start_world: start.toArray() });
 }
 
@@ -286,6 +321,19 @@ function physicsStep(s, dt) {
   const systems = syncDemoSystems(s);
   const b = s.ship;
   s.force.set(0, 0, 0); s.torque.set(0, 0, 0);
+  const previousControlMode = s.flightControl?.mode;
+  const correction = courseCorrection(s, angularVelocity(b), tensorWorld);
+  if (s.flightControl && previousControlMode !== s.flightControl.mode &&
+      (s.flightControl.mode === 'correcting' || previousControlMode === 'correcting'))
+    emit(s,{type:'guidance',system_id:'propelling',text:`PROPELLING · ${s.flightControl.mode === 'correcting' ? 'autonomous course correction · no Main Judging approval required' : s.flightControl.reason || 'course restored'}`});
+  if (correction && (correction.force.lengthSq()>1e-12 || correction.torque.lengthSq()>1e-12)) {
+    const flow = correction.force.length()/(230*G0) + correction.torque.length()/(8*230*G0);
+    const fraction = flow ? Math.min(1,s.fuel/(flow*dt)) : 1;
+    s.force.copy(correction.force).multiplyScalar(fraction); s.torque.copy(correction.torque).multiplyScalar(fraction);
+    correction.force.copy(s.force); correction.torque.copy(s.torque);
+    b.v.addScaledVector(s.force,dt/b.mass); b.L.addScaledVector(s.torque,dt);
+    s.fuel = Math.max(0,s.fuel-flow*fraction*dt); refreshMass(b,s.fuel);
+  }
   if (s.burn && systems.propelling.mode === 'online' && s.fuel > 0 && !s.faults.includes('Thruster Failure')) {
     const active = Math.min(dt, s.burn.remaining);
     const linear = s.burn.linear, main = b.parts.some(p => p.id === 'engine') && !s.faults.includes('Engine Failure');
@@ -367,12 +415,17 @@ export function advanceDemo(s, realSeconds) {
   while (s.accumulator + 1e-10 >= H) { physicsStep(s, H); s.accumulator -= H; }
 }
 export function demoTelemetry(s) {
-  const b = s.ship, nominal = s.initialPosition.clone().add(s.cruiseDisplacement);
+  const b = s.ship;
   return { speedM_s: b.v.length(), velocity: b.v.toArray(), position: modelOrigin(b).toArray(),
     angularVelocity: angularVelocity(b).toArray(), quaternion: b.q.toArray(), fuelKg: s.fuel,
     forceN: s.force.length(), massKg: b.mass, elapsed: s.elapsed, timeScale: s.timeScale,
-    deltaV: b.v.distanceTo(s.initialVelocity), deviationM: b.p.distanceTo(nominal),
-    mode: s.burn ? 'burn' : 'coast', detached: Object.entries(s.bonds).filter(([,bond])=>bond.broken).map(([id])=>id), lastImpact: s.lastImpact,
+    deltaV: b.v.distanceTo(s.cruiseVelocity), deviationM: localCourseError(s).length(),
+    mode: s.burn ? 'burn' : s.force.length()>.01 || s.torque.length()>.01 ? 'course correction' : 'coast',
+    courseControl: s.flightControl ? {enabled:s.flightControl.enabled, mode:s.flightControl.mode, reason:s.flightControl.reason,
+      authority:'Propelling standing navigation authority; no Main Judging proposal required',
+      position_error_m:s.flightControl.positionErrorM, velocity_error_m_s:s.flightControl.velocityErrorM_s,
+      force_world_n:s.flightControl.force.toArray(), torque_world_nm:s.flightControl.torque.toArray()} : null,
+    detached: Object.entries(s.bonds).filter(([,bond])=>bond.broken).map(([id])=>id), lastImpact: s.lastImpact,
     bonds: Object.entries(s.bonds).map(([id, value]) => ({ id, ...value, stage: damageStage(value) })),
     integrity: Object.values(s.bonds).reduce((sum, b) => sum + b.health, 0) / s.parts.length,
     battery: s.battery, repairs: s.repairs.map(j => ({ ...j })), solarProtection: s.solarProtection,

@@ -5,8 +5,12 @@ DEMO has rigid-body propulsion, rock impacts, breakable module/wing attachments,
 drifting debris and measured telemetry. Initial cruise remains **7.9 km/s**.
 
 The DEMO solar system is dynamic: all eight planets follow inclined, eccentric
-Keplerian orbits; the Moon follows Earth. The ship and dotted line share a closed
-Earth–Mars tangent loop that moves with the planets and circles behind each one.
+Keplerian orbits; the Moon follows Earth. The dotted line is a closed Earth–Mars
+tangent loop that moves with the planets and circles behind each one. The ship is
+a [free body with automatic course correction](docs/demo-free-flight.md): impacts
+can knock it off that reference, and finite Propelling thrust restores course
+without a Main Judging proposal. The amber trail shows actual flight. Cut thrust
+disables automatic correction for inertial coasting; enable it again to recover.
 Use **Time scale**, **Celestial date (UTC)** and **Mission phase** to follow it.
 See [celestial motion and guidance](docs/celestial-motion.md) for controls,
 sources and the distinction between planetary physics and guided ship playback.

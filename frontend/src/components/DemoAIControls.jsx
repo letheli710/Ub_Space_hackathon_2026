@@ -1,7 +1,7 @@
 export default function DemoAIControls({ ai }) {
   return <section className="arm-controls impact-controls demo-ai-controls">
     <h4>DEMO AI MANAGEMENT</h4>
-    <p className="muted">Propelling, Energy and Robot Arms propose actions. Main Judging can approve and combine them. Approved actions now control DEMO.</p>
+    <p className="muted">Main Judging approves and combines proposed evasion, energy and repair actions. Routine course correction runs automatically under Propelling's direct authority, independently of model autopilot.</p>
     <p className="muted">Connection: {ai.settings ? `${ai.settings.provider} · ${ai.settings.model || 'model required'} · saved in AI API` : 'backend .env'}</p>
     <div className="choices">
       <button disabled={ai.checking} onClick={ai.connect}>{ai.checking ? 'Checking connection…' : 'Check AI connection'}</button>

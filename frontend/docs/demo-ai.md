@@ -6,7 +6,10 @@ are not required for this gateway.** The existing native Gazebo AI remains separ
 
 See [DEMO subsystem rules](demo-system-rules.md) for 15-second solar-storm outages,
 25%-energy-loss shutdowns, integrity-scaled cruise, emergency power, and arm-contact
-reconstruction. Offline roles are skipped; only Main Judging-approved actions run.
+reconstruction. Offline roles are skipped; proposed catalog actions require Main Judging.
+Routine [automatic course correction](demo-free-flight.md) instead has direct
+standing Propelling authority. It works without enabling model autopilot or
+making API calls; approved evasions temporarily take priority over route recovery.
 
 ## Enable AI with your existing setup
 

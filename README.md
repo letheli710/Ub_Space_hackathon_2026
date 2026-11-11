@@ -6,8 +6,11 @@ collision impulses; excessive attachment loads detach ship modules and solar win
 Thrust, fuel, rotation, velocity, position and drifting debris are measured in DEMO.
 
 All eight DEMO planets now move on inclined Kepler ellipses, and the Moon follows
-Earth. The spacecraft follows one moving Earth–Mars loop, with tangent transfers
-and far-side parking arcs behind both planets. **Pause demo** freezes both celestial
+Earth. A moving Earth–Mars reference loop has tangent transfers and far-side
+parking arcs behind both planets. The ship is now a [free body with powered course correction](frontend/docs/demo-free-flight.md),
+so impacts can knock it off course. Propelling can restore routine navigation
+without a proposal or model call; planned and actual flight are shown separately.
+**Pause demo** freezes both celestial
 and local clocks; local collisions/AI reactions keep their safe timing during
 accelerated map playback. See [dynamic celestial motion](frontend/docs/celestial-motion.md)
 for sources, controls and guided-spacecraft approximations.

@@ -50,12 +50,15 @@ including Pause. Collision detection still uses the spherical rock approximation
    acts along model +Z, right is +X and up is +Y. Pitch/yaw/roll apply torque.
    Turning the nose does not instantly redirect velocity. Thrust along the new
    orientation changes the flight vector gradually.
-5. **Cut thrust · coast** removes commanded thrust; velocity and spin persist.
-   Use opposing burns/torques to brake. No drag or automatic spin damping is added.
+5. **Cut thrust · coast** removes commanded thrust and disables automatic course
+   correction; velocity and spin persist. Enable correction again for powered,
+   bounded recovery. There is no passive drag or free spin damping.
 
 The manual controls are physics tests. Real four-role AI now connects to DEMO
-through the gateway described in [DEMO AI setup](demo-ai.md). Only Main Judging's
-approved selections reach the simulation. The models receive component integrity,
+through the gateway described in [DEMO AI setup](demo-ai.md). Main Judging approves
+catalog actions. Routine navigation correction has standing Propelling authority
+and runs without a proposal or model call. See [free flight](demo-free-flight.md).
+The models receive component integrity,
 arm mounts, fuel, charge, nearby objects and predicted maneuver clearances.
 Attached repairs require 10 continuous seconds of arm contact after positioning,
 and recover up to eight points, capped at 95%. A reachable missing component can
@@ -92,15 +95,16 @@ removes all thrust and torque. Losing a module also makes its mounted arms unava
 Physics steps at **120 Hz** during close encounters and burns, independent of
 render frame rate. Local physics switches to **1x** on the first rock, burn or
 repair; the ship retains its velocity and keeps translating during the encounter.
-The **map travel scale** remains at the selected value so the visible journey
-does not appear to stop. The map integrates measured ship displacement at that
-playback scale, including collision/thrust deflections. Nearby rocks and wreckage
-share this moving map anchor, preserving their true relative motion.
+The **map travel scale** remains at the selected value. A free navigation body
+integrates the long-range motion with finite powered guidance. Local disturbance
+displacement uses the same enlarged scale as the ship, so impacts visibly move it
+off the dotted reference. Nearby rocks and wreckage share the moving map anchor,
+preserving their true relative motion. The inertial frame does not rotate to the route.
 
 This deliberately separates illustrative map travel/day from SI physics position
 and elapsed time. Celestial motion follows map mission time. Map acceleration never multiplies impact speed, burn duration,
-repair rate or AI reaction time. Before an encounter, undisturbed coasting can use
-exact analytical fast-forward. Afterward physics stays at 1x until reset; the map
+repair rate or AI reaction time. DEMO voyages now run local physics at 1x from
+launch; standalone inertial-physics tests still support exact fast-forward. The map
 scale can still be changed. Pause freezes both clocks and fuel. A suspended browser
 tab does not catch up missed wall time.
 

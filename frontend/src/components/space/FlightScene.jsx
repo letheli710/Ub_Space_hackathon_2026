@@ -67,17 +67,20 @@ function updateGuidanceLine(line, points) {
 function LoopLine({ voyage }) {
   const planned = useRef(), flown = useRef(), lastMissionTime = useRef(null);
   const initial = useMemo(() => missionPath(voyage.current.mission, voyage.current.mapElapsed, voyage.current.travelElapsed), []);
+  const initialTrail = useMemo(() => Array.from({length:512},()=>voyage.current.flightTrail[0]),[]);
   useFrame(() => {
     if (!planned.current || !flown.current || lastMissionTime.current === voyage.current.mapElapsed) return;
     const path = missionPath(voyage.current.mission, voyage.current.mapElapsed, voyage.current.travelElapsed);
     updateGuidanceLine(planned.current, path.planned);
-    updateGuidanceLine(flown.current, path.flown);
+    const trail=voyage.current.flightTrail;
+    updateGuidanceLine(flown.current,Array.from({length:512},(_,i)=>trail[Math.min(i,trail.length-1)]));
+    flown.current.geometry.instanceCount=Math.max(1,trail.length-1);
     lastMissionTime.current = voyage.current.mapElapsed;
   });
   return (
     <>
       <Line ref={planned} points={initial.planned} color={ROUTE_COLOR} lineWidth={2.2} dashed dashSize={4} gapSize={3} transparent opacity={0.85} depthWrite={false} />
-      <Line ref={flown} points={initial.flown} color={ROUTE_COLOR} lineWidth={2.6} depthWrite={false} />
+      <Line ref={flown} points={initialTrail} color="#ffd37b" lineWidth={2.6} depthWrite={false} />
     </>
   );
 }

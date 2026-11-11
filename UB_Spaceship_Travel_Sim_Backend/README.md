@@ -18,6 +18,10 @@ for the selected connection without contacting the provider. Cycle responses
 include each role's call status and duration; failed cycles preserve diagnostics
 and authorize no actions. The optional Gazebo AI status remains separate.
 The four models can propose, judge and execute DEMO evasion and timed repairs.
+Routine [automatic course correction](../frontend/docs/demo-free-flight.md) has
+direct standing Propelling authority and runs locally without a proposal/API call.
+Main Judging still gates proposed evasions, repairs and solar actions. Restart the
+gateway after updating so the model prompts describe this navigation exception.
 DEMO [subsystem rules](../frontend/docs/demo-system-rules.md) now include timed storm
 outages, energy-based role shutdowns and arm-contact reconstruction. The gateway
 skips offline models, limits emergency Robot Arms to energy repairs, and rejects

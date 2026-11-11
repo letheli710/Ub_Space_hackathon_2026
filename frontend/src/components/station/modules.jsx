@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { materials } from './materials.js';
 import { Band, Rods, Truss, Tube } from './parts.jsx';
 import RoboticArm, { DEFAULT_POSE, idlePose } from './RoboticArm.jsx';
+import { ThrusterFlame } from './ShipEffects.jsx';
 
 // The station ship's modules. Each one is self-contained and carries its own robotic arm(s).
 // `arm(id)` returns the props for that arm (pose, animation, phase).
@@ -319,13 +320,8 @@ export function EngineSection({ arm, status }) {
       {/* Thrust plate, engine bell and exhaust glow */}
       <Tube radius={2.15} length={0.3} z={-18.4} material={m.dark} />
       <Tube radius={0.55} radiusBack={1.4} length={1.8} z={-19.5} material={m.dark} segments={36} />
-      {/* Exhaust: glowing nozzle and plume, off when the engine has failed */}
-      <mesh material={m.engineGlow} position={[0, 0, -20.45]} rotation={[0, Math.PI, 0]} visible={engineOn}>
-        <circleGeometry args={[1.3, 32]} />
-      </mesh>
-      <mesh material={m.engineGlow} position={[0, 0, -22.6]} rotation={[-Math.PI / 2, 0, 0]} visible={engineOn}>
-        <coneGeometry args={[1.2, 4.2, 32, 1, true]} />
-      </mesh>
+      <ThrusterFlame position={[0, 0, -20.45]} rotation={[-Math.PI / 2, 0, 0]}
+        enabled={engineOn} getEffect={status?.getThrusterEffect} />
       {/* Lattice cage */}
       {CAGE_RINGS.map(([z, r]) => (
         <Band key={z} radius={r} z={z} tube={0.05} material={m.truss} />

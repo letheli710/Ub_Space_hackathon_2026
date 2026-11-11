@@ -30,7 +30,7 @@ import {
   startVoyageSolarStorm,
 } from './data/voyage.js';
 import useSimulation from './simulation/useSimulation.js';
-import { commandDemoBurn, coastDemo, demoTelemetry, launchDemoRock, launchDemoRockAtPointer, injectDemoFault } from './simulation/demoPhysics.js';
+import { commandDemoBurn, coastDemo, demoTelemetry, launchDemoRock, launchDemoRockAtPointer, injectDemoFault, setDemoCourseCorrection } from './simulation/demoPhysics.js';
 import useDemoAI from './simulation/useDemoAI.js';
 import { loadAiSettings } from './ai/settings.js';
 import { celestialDate } from './simulation/celestial.js';
@@ -388,7 +388,7 @@ export default function App() {
               onImpactChange={setRockSettings}
               live={live}
               simulation={simulation}
-              demo={{ physics: voyage.current.physics, playing, launch: options => launchDemoRock(voyage.current.physics, options), burn: options => commandDemoBurn(voyage.current.physics, options), coast: () => coastDemo(voyage.current.physics) }}
+              demo={{ physics: voyage.current.physics, playing, launch: options => launchDemoRock(voyage.current.physics, options), burn: options => commandDemoBurn(voyage.current.physics, options), coast: () => coastDemo(voyage.current.physics), courseCorrection: enabled => setDemoCourseCorrection(voyage.current.physics,enabled) }}
               demoAI={demoAI}
               onLog={addLog}
               armed={armed}

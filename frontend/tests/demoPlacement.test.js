@@ -58,7 +58,7 @@ test('a pointer shot intercepts a translating ship without freezing it, and the 
   assert.ok(s.ship.p.distanceTo(position) > 19000);
   assert.ok(shipPose(v, new Vector3()).distanceTo(map) > 45);
   const renderedSeparation = demoRenderPosition(v, rock.p).sub(shipPose(v, new Vector3()));
-  assert.ok(renderedSeparation.distanceTo(rock.p.clone().sub(modelOrigin(s.ship)).multiplyScalar(DEMO_RENDER_SCALE).applyQuaternion(v.frame)) < 1e-9);
+  assert.ok(renderedSeparation.distanceTo(rock.p.clone().sub(s.ship.p).multiplyScalar(DEMO_RENDER_SCALE).applyQuaternion(v.frame)) < 1e-9);
 });
 
 test('wreckage targeting does not shift the clicked spawn location, and map speed changes leave physics safe', () => {

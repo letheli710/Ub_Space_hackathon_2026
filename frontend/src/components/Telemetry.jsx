@@ -119,21 +119,23 @@ function DemoTelemetry({ event, demoStatus }) {
   const p = demoStatus.physics;
   const motion = p ? [
     ['Velocity vector (m/s)', p.velocity.map(n => n.toFixed(2)).join(', ')],
-    ['Δv from launch', `${p.deltaV.toFixed(3)} m/s`],
-    ['Course deviation', `${p.deviationM.toFixed(2)} m`],
-    ['Position X/Y/Z (km)', p.position.map(n => (n / 1000).toFixed(2)).join(', ')],
+    ['Local disturbance Δv', `${p.deltaV.toFixed(3)} m/s`],
+    ['Local course deviation', `${p.deviationM.toFixed(2)} m`],
+    ['Encounter-frame X/Y/Z (km)', p.position.map(n => (n / 1000).toFixed(2)).join(', ')],
     ['Angular speed', `${Math.hypot(...p.angularVelocity).toFixed(4)} rad/s`],
     ['Propellant', `${p.fuelKg.toFixed(2)} kg`],
     ['Attached mass', `${p.massKg.toFixed(1)} kg`],
-    ['Applied thrust', `${p.forceN.toFixed(0)} N`],
+    ['Applied local thrust', `${p.forceN.toFixed(0)} N`],
     ['Propulsion', p.mode.toUpperCase()],
     ['Physics time scale', `${p.timeScale}x`],
     ['Detached components', String(p.detached.length)],
     ...(demoStatus.navigation ? [
       ['Celestial date (UTC)', demoStatus.celestialDate.slice(0, 10)],
       ['Mission phase', demoStatus.navigation.phase],
-      ['Next phase in', demoStatus.navigation.eta_s===null ? 'Propulsion repair required' : `${(demoStatus.navigation.eta_s / 86400).toFixed(1)} mission days`],
-      ['Guided map X/Y/Z (AU)', demoStatus.navigation.map_position_au.map(n => n.toFixed(3)).join(', ')],
+      ['Planned phase ETA', demoStatus.navigation.eta_s===null ? 'Propulsion repair required' : `${(demoStatus.navigation.eta_s / 86400).toFixed(1)} mission days`],
+      ['Actual map X/Y/Z (AU)', demoStatus.navigation.map_position_au.map(n => n.toFixed(3)).join(', ')],
+      ['Distance from planned route', `${demoStatus.navigation.route_error_map_units.toFixed(3)} map units`],
+      ['Mission guidance force', `${Math.hypot(...(demoStatus.navigation.navigation_force_world_n ?? [0,0,0])).toFixed(0)} N`],
       ['Target orbital speed', `${demoStatus.navigation.target_orbital_speed_km_s.toFixed(2)} km/s`],
     ] : []),
   ] : [];
@@ -191,6 +193,7 @@ function DemoTelemetry({ event, demoStatus }) {
       </div>
       {motion.map(([label, value]) => <div className="metric" key={label}><div><span>{label}</span><b>{value}</b></div></div>)}
       {p && <>
+        {p.courseControl && <p className="muted">Automatic course correction · {p.courseControl.mode.toUpperCase()}{p.courseControl.reason ? ` · ${p.courseControl.reason}` : ''} · Propelling has direct navigation authority. Dashed cyan: planned route. Solid amber: actual flight trail.</p>}
         <p className="muted">Integrity cruise: {(p.cruiseSpeedM_s/1000).toFixed(3)} km/s · emergency repair reserve: {p.emergencyBattery.toFixed(1)}</p>
         {Object.entries(p.systems).map(([id,status])=><p key={id} className={status.mode==='offline' ? 'telemetry-fault' : 'muted'}>{id.replaceAll('_',' ')} · {status.mode.toUpperCase()}{status.reason ? ` · ${status.reason}` : ''}{status.remaining_s>0 ? ` · ${status.remaining_s.toFixed(1)} s remaining` : ''}</p>)}
       </>}

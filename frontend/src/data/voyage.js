@@ -1,14 +1,16 @@
 import * as THREE from 'three';
-import { advanceDemo, createDemoPhysics, demoNormalTime, modelOrigin, setDemoTimeScale, triggerDemoSolarStorm, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
-import { propulsionIntegrity, STORM_MAX_RADIUS, STORM_WAVE_SPEED } from '../simulation/demoSystems.js';
+import { advanceDemo, cloneDemoPhysics, createDemoPhysics, demoNormalTime, modelOrigin, setDemoTimeScale, spendDemoNavigationFuel, triggerDemoSolarStorm, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
+import { STORM_MAX_RADIUS, STORM_WAVE_SPEED } from '../simulation/demoSystems.js';
 import { CELESTIAL_BODIES, createSolarSystem, MAP_UNITS_PER_AU, planetMapPosition, updateSolarSystem } from '../simulation/celestial.js';
 import { createMission, missionPoint, navigationState } from '../simulation/missionGuidance.js';
+import { createFlightControl, localCourseError, navigationAuthority } from '../simulation/demoFlightControl.js';
+import { advanceNavigationBody, createNavigationBody } from '../simulation/demoNavigation.js';
 
 // Browser-only demo solar system. Orbit radii follow real distances from the Sun (in AU);
 // planets are drawn much larger than real so they stay visible. The live map comes from the
 // backend SDF and measured state, independently of this demo.
-// Planet positions follow inclined Kepler ellipses; the ship's guided transfers
-// reshape the Earth–Mars loop continuously. Local encounters retain their SI clock.
+// Planet positions follow inclined Kepler ellipses; the Earth–Mars loop is a
+// moving controller reference. Independent bodies integrate the actual flight.
 
 /** World units per astronomical unit (Earth's orbit radius). */
 export const AU = MAP_UNITS_PER_AU;
@@ -43,8 +45,6 @@ const end = MARS.position
   .add(bend.clone().sub(MARS.position).setLength(MARS.radius + PARKING_ALTITUDE));
 
 export const ROUTE = new THREE.QuadraticBezierCurve3(start, bend, end);
-
-const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 // ---------- timing ----------
 // The ship cruises at a constant 7.9 km/s along the route; the route length uses the real
@@ -113,17 +113,20 @@ export function createVoyage({ physical = false } = {}) {
   if (physical) {
     v.mission = createMission();
     v.solarSystem = createSolarSystem();
-    const first = missionPoint(v.mission, 0);
-    v.physics = createDemoPhysics({ position: first.position.clone().multiplyScalar(METERS_PER_MAP_UNIT).toArray(), direction: first.tangent.toArray() });
-    v.physics.timeScale = DEFAULT_TIME_SCALE; // physics cruise starts at the same speed-up as the map
+    v.navigationBody = createNavigationBody(v.mission);
+    const direction = v.navigationBody.velocity.clone().normalize();
+    v.physics = createDemoPhysics({ position: v.navigationBody.position.clone().multiplyScalar(METERS_PER_MAP_UNIT).toArray(), direction: direction.toArray() });
+    // One safe physical clock from launch; only the astronomical navigation layer
+    // is accelerated. Contacts and control responses never inherit map time warp.
+    v.physics.timeScale = 1;
+    v.physics.flightControl = createFlightControl(direction);
     v.mapPosition = modelOrigin(v.physics.ship).divideScalar(METERS_PER_MAP_UNIT);
     v.mapElapsed = 0;
     v.travelElapsed = 0;
-    // Map guidance: the ship follows the round trip; physics adds its local deviation on top.
     v.segment = 0;
-    v.deviation = new THREE.Vector3(); // map units, in the ship's local (physics) axes
-    v.frame = new THREE.Quaternion(); // local physics axes → map axes
-    v.initialFrameInverse = routeRotation(first.tangent).invert();
+    v.deviation = new THREE.Vector3();
+    v.frame = new THREE.Quaternion(); // fixed inertial axes, never rotated to fit the route
+    v.flightTrail = [v.mapPosition.toArray()]; v.trailTime = 0;
   }
   return v;
 }
@@ -137,18 +140,9 @@ export function setVoyageTimeScale(voyage, scale) {
   voyage.timeScale = scale;
 }
 
-/** Rotation from the local physics axes to the map, which turns with the route. */
-function updateFrame(voyage, tangent) {
-  voyage.frame.copy(routeRotation(tangent)).multiply(voyage.initialFrameInverse);
-}
-
-function routeRotation(tangent) {
-  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(tangent, new THREE.Vector3(), Y_AXIS));
-}
-
 /** All nearby objects share the ship's map anchor and enlarged local meter scale. */
 export function demoRenderPosition(voyage, physicalPoint) {
-  return physicalPoint.clone().sub(modelOrigin(voyage.physics.ship))
+  return physicalPoint.clone().sub(voyage.physics.ship.p)
     .multiplyScalar(DEMO_RENDER_SCALE).applyQuaternion(voyage.frame).add(voyage.mapPosition);
 }
 
@@ -189,23 +183,35 @@ export function legProgress(voyage) {
 export function stepVoyage(voyage, dtReal) {
   if (voyage.physics) {
     const s = voyage.physics;
-    const before = modelOrigin(s.ship), elapsed = s.elapsed;
-    const cruiseBefore=s.cruiseDisplacement.clone(), cruiseTime=s.cruiseElapsed;
+    const elapsed = s.elapsed, cruiseTime=s.cruiseElapsed;
     advanceDemo(s, dtReal);
     const dt = s.elapsed - elapsed;
     if (!(dt > 0)) return null; // paused: nothing moved
     const displayRatio = voyage.timeScale / s.timeScale;
     voyage.displayElapsed=(voyage.displayElapsed ?? 0)+dt/s.timeScale;
-    const toMap = displayRatio / METERS_PER_MAP_UNIT;
-    // Amplify only map travel, never local separations, contact speeds or timers.
-    // The planned cruise follows the round trip; whatever the ship does beyond that
-    // (collision or thrust deflections) is integrated as a deviation from the route.
-    const moved = modelOrigin(s.ship).sub(before);
-    voyage.deviation.add(moved.sub(s.cruiseDisplacement.clone().sub(cruiseBefore)).multiplyScalar(toMap));
+    const travelDuration=(s.cruiseElapsed-cruiseTime)*displayRatio;
+    const powered=navigationAuthority(s).mode==='tracking';
+    advanceNavigationBody(voyage.navigationBody,voyage.mission,{time:voyage.mapElapsed,travel:voyage.travelElapsed,
+      duration:dt*displayRatio,travelDuration,physicalDuration:dt/s.timeScale,mass:s.ship.mass,
+      forceLimit:18000*(.3+.7*(s.bonds.spine?.health ?? 100)/100),fuel:s.fuel,powered});
+    spendDemoNavigationFuel(s,voyage.navigationBody.fuelUsed);
+    // This is a change of the co-moving encounter reference, applied equally to
+    // all nearby velocities by syncDemoSystems. It never erases impact delta-v.
+    s.cruiseDirection.copy(voyage.navigationBody.velocity).normalize();
+    s.flightControl.targetAttitude.setFromUnitVectors(new THREE.Vector3(0,0,1),s.cruiseDirection);
+    // Enlarge disturbance displacement by the SAME meter scale as the ship and
+    // rocks. A meter of impact drift must not disappear at astronomical scale.
+    voyage.deviation.copy(localCourseError(s)).multiplyScalar(DEMO_RENDER_SCALE);
+    voyage.mapPosition.copy(voyage.navigationBody.position).add(voyage.deviation);
     voyage.mapElapsed += dt * displayRatio;
-    voyage.travelElapsed += (s.cruiseElapsed-cruiseTime)*displayRatio;
+    voyage.travelElapsed += travelDuration;
     updateSolarSystem(voyage.solarSystem, voyage.mapElapsed);
     const event=placeOnMission(voyage);
+    voyage.trailTime+=dt/s.timeScale;
+    if (voyage.trailTime>=.25 || voyage.mapPosition.distanceTo(new THREE.Vector3(...voyage.flightTrail.at(-1)))>1) {
+      voyage.flightTrail.push(voyage.mapPosition.toArray()); voyage.trailTime=0;
+      if (voyage.flightTrail.length>512) voyage.flightTrail.shift();
+    }
     advanceSolarStorm(voyage,dt);
     return event;
   }
@@ -236,32 +242,34 @@ export function stepVoyage(voyage, dtReal) {
   return event;
 }
 
-/** Put the physical ship on the round trip; returns 'arrived' / 'departed' when an orbit starts or ends. */
+/** Update the planned phase only. The body is never placed on that reference. */
 function placeOnMission(voyage) {
   const point = missionPoint(voyage.mission, voyage.mapElapsed, undefined, undefined, voyage.travelElapsed);
-  updateFrame(voyage, point.tangent);
-  voyage.mapPosition.copy(point.position).add(voyage.deviation.clone().applyQuaternion(voyage.frame));
-  const previous = voyage.segment;
+  const previousDwell = voyage.dwell;
   voyage.segment = point.index % 4;
   const segment = point.segment;
   // Outbound leg and Mars orbit count as heading to Mars; the rest as heading home.
   voyage.direction = voyage.segment < 2 ? 1 : -1;
-  voyage.dwell = segment.type === 'arc' ? Math.max(1,segment.endTime-voyage.travelElapsed) : 0;
+  voyage.dwell = segment.type === 'arc' && voyage.mapPosition.distanceTo(point.position)<1 ? Math.max(1,segment.endTime-voyage.travelElapsed) : 0;
   voyage.progress = segment.type === 'leg' ? (voyage.direction === 1 ? point.fraction : 1 - point.fraction) : voyage.direction === 1 ? 1 : 0;
-  if (previous === voyage.segment) return null;
-  return segment.type === 'arc' ? 'arrived' : 'departed';
+  if (voyage.dwell>0 && previousDwell<=0) return 'arrived';
+  return segment.type==='leg' && previousDwell>0 ? 'departed' : null;
 }
 
 /**
- * Where the ship will be after `seconds` real seconds if it keeps to the planned route.
+ * Forecast actual free flight/control after `seconds` playing physical seconds.
  * Outer disasters aim here, so an AI that changes course can make them miss.
  */
 export function predictShipPosition(voyage, seconds, out) {
   if (voyage.physics) {
-    const point = missionPoint(voyage.mission, voyage.mapElapsed + seconds * voyage.timeScale, out, undefined,
-      voyage.travelElapsed + seconds*voyage.timeScale*propulsionIntegrity(voyage.physics)/100);
-    const frame = routeRotation(point.tangent).multiply(voyage.initialFrameInverse);
-    return out.add(voyage.deviation.clone().applyQuaternion(frame));
+    const n=voyage.navigationBody;
+    const future={...voyage,physics:cloneDemoPhysics(voyage.physics),mission:{segments: [...voyage.mission.segments],geometry:null},
+      solarSystem:createSolarSystem(),solarStorm:voyage.solarStorm ? structuredClone(voyage.solarStorm) : null,
+      navigationBody:{...n,position:n.position.clone(),velocity:n.velocity.clone(),force:n.force.clone()},
+      deviation:voyage.deviation.clone(),frame:voyage.frame.clone(),mapPosition:voyage.mapPosition.clone(),
+      flightTrail:voyage.flightTrail.map(p=>p.slice())};
+    for (let t=0;t<seconds-1e-9;t+=1/60) stepVoyage(future,Math.min(1/60,seconds-t));
+    return out.copy(future.mapPosition);
   }
   const future = { ...voyage };
   const step = 1 / 60;

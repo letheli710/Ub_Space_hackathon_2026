@@ -46,12 +46,16 @@ test('physical demo ship follows the loop, enters Mars orbit and heads home', ()
   }
   assert.deepEqual(events, ['arrived', 'departed', 'arrived']);
   assert.ok(['EARTH → MARS', 'MARS ORBIT', 'MARS → EARTH', 'EARTH ORBIT'].every((p) => phases.has(p)));
-  // Undisturbed cruise stays on the planned route, and the nose points along it.
+  // Powered tracking stays near the reference, with finite steering lag. It must
+  // never be tested as an exact pose constraint on a free body.
   const direction = new Vector3();
   const position = shipPose(v, new Vector3(), direction);
   const planned = missionPoint(v.mission, v.mapElapsed);
-  assert.ok(position.distanceTo(planned.position) < 1e-3);
-  assert.ok(direction.dot(planned.tangent) > 0.9999);
+  assert.ok(position.distanceTo(planned.position) < .5);
+  assert.ok(v.physics.flightControl.enabled);
+  assert.ok(v.physics.fuel<4000,'powered steering must use propellant');
+  assert.ok(Number.isFinite(direction.length()) && Math.abs(direction.length()-1)<1e-10);
+  assert.ok(v.physics.torque.length()<=80000.001);
 });
 
 test('continuously guided transfers reach the moving destination and clear the Sun at different launch dates', () => {

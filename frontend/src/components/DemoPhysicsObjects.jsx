@@ -7,6 +7,7 @@ import { modelOrigin, DEMO_RENDER_SCALE } from '../simulation/demoPhysics.js';
 import { demoRenderPosition, demoRenderQuaternion } from '../data/voyage.js';
 import Asteroid from './space/Asteroid.jsx';
 import RockTrail from './space/RockTrail.jsx';
+import { readDemoRepairEffect, readDemoThrusterEffect } from '../simulation/demoVisualEffects.js';
 
 // Floating origin: astronomical travel uses the map scale; nearby objects all use
 // the same enlarged meter scale as the ship. Physics never uses rendered units.
@@ -17,11 +18,12 @@ function Part({ voyage, id, fragmentId = null }) {
   const detached = fragmentId ? s.fragments.find(f => f.instanceId === fragmentId) : null;
   const bond = detached?.damage ?? s.bonds[id];
   const Module = MODULES.find(p => p.id === id)?.component;
-  const arm = armId => ({ animate: false, pose: detached ? undefined : s.armPoses[armId] });
+  const arm = armId => ({ animate: false, pose: detached ? undefined : s.armPoses[armId],
+    getRepairEffect: detached ? undefined : out => readDemoRepairEffect(voyage.current.physics, armId, out) });
   useEffect(() => {
     const color = new Color(bond.health > 50 ? '#b76c27' : '#9c3023');
     ref.current?.traverse(object => {
-      if (!object.isMesh || object.userData.damageMark || !object.material?.color) return;
+      if (!object.isMesh || object.userData.damageMark || object.userData.visualEffect || !object.material?.color) return;
       if (!tinted.current.has(object)) {
         const original = object.material;
         object.material = original.clone();
@@ -32,7 +34,12 @@ function Part({ voyage, id, fragmentId = null }) {
     });
   }, [bond.health]);
   useEffect(() => () => { for (const [object, m] of tinted.current) { if (object.material === m.clone) object.material = m.original; m.clone.dispose(); } tinted.current.clear(); }, []);
-  const status = { engineOut: Boolean(detached) || s.force.length() < 1 || !s.burn || s.burn.linear.z <= 0 || s.faults.includes('Engine Failure'), solarCrisis: s.faults.includes('Solar Panel Power Crisis') };
+  const status = { getThrusterEffect: out => {
+    readDemoThrusterEffect(voyage.current.physics, out);
+    if (fragmentId) { out.active = false; out.strength = 0; }
+    out.time = voyage.current.displayElapsed;
+    return out;
+  }, solarCrisis: s.faults.includes('Solar Panel Power Crisis') };
   useFrame(() => {
     if (!ref.current) return;
     const state = voyage.current.physics;

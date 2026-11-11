@@ -31,10 +31,11 @@ test('the actual spacecraft passes behind Mars then behind Earth as the planets 
     stepVoyage(voyage, (time - voyage.mapElapsed)/voyage.timeScale);
     const center = planetMapPosition(name, voyage.mapElapsed), other = planetMapPosition(otherName, voyage.mapElapsed);
     const ship = shipPose(voyage, new Vector3()), radial = ship.clone().sub(center);
-    assert.ok(Math.abs(radial.length() - parkingRadius(name)) < 1e-3);
+    assert.ok(Math.abs(radial.length() - parkingRadius(name)) < .5,'finite guidance must track the far-side cap within its control tolerance');
     assert.ok(radial.dot(center.clone().sub(other)) > 0, `ship must physically pass behind ${name}`);
     const path = missionPath(voyage.mission, voyage.mapElapsed);
-    assert.ok(new Vector3(...path.flown.at(-1)).distanceTo(ship) < 1e-3);
+    assert.ok(new Vector3(...path.flown.at(-1)).distanceTo(ship) < .5);
+    assert.ok(new Vector3(...voyage.flightTrail.at(-1)).distanceTo(ship)<.01,'the actual flight trail records the integrated ship, not the reference');
   }
 });
 

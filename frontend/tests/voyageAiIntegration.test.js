@@ -37,7 +37,7 @@ test('rotating parking orbit preserves cursor placement and supplies map context
 
 test('judged avoidance still clears a moving rock while the new map turns through orbit', () => {
   const v = inMarsOrbit(), baseline = inMarsOrbit();
-  for (const voyage of [v, baseline]) launchDemoRock(voyage.physics, { warning_s: 60 });
+  for (const voyage of [v, baseline]) launchDemoRock(voyage.physics, { target_id:'spine', radius_m:2, warning_s: 60 });
   const o = buildDemoObservation(v.physics, v);
   run(v, 20);
   executeDemoDecision(v.physics, o, { id: 'orbit-evasion', run_id: o.run_id, approved_options: ['burn_right_8'], summary: 'Test-approved evasion' });

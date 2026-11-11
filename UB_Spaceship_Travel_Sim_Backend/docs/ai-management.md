@@ -1,5 +1,11 @@
 # LLM spacecraft management
 
+The main DEMO now has [free flight and automatic course correction](../../frontend/docs/demo-free-flight.md).
+Routine course/attitude recovery has direct standing Propelling authority and runs
+locally without proposals, Main Judging approval, an API key or model calls.
+The LLM gateway below still judges proposed evasions, energy actions and repairs;
+enabling/disabling model autopilot does not toggle the routine flight controller.
+
 ## Enable AI for the main DEMO simulator
 
 **DEMO AI needs the Python gateway on port 8001 and the running frontend.**

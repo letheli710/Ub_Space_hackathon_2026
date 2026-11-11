@@ -75,24 +75,26 @@ entry and the 7.9 km/s guidance reference. The phase clock then progresses while
 the shape follows planetary motion; this is not constant inertial map speed.
 Arrival prediction evaluates that same moving loop at future mission times.
 
-This preserves the existing guided-loop gameplay. The spacecraft's long-range
-reference route is powered, kinematic guidance, not a Lambert solution, a
-gravity-integrated spacecraft orbit, or fuel-budgeted capture. Parking radii
+This preserves the existing loop as a reference for [free-body powered guidance](demo-free-flight.md).
+The spacecraft now integrates independent position and velocity with bounded
+control; it is not assigned the route pose. This is not a Lambert solution, a
+gravity-integrated spacecraft orbit, or a real mission fuel-budgeted capture. Parking radii
 retain the enlarged frontend scale. The initial local spacecraft velocity remains
 **7.9 km/s**; collisions and approved burns still change local velocity, rotation,
 fuel and deviation from guidance. Local contact/repair timing is never multiplied
 by celestial playback speed.
 
-The render adapter maps local encounter coordinates onto the moving guidance
-frame. Pointer placement applies the inverse frame, so a rock still spawns under
-the pointer while the route pitches and turns. Nearby rocks and detached pieces
+The render adapter uses a fixed inertial encounter frame anchored on the actual
+ship center of mass. Pointer placement uses the same transform, so a rock still
+spawns under the pointer while the ship turns. Nearby rocks and detached pieces
 share the same map anchor; planet motion never directly teleports a physical rock.
 
 The AI gateway receives `telemetry.navigation` with the current phase, target,
 ETA and planned arrival, plus `telemetry.solar_system` with the epoch/date and
 all eight heliocentric position/velocity vectors. This is explicitly separate
-from local body-frame collision sensing. Main Judging approval still gates local
-actuator actions; AI responses cannot change the celestial clock or orbital data.
+from local body-frame collision sensing. Main Judging approval gates proposed
+catalog actions. Routine Propelling course/attitude corrections have direct standing
+authority and need no proposal or model call; AI responses cannot change clocks or orbital data.
 The optional Gazebo map on port 8000 remains its separate simulation.
 
 ## Verification

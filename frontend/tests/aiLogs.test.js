@@ -33,3 +33,19 @@ test('role logs use explicit ownership and distinguish approval from executed ac
   assert.equal(new Set(entries.map(e => e.key)).size, entries.length);
   assert.deepEqual(demoCycleEntries(cycle, 'propelling'), []);
 });
+
+test('role cards show physical shutdown and emergency restrictions over model connection activity', () => {
+  const ai = { service, busy: true, gateway: { reachable: true }, latest: {
+    calls: { propelling: { status: 'ok', model: 'fixture', duration_s: 1 } },
+  }, subsystems: {
+    propelling: { mode: 'offline', reason: 'Solar storm', remaining_s: 12.5 },
+    robot_arms: { mode: 'emergency', reason: 'Energy repairs only' },
+    main_judging: { mode: 'online' },
+  } };
+  assert.deepEqual(demoConnection(ai, 'propelling'), ['bad', 'Subsystem offline', 'Solar storm · 12.5 s remaining']);
+  assert.deepEqual(demoConnection(ai, 'robot_arms'), ['warn', 'Emergency repairs only', 'Energy repairs only']);
+  assert.equal(demoConnection(ai, 'main_judging')[1], 'Analyzing…');
+  ai.busy = false;
+  ai.subsystems.propelling = { mode: 'online' };
+  assert.equal(demoConnection(ai, 'propelling')[1], 'Connected');
+});
